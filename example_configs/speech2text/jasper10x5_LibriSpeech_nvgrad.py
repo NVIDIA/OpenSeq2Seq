@@ -6,9 +6,9 @@ from open_seq2seq.decoders import FullyConnectedCTCDecoder
 from open_seq2seq.data.speech2text.speech2text import Speech2TextDataLayer
 from open_seq2seq.losses import CTCLoss
 from open_seq2seq.optimizers.lr_policies import poly_decay
+from open_seq2seq.optimizers.novograd import NovoGrad
 
-### If training with synthetic data, don't forget to add your synthetic csv
-### to dataset files
+residual_dense = True # Enable or disable Dense Residual
 
 base_model = Speech2Text
 
@@ -18,7 +18,7 @@ base_params = {
     "num_epochs": 400,
 
     "num_gpus": 8,
-    "batch_size_per_gpu": 64,
+    "batch_size_per_gpu": 32,
     "iter_size": 1,
 
     "save_summaries_steps": 100,
@@ -26,26 +26,25 @@ base_params = {
     "print_samples_steps": 2200,
     "eval_steps": 2200,
     "save_checkpoint_steps": 1100,
-    "num_checkpoints": 5,
     "logdir": "jasper_log_folder",
+    "num_checkpoints": 2,
 
-    "optimizer": "Momentum",
+    "optimizer": NovoGrad,
     "optimizer_params": {
-        "momentum": 0.90,
+        "beta1": 0.95,
+        "beta2": 0.98,
+        "epsilon": 1e-08,
+        "weight_decay": 0.001,
+        "grad_averaging": False,
     },
     "lr_policy": poly_decay,
     "lr_policy_params": {
-        "learning_rate": 0.01,
+        "learning_rate": 0.02,
         "min_lr": 1e-5,
         "power": 2.0,
     },
     "larc_params": {
         "larc_eta": 0.001,
-    },
-
-    "regularizer": tf.contrib.layers.l2_regularizer,
-    "regularizer_params": {
-        'scale': 0.001
     },
 
     "dtype": "mixed",
@@ -68,70 +67,70 @@ base_params = {
                 "kernel_size": [11], "stride": [1],
                 "num_channels": 256, "padding": "SAME",
                 "dilation":[1], "dropout_keep_prob": 0.8,
-                "residual": True
+                "residual": True, "residual_dense": residual_dense
             },
             {
                 "type": "conv1d", "repeat": 5,
                 "kernel_size": [11], "stride": [1],
                 "num_channels": 256, "padding": "SAME",
                 "dilation":[1], "dropout_keep_prob": 0.8,
-                "residual": True
+                "residual": True, "residual_dense": residual_dense
             },
             {
                 "type": "conv1d", "repeat": 5,
                 "kernel_size": [13], "stride": [1],
                 "num_channels": 384, "padding": "SAME",
                 "dilation":[1], "dropout_keep_prob": 0.8,
-                "residual": True
+                "residual": True, "residual_dense": residual_dense
             },
             {
                 "type": "conv1d", "repeat": 5,
                 "kernel_size": [13], "stride": [1],
                 "num_channels": 384, "padding": "SAME",
                 "dilation":[1], "dropout_keep_prob": 0.8,
-                "residual": True
+                "residual": True, "residual_dense": residual_dense
             },
             {
                 "type": "conv1d", "repeat": 5,
                 "kernel_size": [17], "stride": [1],
                 "num_channels": 512, "padding": "SAME",
                 "dilation":[1], "dropout_keep_prob": 0.8,
-                "residual": True
+                "residual": True, "residual_dense": residual_dense
             },
             {
                 "type": "conv1d", "repeat": 5,
                 "kernel_size": [17], "stride": [1],
                 "num_channels": 512, "padding": "SAME",
                 "dilation":[1], "dropout_keep_prob": 0.8,
-                "residual": True
+                "residual": True, "residual_dense": residual_dense
             },
             {
                 "type": "conv1d", "repeat": 5,
                 "kernel_size": [21], "stride": [1],
                 "num_channels": 640, "padding": "SAME",
                 "dilation":[1], "dropout_keep_prob": 0.7,
-                "residual": True
+                "residual": True, "residual_dense": residual_dense
             },
             {
                 "type": "conv1d", "repeat": 5,
                 "kernel_size": [21], "stride": [1],
                 "num_channels": 640, "padding": "SAME",
                 "dilation":[1], "dropout_keep_prob": 0.7,
-                "residual": True
+                "residual": True, "residual_dense": residual_dense
             },
             {
                 "type": "conv1d", "repeat": 5,
                 "kernel_size": [25], "stride": [1],
                 "num_channels": 768, "padding": "SAME",
                 "dilation":[1], "dropout_keep_prob": 0.7,
-                "residual": True
+                "residual": True, "residual_dense": residual_dense
             },
             {
                 "type": "conv1d", "repeat": 5,
                 "kernel_size": [25], "stride": [1],
                 "num_channels": 768, "padding": "SAME",
                 "dilation":[1], "dropout_keep_prob": 0.7,
-                "residual": True
+                "residual": True, "residual_dense": residual_dense
             },
             {
                 "type": "conv1d", "repeat": 1,
@@ -154,8 +153,9 @@ base_params = {
             'uniform': False,
         },
         "normalization": "batch_norm",
-        "activation_fn": lambda x: tf.minimum(tf.nn.relu(x), 20.0),
+        "activation_fn": tf.nn.relu,
         "data_format": "channels_last",
+        "use_conv_mask": True,
     },
 
     "decoder": FullyConnectedCTCDecoder,
@@ -164,33 +164,46 @@ base_params = {
         "use_language_model": False,
 
         # params for decoding the sequence with language model
-        "beam_width": 512,
-        "alpha": 2.0,
-        "beta": 1.5,
+        # "beam_width": 2048,
+        # "alpha": 2.0,
+        # "beta": 1.5,
 
-        "decoder_library_path": "ctc_decoder_with_lm/libctc_decoder_with_kenlm.so",
-        "lm_path": "language_model/4-gram.binary",
-        "trie_path": "language_model/trie.binary",
-        "alphabet_config_path": "open_seq2seq/test_utils/toy_speech_data/vocab.txt",
+        # "decoder_library_path": "ctc_decoder_with_lm/libctc_decoder_with_kenlm.so",
+        # "lm_path": "language_model/4-gram.binary",
+        # "trie_path": "language_model/trie.binary",
+        # "alphabet_config_path": "open_seq2seq/test_utils/toy_speech_data/vocab.txt",
+
+        "infer_logits_to_pickle": True,
     },
     "loss": CTCLoss,
     "loss_params": {},
-}
 
-train_params = {
     "data_layer": Speech2TextDataLayer,
     "data_layer_params": {
         "num_audio_features": 64,
         "input_type": "logfbank",
         "vocab_file": "open_seq2seq/test_utils/toy_speech_data/vocab.txt",
+        "norm_per_feature": True,
+        "window": "hanning",
+        "precompute_mel_basis": True,
+        "sample_freq": 16000,
+        "pad_to": 16,
+        "dither": 1e-5,
+        "backend": "librosa"
+    },
+}
+
+train_params = {
+    "data_layer": Speech2TextDataLayer,
+    "data_layer_params": {
+        "augmentation": {
+            'speed_perturbation_ratio': [-1.10, 1., 1.10],
+        },
         "dataset_files": [
             "/data/librispeech/librivox-train-clean-100.csv",
             "/data/librispeech/librivox-train-clean-360.csv",
-            "/data/librispeech/librivox-train-other-500.csv",
-            # Add synthetic csv here
+            "/data/librispeech/librivox-train-other-500.csv"
         ],
-        "syn_enable": False, # Change to True if using synthetic data
-        "syn_subdirs": [], # Add subdirs of synthetic data
         "max_duration": 16.7,
         "shuffle": True,
     },
@@ -199,9 +212,6 @@ train_params = {
 eval_params = {
     "data_layer": Speech2TextDataLayer,
     "data_layer_params": {
-        "num_audio_features": 64,
-        "input_type": "logfbank",
-        "vocab_file": "open_seq2seq/test_utils/toy_speech_data/vocab.txt",
         "dataset_files": [
             "/data/librispeech/librivox-dev-clean.csv",
         ],
@@ -212,9 +222,6 @@ eval_params = {
 infer_params = {
     "data_layer": Speech2TextDataLayer,
     "data_layer_params": {
-        "num_audio_features": 64,
-        "input_type": "logfbank",
-        "vocab_file": "open_seq2seq/test_utils/toy_speech_data/vocab.txt",
         "dataset_files": [
             "/data/librispeech/librivox-test-clean.csv",
         ],

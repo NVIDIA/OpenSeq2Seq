@@ -12,7 +12,6 @@ import math
 import librosa
 from six import string_types
 from six.moves import range
-import inspect
 
 from open_seq2seq.data.data_layer import DataLayer
 from open_seq2seq.data.utils import load_pre_existing_vocabulary
@@ -60,26 +59,26 @@ class Speech2TextDataLayer(DataLayer):
     """Speech-to-text data layer constructor.
     See parent class for arguments description.
     Config parameters:
-    * **backend** (str) --- audio pre-processing backend 
+    * **backend** (str) --- audio pre-processing backend
       ('psf' [default] or librosa [recommended]).
     * **num_audio_features** (int) --- number of audio features to extract.
     * **input_type** (str) --- could be either "spectrogram" or "mfcc".
     * **vocab_file** (str) --- path to vocabulary file or sentencepiece model.
     * **dataset_files** (list) --- list with paths to all dataset .csv files.
     * **augmentation** (dict) --- optional dictionary with data augmentation
-      parameters. Can contain "time_stretch_ratio", "noise_level_min" and
+      parameters. Can contain "speed_perturbation_ratio", "noise_level_min" and
       "noise_level_max" parameters, e.g.::
         {
-          'time_stretch_ratio': 0.05,
+          'speed_perturbation_ratio': 0.05,
           'noise_level_min': -90,
           'noise_level_max': -60,
         }
       For additional details on these parameters see
       :func:`data.speech2text.speech_utils.augment_audio_signal` function.
     * **pad_to** (int) --- align audio sequence length to pad_to value.
-    * **max_duration** (float) --- drop all samples longer than 
+    * **max_duration** (float) --- drop all samples longer than
       **max_duration** (seconds)
-    * **min_duration** (float) --- drop all samples shorter than 
+    * **min_duration** (float) --- drop all samples shorter than
       **min_duration** (seconds)
     * **bpe** (bool) --- use BPE encodings
     * **autoregressive** (bool) --- boolean indicating whether the model is
@@ -90,13 +89,13 @@ class Speech2TextDataLayer(DataLayer):
       Contains a list of subdirectories that hold the synthetica wav files.
     * **window_size** (float) --- window's duration (in seconds)
     * **window_stride** (float) --- window's stride (in seconds)
-    * **dither** (float) --- weight of Gaussian noise to apply to input signal for
-          dithering/preventing quantization noise
+    * **dither** (float) --- weight of Gaussian noise to apply to input signal
+      for dithering/preventing quantization noise
     * **num_fft** (int) --- size of fft window to use if features require fft,
           defaults to smallest power of 2 larger than window size
-    * **norm_per_feature** (bool) --- if True, the output features will be normalized
-          (whitened) individually. if False, a global mean/std over all features
-          will be used for normalization
+    * **norm_per_feature** (bool) --- if True, the output features will be
+      normalized (whitened) individually. if False, a global mean/std over all
+      features will be used for normalization.
     * **window** (str) --- window function to apply before FFT
       ('hanning', 'hamming', 'none')
     * **num_fft** (int) --- optional FFT size
@@ -161,10 +160,10 @@ class Speech2TextDataLayer(DataLayer):
     self.params['window_stride'] = self.params.get('window_stride', 10e-3)
 
     mel_basis = None
-    if (self.params.get("precompute_mel_basis", False) and 
+    if (self.params.get("precompute_mel_basis", False) and
         self.params["input_type"] == "logfbank"):
       num_fft = (
-          self.params.get("num_fft", None) or 
+          self.params.get("num_fft", None) or
           2**math.ceil(math.log2(
               self.params['window_size']*self.params["sample_freq"])
           )
@@ -221,8 +220,8 @@ class Speech2TextDataLayer(DataLayer):
           )
         if self.params['min_duration'] > 0:
           self._dataset = self._dataset.filter(
-            lambda x, x_len, y, y_len, duration:
-            tf.greater_equal(duration, self.params['min_duration'])
+              lambda x, x_len, y, y_len, duration:
+              tf.greater_equal(duration, self.params['min_duration'])
           )
         self._dataset = self._dataset.map(
             lambda x, x_len, y, y_len, duration:
@@ -355,7 +354,7 @@ class Speech2TextDataLayer(DataLayer):
     max_len = np.max(audio_length_arr)
     for i, audio in enumerate(audio_arr):
       audio = np.pad(
-          audio, ((0, max_len-len(audio)), (0,0)),
+          audio, ((0, max_len-len(audio)), (0, 0)),
           "constant", constant_values=0.
       )
       audio_arr[i] = audio
@@ -460,4 +459,3 @@ class Speech2TextDataLayer(DataLayer):
   def get_size_in_samples(self):
     """Returns the number of audio files."""
     return len(self._files)
-

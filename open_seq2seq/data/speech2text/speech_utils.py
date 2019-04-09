@@ -155,14 +155,8 @@ def get_speech_features_from_file(filename, params):
       features_type (string): 'mfcc' or 'spectrogram'.
       window_size (float): size of analysis window in milli-seconds.
       window_stride (float): stride of analysis window in milli-seconds.
-      augmentation (dict, optional): None or dictionary of augmentation parameters.
-        If not None, has to have 'time_stretch_ratio',
-        'noise_level_min', 'noise_level_max' fields, e.g.::
-          augmentation={
-            'time_stretch_ratio': 0.2,
-            'noise_level_min': -90,
-            'noise_level_max': -46,
-          }
+      augmentation (dict, optional): dictionary of augmentation parameters. See
+        :func:`augment_audio_signal` for specification and example.
       window (str): window function to apply
       dither (float): weight of Gaussian noise to apply to input signal for
           dithering/preventing quantization noise
@@ -218,17 +212,33 @@ def augment_audio_signal(signal, sample_freq, augmentation):
   Args:
     signal (np.array): np.array containing raw audio signal.
     sample_freq (float): frames per second.
-    augmentation (dict): dictionary of augmentation parameters. See
-        :func:`get_speech_features_from_file` for specification and example.
+    augmentation (dict, optional): None or dictionary of augmentation parameters.
+        If not None, has to have 'speed_perturbation_ratio',
+        'noise_level_min', or 'noise_level_max' fields, e.g.::
+          augmentation={
+            'speed_perturbation_ratio': 0.2,
+            'noise_level_min': -90,
+            'noise_level_max': -46,
+          }
+        'speed_perturbation_ratio' can either be a list of possible speed
+        perturbation factors or a float. If float, a random value from 
+        U[1-speed_perturbation_ratio, 1+speed_perturbation_ratio].
   Returns:
     np.array: np.array with augmented audio signal.
   """
   signal_float = normalize_signal(signal.astype(np.float32))
 
-  if 'time_stretch_ratio' in augmentation and augmentation['time_stretch_ratio'] > 0:
-    # time stretch (might be slow)
-    stretch_amount = 1.0 + (2.0 * np.random.rand() - 1.0) * \
-                     augmentation['time_stretch_ratio']
+  if 'time_stretch_ratio' in augmentation:
+    print("WARNING: Please update time_stretch_ratio to speed_perturbation_ratio")
+    augmentation['speed_perturbation_ratio'] = augmentation['time_stretch_ratio']
+
+  if 'speed_perturbation_ratio' in augmentation:
+    if isinstance(augmentation['speed_perturbation_ratio'], list):
+      stretch_amount = np.random.choice(augmentation['speed_perturbation_ratio'])
+    elif augmentation['time_stretch_ratio'] > 0:
+      # time stretch (might be slow)
+      stretch_amount = 1.0 + (2.0 * np.random.rand() - 1.0) * \
+                       augmentation['time_stretch_ratio']
     signal_float = rs.resample(
         signal_float,
         sample_freq,
@@ -322,7 +332,7 @@ def get_speech_features_librosa(signal, sample_freq, num_features,
     window_size (float): size of analysis window in milli-seconds.
     window_stride (float): stride of analysis window in milli-seconds.
     augmentation (dict, optional): dictionary of augmentation parameters. See
-        :func:`get_speech_features_from_file` for specification and example.
+        :func:`augment_audio_signal` for specification and example.
 
   Returns:
     np.array: np.array of audio features with shape=[num_time_steps,
@@ -418,7 +428,7 @@ def get_speech_features_psf(signal, sample_freq, num_features,
     window_size (float): size of analysis window in milli-seconds.
     window_stride (float): stride of analysis window in milli-seconds.
     augmentation (dict, optional): dictionary of augmentation parameters. See
-        :func:`get_speech_features_from_file` for specification and example.
+        :func:`augment_audio_signal` for specification and example.
     apply_window (bool): whether to apply Hann window for mfcc and logfbank.
         python_speech_features version should accept winfunc if it is True.
   Returns:
