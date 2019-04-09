@@ -15,7 +15,7 @@ base_model = Speech2Text
 base_params = {
     "random_seed": 0,
     "use_horovod": True,
-    "num_epochs": 50,
+    "num_epochs": 400,
 
     "num_gpus": 8,
     "batch_size_per_gpu": 32,
@@ -26,7 +26,7 @@ base_params = {
     "print_samples_steps": 2200,
     "eval_steps": 2200,
     "save_checkpoint_steps": 1100,
-    "logdir": "jasper10x5_logs",
+    "logdir": "jasper_log_folder",
     "num_checkpoints": 2,
 
     "optimizer": NovoGrad,
@@ -173,7 +173,7 @@ base_params = {
         # "trie_path": "language_model/trie.binary",
         # "alphabet_config_path": "open_seq2seq/test_utils/toy_speech_data/vocab.txt",
 
-        "infer_logits_to_pickle": False,
+        "infer_logits_to_pickle": True,
     },
     "loss": CTCLoss,
     "loss_params": {},
