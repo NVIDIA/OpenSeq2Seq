@@ -14,7 +14,7 @@ Currently we support following models:
    :header-rows: 1
 
    * - Model description
-     - WER, %
+     - Greedy WER, %
      - Config file
      - Checkpoint
 
@@ -37,7 +37,7 @@ Currently we support following models:
 WER is the word error rate obtained on a dev-clean subset of LibriSpeech using
 greedy decoder (``decoder_params/use_language_model = False``).
 For the evaluation we used ``batch_size_per_gpu = 1``
-to eliminate the effect of `cudnn padding issue <https://github.com/NVIDIA/OpenSeq2Seq/issues/69>`_.
+to eliminate the effect of `cuDNN padding issue <https://github.com/NVIDIA/OpenSeq2Seq/issues/69>`_.
 
 For more details about model and training parameters,
 have a look at the `configuration files <https://github.com/NVIDIA/OpenSeq2Seq/blob/master/example_configs/speech2text>`_ and specific model's documentation.
@@ -65,7 +65,7 @@ English speech recognition on LibriSpeech dataset.
 Get data
 ********
 
-Download and preprocess Librispeech dataset::
+Download and preprocess LibriSpeech dataset::
 
  python scripts/import_librivox.py data/librispeech
 

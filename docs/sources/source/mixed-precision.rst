@@ -16,7 +16,7 @@ Mixed Precision Training
    compared to FP32 implementations if they are limited by memory or arithmetic
    bandwidth. Speedups are lower when operations are latency-limited.
 
-   -- "Mixed Precision Training", Micikevicius et al, ICLR, 2018 :cite:`mp-2018`
+   -- "Mixed Precision Training", Micikevicius et al, ICLR, 2018
 
 Prerequisites
 -------------
@@ -140,8 +140,7 @@ function of the optimizer.
 
 Automatic Loss Scaling
 ~~~~~~~~~~~~~~~~~~~~~~
-The mixed precision training approach of Micikevicius et al :cite:`mp-2018`
-suggests that the user
+The mixed precision training approach suggests that the user
 set a *loss scale* hyperparameter to adjust the dynamic range of backpropagation
 to match the dynamic range of float16. OpenSeq2Seq implements an extension to
 the mixed precision recipe that we call *automatic loss scaling*. The optimizer

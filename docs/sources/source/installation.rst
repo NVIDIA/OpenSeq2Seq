@@ -54,9 +54,9 @@ OpenSeq2Seq supports Python >= 3.5.
 We recommend to use `Anaconda Python distribution <https://www.anaconda.com/download>`_.
 
 .. note::
-   Currently, TensorFlow 1.11 doesn't support Python 3.7. 
+   Currently, TensorFlow 1.x doesn't support Python 3.7. 
    Please make sure that your Anaconda environment
-   includes Python version which is compatible with TensorFlow. 
+   includes Python version which is `compatible with TensorFlow <https://www.tensorflow.org/install/pip>`_. 
    For example, you can download Anaconda with Python 3.6 for Linux::
       
      wget https://repo.continuum.io/archive/Anaconda3-5.0.1-Linux-x86_64.sh
@@ -99,7 +99,7 @@ worse model accuracy.
 How to install a CTC decoder with language model to TensorFlow (optional)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-First of all, make sure that you installed CUDA >= 9.2, cuDNN >= 7.0, NCCL >= 2.2.
+First of all, make sure that you installed CUDA >= 10.0, cuDNN >= 7.4, NCCL >= 2.3.
 
 1. Install `boost <http://www.boost.org>`_::
 
