@@ -11,6 +11,6 @@ do
 	echo "doneat `date`"
 	reference="[PATH TO LIBRISPEECH]/librivox-"${dataset}".csv"
 	beamdump="[PATH TO BEAMDUMP]"
-	python /home/okuchaiev/repos/OpenSeq2Seq/neural_lm_example/process_beam_dump.py --beam_dump=$beamdump  --beam_dump_with_lm=$beamdump${pplx}.csv  --model=${lmroot}${pplx}/model.pt --vocab=$vocabfile  --reference=$reference
+	python process_beam_dump.py --beam_dump=$beamdump  --beam_dump_with_lm=$beamdump${pplx}.csv  --model=${lmroot}${pplx}/model.pt --vocab=$vocabfile  --reference=$reference
 	echo "doneat `date`"
 done
