@@ -198,7 +198,7 @@
 </colgroup>
 <thead valign="bottom">
 <tr class="row-odd"><th class="head">Model description</th>
-<th class="head">WER, %</th>
+<th class="head">Greedy WER, %</th>
 <th class="head">Config file</th>
 <th class="head">Checkpoint</th>
 </tr>
@@ -224,7 +224,7 @@
 <p>WER is the word error rate obtained on a dev-clean subset of LibriSpeech using
 greedy decoder (<code class="docutils literal notranslate"><span class="pre">decoder_params/use_language_model</span> <span class="pre">=</span> <span class="pre">False</span></code>).
 For the evaluation we used <code class="docutils literal notranslate"><span class="pre">batch_size_per_gpu</span> <span class="pre">=</span> <span class="pre">1</span></code>
-to eliminate the effect of <a class="reference external" href="https://github.com/NVIDIA/OpenSeq2Seq/issues/69">cudnn padding issue</a>.</p>
+to eliminate the effect of <a class="reference external" href="https://github.com/NVIDIA/OpenSeq2Seq/issues/69">cuDNN padding issue</a>.</p>
 <p>For more details about model and training parameters,
 have a look at the <a class="reference external" href="https://github.com/NVIDIA/OpenSeq2Seq/blob/master/example_configs/speech2text">configuration files</a> and specific model’s documentation.</p>
 <div class="toctree-wrapper compound">
@@ -238,7 +238,7 @@ to play with a very small model on a toy dataset.</p>
 English speech recognition on LibriSpeech dataset.</p>
 <div class="section" id="get-data">
 <h3>Get data<a class="headerlink" href="#get-data" title="Permalink to this headline">¶</a></h3>
-<p>Download and preprocess Librispeech dataset:</p>
+<p>Download and preprocess LibriSpeech dataset:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="n">scripts</span><span class="o">/</span><span class="n">import_librivox</span><span class="o">.</span><span class="n">py</span> <span class="n">data</span><span class="o">/</span><span class="n">librispeech</span>
 </pre></div>
 </div>

@@ -15,8 +15,8 @@ Baseline config (base model): `transformer-base.py <https://github.com/NVIDIA/Op
 Transformer model is based solely on attention mechanisms, without any recurrent or convolutional layers.
 Common source and target vocabulary is used to share input/output embedding
 Tokenization of input and output is done with SentencePiece (`SentencePiece <https://github.com/google/sentencepiece>`_)
-It is very good for neural machine translation tasks and base configuration achieves SacreBLEU of 26.4 on WMT 2014 English-to-German translation task ( `checkpoint TBD <tbd>`_ )
-while big model gets around 27.5.
+It is very good for neural machine translation tasks and base configuration achieves SacreBLEU of 26.4 on WMT 2014 English-to-German translation task ( `checkpoint <https://drive.google.com/a/nvidia.com/file/d/1wGCZ6ktnW_m9Ie2ynbZ49t332enjbLde/view?usp=sharing>`_ )
+while big model gets around 27.5 ( `checkpoint <https://drive.google.com/a/nvidia.com/file/d/1Z7JmSJnDWvnJT-12QXrY12I8f2I4lbxm/view?usp=sharing>`_ ).
 
 
 Training

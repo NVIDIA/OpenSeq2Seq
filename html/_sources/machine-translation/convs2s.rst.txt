@@ -33,7 +33,7 @@ The following changes are done to the model for mixed precision training:
 
 * Softmax normalization should be done in float32 for both attention and loss, so inputs have been converted from float16 to float
 * Automatic loss scaling with back-off
-* Learning rate warmpup
+* Learning rate warm-up
 
 MP training is around 2.5X-2.7X times faster than float32 on one single GPU.
 

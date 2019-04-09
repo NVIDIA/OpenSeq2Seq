@@ -389,10 +389,6 @@
 <span class="sd">  &quot;&quot;&quot;</span>
   <span class="n">signal_float</span> <span class="o">=</span> <span class="n">normalize_signal</span><span class="p">(</span><span class="n">signal</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">))</span>
 
-  <span class="k">if</span> <span class="s1">&#39;time_stretch_ratio&#39;</span> <span class="ow">in</span> <span class="n">augmentation</span><span class="p">:</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;WARNING: Please update time_stretch_ratio to speed_perturbation_ratio&quot;</span><span class="p">)</span>
-    <span class="n">augmentation</span><span class="p">[</span><span class="s1">&#39;speed_perturbation_ratio&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">augmentation</span><span class="p">[</span><span class="s1">&#39;time_stretch_ratio&#39;</span><span class="p">]</span>
-
   <span class="k">if</span> <span class="s1">&#39;speed_perturbation_ratio&#39;</span> <span class="ow">in</span> <span class="n">augmentation</span><span class="p">:</span>
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">augmentation</span><span class="p">[</span><span class="s1">&#39;speed_perturbation_ratio&#39;</span><span class="p">],</span> <span class="nb">list</span><span class="p">):</span>
       <span class="n">stretch_amount</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">augmentation</span><span class="p">[</span><span class="s1">&#39;speed_perturbation_ratio&#39;</span><span class="p">])</span>

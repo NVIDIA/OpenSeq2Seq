@@ -170,12 +170,13 @@
 </div>
 <div class="section" id="openseq2seq">
 <h1>OpenSeq2Seq<a class="headerlink" href="#openseq2seq" title="Permalink to this headline">¶</a></h1>
-<p>OpenSeq2Seq is a TensorFlow-based toolkit for training sequence-to-sequence models:</p>
+<p>OpenSeq2Seq is a TensorFlow-based toolkit for sequence-to-sequence models:</p>
 <blockquote>
 <div><ul class="simple">
 <li><a class="reference internal" href="machine-translation.html#machine-translation"><span class="std std-ref">machine translation</span></a> (GNMT, Transformer, ConvS2S, …)</li>
 <li><a class="reference internal" href="speech-recognition.html#speech-recognition"><span class="std std-ref">speech recognition</span></a> (DeepSpeech2, Wave2Letter, Jasper, …)</li>
-<li><a class="reference internal" href="speech-synthesis.html#speech-synthesis"><span class="std std-ref">speech synthesis</span></a> (Tacotron2, …)</li>
+<li><a class="reference internal" href="speech-commands.html#speech-commands"><span class="std std-ref">speech commands</span></a> (RN-50, Jasper)</li>
+<li><a class="reference internal" href="speech-synthesis.html#speech-synthesis"><span class="std std-ref">speech synthesis</span></a> (Tacotron2, WaveNet…)</li>
 <li><a class="reference internal" href="language-model.html#language-model"><span class="std std-ref">language model</span></a> (LSTM, …)</li>
 <li><a class="reference internal" href="sentiment-analysis.html#sentiment-analysis"><span class="std std-ref">sentiment analysis</span></a> (SST, IMDB, …)</li>
 </ul>
@@ -183,13 +184,20 @@
 <p><strong>Main features</strong>:</p>
 <ul class="simple">
 <li>modular architecture that allows assembling of new models from available components</li>
-<li>support for mixed-precision training, that utilizes Tensor Cores introduced in NVIDIA Volta GPUs</li>
-<li>fast, simple-to-use, Horovod-based distributed training and data parallelism, supporting both multi-GPU and multi-node</li>
+<li>support for mixed-precision training, that utilizes Tensor Cores in NVIDIA Volta/Turing GPUs</li>
+<li>fast Horovod-based distributed training supporting both multi-GPU and multi-node modes</li>
 </ul>
 <p>To install this toolkit, look at <a class="reference internal" href="installation.html#installation"><span class="std std-ref">installation instructions</span></a>.
 Next go to <a class="reference internal" href="in-depth-tutorials.html#in-depth"><span class="std std-ref">in-depth tutorials</span></a> section.
 You can also find some useful information in the <a class="reference internal" href="mixed-precision.html#mixed-precision"><span class="std std-ref">mixed precision</span></a> and
 <a class="reference internal" href="distr-training.html#distributed-training"><span class="std std-ref">distributed training</span></a> sections.</p>
+<p><strong>Reference</strong>:</p>
+<blockquote>
+<div><ol class="arabic simple">
+<li><a class="reference external" href="https://arxiv.org/abs/1805.10387">Oleksii Kuchaev et al. Mixed-Precision Training for NLP and Speech Recognition with OpenSeq2Seq, 2018</a></li>
+<li><a class="reference external" href="https://arxiv.org/abs/1904.03288">Jason Li et al. Jasper: An End-to-End Convolutional Neural Acoustic Model, 2019</a></li>
+</ol>
+</div></blockquote>
 <p><strong>Disclaimer</strong>:
 This is a research project, not an official product by NVIDIA.</p>
 </div>

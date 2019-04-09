@@ -184,7 +184,7 @@ and, on recent GPUs, speeds up arithmetic. …</p>
 <p>DNN operations benchmarked with DeepBench on Volta GPU see 2-6x speedups
 compared to FP32 implementations if they are limited by memory or arithmetic
 bandwidth. Speedups are lower when operations are latency-limited.</p>
-<p class="attribution">&mdash;“Mixed Precision Training”, Micikevicius et al, ICLR, 2018 <a class="reference internal" href="#mp-2018" id="id1">[1]</a></p>
+<p class="attribution">&mdash;“Mixed Precision Training”, Micikevicius et al, ICLR, 2018</p>
 </div></blockquote>
 <div class="section" id="prerequisites">
 <h2>Prerequisites<a class="headerlink" href="#prerequisites" title="Permalink to this headline">¶</a></h2>
@@ -218,7 +218,7 @@ to “Backoff” or “LogMax”:</p>
 <div class="section" id="implementation-details">
 <h2>Implementation details<a class="headerlink" href="#implementation-details" title="Permalink to this headline">¶</a></h2>
 <p>For mixed precision training we follow an algorithmic recipe from
-Micikevicius et al <a class="reference internal" href="#mp-2018" id="id2">[1]</a>. At a high level it can be summarized
+Micikevicius et al <a class="reference internal" href="#mp-2018" id="id1">[1]</a>. At a high level it can be summarized
 as follows:</p>
 <ol class="arabic simple">
 <li>Maintain and update a float32 master copy of weights (using the float16 copy
@@ -247,7 +247,7 @@ to TensorFlow’s optimizer, which updates the master copy of weights. Updated
 weights are converted back to float16, and used by the model in the next
 iteration. The <a class="reference internal" href="api-docs/optimizers.html#optimizers.mp_wrapper.MixedPrecisionOptimizerWrapper" title="optimizers.mp_wrapper.MixedPrecisionOptimizerWrapper"><code class="xref py py-class docutils literal notranslate"><span class="pre">MixedPrecisionOptimizerWrapper</span></code></a>
 architecture is graphically illustrated below:</p>
-<div class="figure align-center" id="id4">
+<div class="figure align-center" id="id2">
 <a class="reference internal image-reference" href="_images/MixedPrecisionOptimizer.png"><img alt="_images/MixedPrecisionOptimizer.png" src="_images/MixedPrecisionOptimizer.png" style="width: 499.5px; height: 161.0px;" /></a>
 <p class="caption"><span class="caption-text">“Mixed precision” optimizer wrapper around any TensorFlow optimizer.</span></p>
 </div>
@@ -287,8 +287,7 @@ function of the optimizer.</p>
 </div>
 <div class="section" id="automatic-loss-scaling">
 <h3>Automatic Loss Scaling<a class="headerlink" href="#automatic-loss-scaling" title="Permalink to this headline">¶</a></h3>
-<p>The mixed precision training approach of Micikevicius et al <a class="reference internal" href="#mp-2018" id="id3">[1]</a>
-suggests that the user
+<p>The mixed precision training approach suggests that the user
 set a <em>loss scale</em> hyperparameter to adjust the dynamic range of backpropagation
 to match the dynamic range of float16. OpenSeq2Seq implements an extension to
 the mixed precision recipe that we call <em>automatic loss scaling</em>. The optimizer
@@ -318,7 +317,7 @@ update.</li>
 <p id="bibtex-bibliography-mixed-precision-0"><table class="docutils citation" frame="void" id="mp-2018" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
-<tr><td class="label">[1]</td><td><em>(<a class="fn-backref" href="#id1">1</a>, <a class="fn-backref" href="#id2">2</a>, <a class="fn-backref" href="#id3">3</a>)</em> Paulius Micikevicius, Sharan Narang, Jonah Alben, Gregory Diamos, Erich Elsen, David Garcia, Boris Ginsburg, Michael Houston, Oleksii Kuchaev, Ganesh Venkatesh, and others. Mixed precision training. <em>arXiv preprint arXiv:1710.03740</em>, 2017.</td></tr>
+<tr><td class="label"><a class="fn-backref" href="#id1">[1]</a></td><td>Paulius Micikevicius, Sharan Narang, Jonah Alben, Gregory Diamos, Erich Elsen, David Garcia, Boris Ginsburg, Michael Houston, Oleksii Kuchaev, Ganesh Venkatesh, and others. Mixed precision training. <em>arXiv preprint arXiv:1710.03740</em>, 2017.</td></tr>
 </tbody>
 </table>
 </p>

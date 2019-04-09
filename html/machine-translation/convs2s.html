@@ -207,7 +207,7 @@ BLEU score of around 25 on WMT 2014 English-to-German translation task
 <ul class="simple">
 <li>Softmax normalization should be done in float32 for both attention and loss, so inputs have been converted from float16 to float</li>
 <li>Automatic loss scaling with back-off</li>
-<li>Learning rate warmpup</li>
+<li>Learning rate warm-up</li>
 </ul>
 <p>MP training is around 2.5X-2.7X times faster than float32 on one single GPU.</p>
 <p>This model also shows very good multi-GPU scalability. Here are the scaling factors for batch 128/GPU:</p>
