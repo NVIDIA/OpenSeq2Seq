@@ -177,6 +177,10 @@ class Speech2TextDataLayer(DataLayer):
       )
     self.params['mel_basis'] = mel_basis
 
+    if 'time_stretch_ratio' in self.params.get('augmentation', {}):
+      print("WARNING: Please update time_stretch_ratio to speed_perturbation_ratio")
+      self.params['augmentation']['speed_perturbation_ratio'] = self.params['augmentation']['time_stretch_ratio']
+
   def split_data(self, data):
     if self.params['mode'] != 'train' and self._num_workers is not None:
       size = len(data)

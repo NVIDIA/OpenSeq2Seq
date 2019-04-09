@@ -228,10 +228,6 @@ def augment_audio_signal(signal, sample_freq, augmentation):
   """
   signal_float = normalize_signal(signal.astype(np.float32))
 
-  if 'time_stretch_ratio' in augmentation:
-    print("WARNING: Please update time_stretch_ratio to speed_perturbation_ratio")
-    augmentation['speed_perturbation_ratio'] = augmentation['time_stretch_ratio']
-
   if 'speed_perturbation_ratio' in augmentation:
     if isinstance(augmentation['speed_perturbation_ratio'], list):
       stretch_amount = np.random.choice(augmentation['speed_perturbation_ratio'])
