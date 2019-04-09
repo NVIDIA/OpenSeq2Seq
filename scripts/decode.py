@@ -169,15 +169,16 @@ def softmax(x):
   return e / np.expand_dims(e.sum(axis=-1), -1)
 
 
-def evaluate_wer(data, labels, vocab, decoder):
+def evaluate_wer(logits, labels, vocab, decoder):
   total_dist = 0.0
   total_count = 0.0
   wer_per_sample = np.empty(shape=len(labels))
     
   empty_preds = 0
   for idx, line in enumerate(labels):
+    audio_filename = line[0]
     label = line[-1]
-    pred = decoder(data[idx], vocab)
+    pred = decoder(logits[audio_filename], vocab)
     dist = levenshtein(label.lower().split(), pred.lower().split())
     if pred=='':
       empty_preds += 1
@@ -201,7 +202,7 @@ for line in labels:
   probs_batch.append(softmax(logits[audio_filename]))
 
 if args.mode == 'eval':
-  wer, _ = evaluate_wer(data, labels, vocab, greedy_decoder)
+  wer, _ = evaluate_wer(logits, labels, vocab, greedy_decoder)
   print('Greedy WER = {:.4f}'.format(wer))
   best_result = {'wer': 1e6, 'alpha': 0.0, 'beta': 0.0, 'beams': None} 
   for alpha in np.arange(args.alpha, args.alpha_max, args.alpha_step):
