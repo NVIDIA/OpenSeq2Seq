@@ -8,10 +8,11 @@ import numpy as np
 import pandas as pd
 import tensorflow as tf
 import six
+import math
+import librosa
 from six import string_types
 from six.moves import range
 import inspect
-import python_speech_features as psf
 
 from open_seq2seq.data.data_layer import DataLayer
 from open_seq2seq.data.utils import load_pre_existing_vocabulary
@@ -36,21 +37,31 @@ class Speech2TextDataLayer(DataLayer):
   @staticmethod
   def get_optional_params():
     return dict(DataLayer.get_optional_params(), **{
+        'backend': ['psf', 'librosa'],
         'augmentation': dict,
         'pad_to': int,
         'max_duration': float,
+        'min_duration': float,
         'bpe': bool,
         'autoregressive': bool,
         'syn_enable': bool,
         'syn_subdirs': list,
         'window_size': float,
         'window_stride': float,
+        'dither': float,
+        'norm_per_feature': bool,
+        'window': ['hanning', 'hamming', 'none'],
+        'num_fft': int,
+        'precompute_mel_basis': bool,
+        'sample_freq': int,
     })
 
   def __init__(self, params, model, num_workers, worker_id):
     """Speech-to-text data layer constructor.
     See parent class for arguments description.
     Config parameters:
+    * **backend** (str) --- audio pre-processing backend 
+      ('psf' [default] or librosa [recommended]).
     * **num_audio_features** (int) --- number of audio features to extract.
     * **input_type** (str) --- could be either "spectrogram" or "mfcc".
     * **vocab_file** (str) --- path to vocabulary file or sentencepiece model.
@@ -65,22 +76,36 @@ class Speech2TextDataLayer(DataLayer):
         }
       For additional details on these parameters see
       :func:`data.speech2text.speech_utils.augment_audio_signal` function.
+    * **pad_to** (int) --- align audio sequence length to pad_to value.
+    * **max_duration** (float) --- drop all samples longer than 
+      **max_duration** (seconds)
+    * **min_duration** (float) --- drop all samples shorter than 
+      **min_duration** (seconds)
+    * **bpe** (bool) --- use BPE encodings
     * **autoregressive** (bool) --- boolean indicating whether the model is
       autoregressive.
     * **syn_enable** (bool) --- boolean indicating whether the model is
       using synthetic data.
     * **syn_subdirs** (list) --- must be defined if using synthetic mode.
       Contains a list of subdirectories that hold the synthetica wav files.
+    * **window_size** (float) --- window's duration (in seconds)
+    * **window_stride** (float) --- window's stride (in seconds)
+    * **dither** (float) --- weight of Gaussian noise to apply to input signal for
+          dithering/preventing quantization noise
+    * **num_fft** (int) --- size of fft window to use if features require fft,
+          defaults to smallest power of 2 larger than window size
+    * **norm_per_feature** (bool) --- if True, the output features will be normalized
+          (whitened) individually. if False, a global mean/std over all features
+          will be used for normalization
+    * **window** (str) --- window function to apply before FFT
+      ('hanning', 'hamming', 'none')
+    * **num_fft** (int) --- optional FFT size
+    * **precompute_mel_basis** (bool) --- compute and store mel basis. If False,
+      it will compute it for every get_speech_features call. Default: False
+    * **sample_freq** (int) --- required for precompute_mel_basis
     """
     super(Speech2TextDataLayer, self).__init__(params, model,
                                                num_workers, worker_id)
-    # we need this until python_speech_features gets update on pypi.org
-    self.apply_window = 'winfunc' in inspect.getargspec(psf.logfbank)[0]
-    if not self.apply_window and \
-        (self.params['input_type'] == 'mfcc' or \
-         self.params['input_type'] == 'logfbank'):
-      print('WARNING: using python_speech_features WITHOUT windowing function')
-      print('Please install the latest python_speech_features (from GitHub)')
     self.params['autoregressive'] = self.params.get('autoregressive', False)
     self.autoregressive = self.params['autoregressive']
     self.params['bpe'] = self.params.get('bpe', False)
@@ -130,9 +155,28 @@ class Speech2TextDataLayer(DataLayer):
     self._iterator = None
     self._input_tensors = None
 
-    self.params['max_duration'] = params.get('max_duration', -1.0)
-    self.params['window_size'] = params.get('window_size', 20e-3)
-    self.params['window_stride'] = params.get('window_stride', 10e-3)
+    self.params['min_duration'] = self.params.get('min_duration', -1.0)
+    self.params['max_duration'] = self.params.get('max_duration', -1.0)
+    self.params['window_size'] = self.params.get('window_size', 20e-3)
+    self.params['window_stride'] = self.params.get('window_stride', 10e-3)
+
+    mel_basis = None
+    if (self.params.get("precompute_mel_basis", False) and 
+        self.params["input_type"] == "logfbank"):
+      num_fft = (
+          self.params.get("num_fft", None) or 
+          2**math.ceil(math.log2(
+              self.params['window_size']*self.params["sample_freq"])
+          )
+      )
+      mel_basis = librosa.filters.mel(
+          self.params["sample_freq"],
+          num_fft,
+          n_mels=self.params["num_audio_features"],
+          fmin=0,
+          fmax=int(self.params["sample_freq"]/2)
+      )
+    self.params['mel_basis'] = mel_basis
 
   def split_data(self, data):
     if self.params['mode'] != 'train' and self._num_workers is not None:
@@ -175,6 +219,11 @@ class Speech2TextDataLayer(DataLayer):
               lambda x, x_len, y, y_len, duration:
               tf.less_equal(duration, self.params['max_duration'])
           )
+        if self.params['min_duration'] > 0:
+          self._dataset = self._dataset.filter(
+            lambda x, x_len, y, y_len, duration:
+            tf.greater_equal(duration, self.params['min_duration'])
+          )
         self._dataset = self._dataset.map(
             lambda x, x_len, y, y_len, duration:
             [x, x_len, y, y_len],
@@ -210,10 +259,15 @@ class Speech2TextDataLayer(DataLayer):
               lambda x, x_len, idx, duration:
               tf.less_equal(duration, self.params['max_duration'])
           )
+        if self.params['min_duration'] > 0:
+            self._dataset = self._dataset.filter(
+              lambda x, x_len, y, y_len, duration:
+              tf.greater_equal(duration, self.params['min_duration'])
+          )
         self._dataset = self._dataset.map(
             lambda x, x_len, idx, duration:
             [x, x_len, idx],
-            num_parallel_calls=8,
+            num_parallel_calls=16,
         )
         self._dataset = self._dataset.padded_batch(
             self.params['batch_size'],
@@ -236,6 +290,12 @@ class Speech2TextDataLayer(DataLayer):
       x.set_shape([self.params['batch_size'], None,
                    self.params['num_audio_features']])
       x_length = tf.reshape(x_length, [self.params['batch_size']])
+
+      pad_to = self.params.get("pad_to", 8)
+      if pad_to > 0 and self.params.get('backend') == 'librosa':
+        # we do padding with TF for librosa backend
+        num_pad = tf.mod(pad_to - tf.mod(tf.reduce_max(x_length), pad_to), pad_to)
+        x = tf.pad(x, [[0, 0], [0, num_pad], [0, 0]])
 
       self._input_tensors = {}
       self._input_tensors["source_tensors"] = [x, x_length]
@@ -340,16 +400,7 @@ class Speech2TextDataLayer(DataLayer):
       audio_filename = audio_filename.format(np.random.choice(self.params["syn_subdirs"]))
 
     source, audio_duration = get_speech_features_from_file(
-        audio_filename, self.params['num_audio_features'],
-        pad_to=self.params.get('pad_to', 8),
-        features_type=self.params['input_type'],
-        window_size=self.params['window_size'],
-        window_stride=self.params['window_stride'],
-        augmentation=self.params.get('augmentation', None),
-        apply_window=self.apply_window,
-        cache_features=self.params.get('cache_features', False),
-        cache_format=self.params.get('cache_format', 'hdf5'),
-        cache_regenerate=self.params.get('cache_regenerate', False),
+        audio_filename,
         params=self.params
     )
     return source.astype(self.params['dtype'].as_numpy_dtype()), \
@@ -367,14 +418,8 @@ class Speech2TextDataLayer(DataLayer):
       tuple: source audio features as ``np.array``, length of source sequence,
       sample id.
     """
-    pad_to = self.params.get('pad_to', 8)
     source, audio_duration = get_speech_features(
-        wav, 16000., self.params['num_audio_features'], pad_to,
-        features_type=self.params['input_type'],
-        window_size=self.params['window_size'],
-        window_stride=self.params['window_stride'],
-        augmentation=self.params.get('augmentation', None),
-        apply_window=self.apply_window
+        wav, 16000., params
     )
     return source.astype(self.params['dtype'].as_numpy_dtype()), \
         np.int32([len(source)]), np.int32([0]), \
@@ -390,14 +435,9 @@ class Speech2TextDataLayer(DataLayer):
       sample id.
     """
     idx, audio_filename = id_and_audio_filename
-    pad_to = self.params.get('pad_to', 8)
     source, audio_duration = get_speech_features_from_file(
-        audio_filename, self.params['num_audio_features'], pad_to,
-        features_type=self.params['input_type'],
-        window_size=self.params['window_size'],
-        window_stride=self.params['window_stride'],
-        augmentation=self.params.get('augmentation', None),
-        apply_window=self.apply_window
+        audio_filename,
+        params=self.params
     )
     return source.astype(self.params['dtype'].as_numpy_dtype()), \
         np.int32([len(source)]), np.int32([idx]), \

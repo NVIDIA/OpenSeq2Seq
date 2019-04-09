@@ -10,7 +10,7 @@ from open_seq2seq.optimizers.lr_policies import poly_decay
 
 base_model = Speech2Text
 #data_root = "[REPLACE THIS TO THE PATH WITH YOUR LIBRISPEECH DATA]"
-data_root =  "/raid/speech"
+data_root =  "/raid/data"
 
 base_params = {
   "random_seed": 0,
