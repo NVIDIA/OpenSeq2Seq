@@ -332,10 +332,13 @@ class Speech2Text(EncoderDecoderModel):
         dump_results[f] = preds[i]
       dump_out["logits"] = dump_results
       step_size = self.get_data_layer().params["window_stride"]
-      convs = self.encoder.params["convnet_layers"]
       scale = 1
-      for c in convs:
-        scale *= c["stride"][0]
+      # check strides in convolutional layers
+      for layers in ['convnet_layers', 'conv_layers', 'cnn_layers']:
+        convs = self.encoder.params.get(layers)
+        if convs:
+          for c in convs:
+            scale *= c["stride"][0]
       dump_out["step_size"] = scale*step_size
       dump_out["vocab"] = self.get_data_layer().params['idx2char']
       with open(output_file, 'wb') as f:
