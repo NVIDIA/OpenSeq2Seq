@@ -1,7 +1,7 @@
 # coding: utf-8
 import sys
-sys.path.append("./tranformerxl")
-sys.path.append("./tranformerxl/utils")
+sys.path.append("./transformerxl")
+sys.path.append("./transformerxl/utils")
 import argparse
 from typing import List
 import torch
