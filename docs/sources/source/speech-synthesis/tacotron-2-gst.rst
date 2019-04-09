@@ -27,7 +27,8 @@ Training
 ~~~~~~~~
 We use global style tokens to model multi-speaker speech synthesis. Namely, we
 are able to learn the speaker identities from the `MAILABS <http://www.m-ailabs.bayern/en/the-mailabs-speech-dataset/>`_
-US dataset.
+US dataset. Note: The MAILABS dataset has some files that exist in the csv, but
+are not present in the dataset; see `issue 337 <https://github.com/NVIDIA/OpenSeq2Seq/issues/337>`_.
 
 Training Instructions:
   1. Extract the dataset to a directory
@@ -38,4 +39,14 @@ Training Instructions:
   4. Change line 15 of `tacotron_gst.py <https://github.com/NVIDIA/OpenSeq2Seq/blob/master/example_configs/text2speech/tacotron_gst.py>`_
      such ``dataset_location`` points to where the dataset was extracted
   5. Train the model by running ``python run.py --config_file=example_configs/text2speech/tacotron_gst.py --mode=train``
+
+
+Inference
+~~~~~~~~~
+Inference is similar to Tacotron infer, except tacotron-gst additionally
+requires a style wav inside the infer csv. ``train.csv`` should contains lines
+with lines in the following format::
+
+    path/to/style.wav | UNUSED | This is an example sentence that I want to generate.
+
 
