@@ -18,9 +18,9 @@ Currently we support following models:
      - Config file
      - Checkpoint
    * - :doc:`Transformer </machine-translation/transformer>`
-     - 27.52
-     - `transformer-big.py <https://github.com/NVIDIA/OpenSeq2Seq/blob/master/example_configs/text2text/en-de/transformer-big.py>`_
-     - `link <https://drive.google.com/a/nvidia.com/file/d/1Z7JmSJnDWvnJT-12QXrY12I8f2I4lbxm/view?usp=sharing>`_
+     - 28.0
+     - `transformer-nvgrad.py <https://github.com/NVIDIA/OpenSeq2Seq/blob/master/example_configs/text2text/en-de/transformer-nvgrad.py>`_
+     - `link <https://drive.google.com/a/nvidia.com/file/d/1cvR_eCpOMbHdT32dsCveKiCUPvPh4bHC/view?usp=sharing>`_
    * - :doc:`Transformer </machine-translation/transformer>`
      - 26.4
      - `transformer-base.py <https://github.com/NVIDIA/OpenSeq2Seq/blob/master/example_configs/text2text/en-de/transformer-base.py>`_
