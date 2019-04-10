@@ -115,7 +115,7 @@ def get_preprocessed_data_path(filename, params):
     """ Helper function to shorten length of filenames to get around
     filesystem path length limitations"""
     text = str(text)
-    text = text.replace("time_stretch_ratio", "tsr") \
+    text = text.replace("speed_perturbation_ratio", "sp") \
       .replace("noise_level_min", "nlmin", ) \
       .replace("noise_level_max", "nlmax") \
       .replace("add_derivatives", "d") \
@@ -229,18 +229,20 @@ def augment_audio_signal(signal, sample_freq, augmentation):
   signal_float = normalize_signal(signal.astype(np.float32))
 
   if 'speed_perturbation_ratio' in augmentation:
+    stretch_amount = -1
     if isinstance(augmentation['speed_perturbation_ratio'], list):
       stretch_amount = np.random.choice(augmentation['speed_perturbation_ratio'])
-    elif augmentation['time_stretch_ratio'] > 0:
+    elif augmentation['speed_perturbation_ratio'] > 0:
       # time stretch (might be slow)
       stretch_amount = 1.0 + (2.0 * np.random.rand() - 1.0) * \
-                       augmentation['time_stretch_ratio']
-    signal_float = rs.resample(
-        signal_float,
-        sample_freq,
-        int(sample_freq * stretch_amount),
-        filter='kaiser_best',
-    )
+                       augmentation['speed_perturbation_ratio']
+    if stretch_amount > 0:
+      signal_float = rs.resample(
+          signal_float,
+          sample_freq,
+          int(sample_freq * stretch_amount),
+          filter='kaiser_best',
+      )
 
   # noise
   if 'noise_level_min' in augmentation and 'noise_level_max' in augmentation:

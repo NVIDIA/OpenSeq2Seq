@@ -21,7 +21,7 @@ class SpeechUtilsTests(tf.test.TestCase):
     filename = 'open_seq2seq/test_utils/toy_speech_data/wav_files/46gc040q.wav'
     freq_s, signal = wave.read(filename)
     augmentation = {
-        'time_stretch_ratio': 0.2,
+        'speed_perturbation_ratio': 0.2,
         'noise_level_min': -90,
         'noise_level_max': -46,
     }
@@ -31,7 +31,7 @@ class SpeechUtilsTests(tf.test.TestCase):
       self.assertLessEqual(signal.shape[0] * 0.8, signal_augm.shape[0])
       self.assertGreaterEqual(signal.shape[0] * 1.2, signal_augm.shape[0])
     augmentation = {
-        'time_stretch_ratio': 0.5,
+        'speed_perturbation_ratio': 0.5,
         'noise_level_min': -90,
         'noise_level_max': -46,
     }
@@ -83,7 +83,7 @@ class SpeechUtilsTests(tf.test.TestCase):
 
   def test_get_speech_features_from_file_augmentation(self):
     augmentation = {
-        'time_stretch_ratio': 0.0,
+        'speed_perturbation_ratio': 0.0,
         'noise_level_min': -90,
         'noise_level_max': -46,
     }
@@ -103,7 +103,7 @@ class SpeechUtilsTests(tf.test.TestCase):
                                         input_features_augm)))
 
     augmentation = {
-        'time_stretch_ratio': 0.2,
+        'speed_perturbation_ratio': 0.2,
         'noise_level_min': -90,
         'noise_level_max': -46,
     }
