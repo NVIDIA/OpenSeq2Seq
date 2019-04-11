@@ -173,7 +173,7 @@ base_params = {
         # "trie_path": "language_model/trie.binary",
         # "alphabet_config_path": "open_seq2seq/test_utils/toy_speech_data/vocab.txt",
 
-        "infer_logits_to_pickle": True,
+        "infer_logits_to_pickle": False,
     },
     "loss": CTCLoss,
     "loss_params": {},
