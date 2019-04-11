@@ -144,8 +144,7 @@ class FullyConnectedTimeDecoder(Decoder):
         name="logits",
     )
     # converting to time_major=True shape
-    logits = tf.transpose(logits, [1, 0, 2])
-    if 'infer_logits_to_pickle' in self.params and self.params['infer_logits_to_pickle']:
+    if not(self._mode=='infer' and self.params.get('infer_logits_to_pickle')):
       logits = tf.transpose(logits, [1, 0, 2])
     if 'logits_to_outputs_func' in self.params:
       outputs = self.params['logits_to_outputs_func'](logits, input_dict)
