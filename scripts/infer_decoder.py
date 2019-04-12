@@ -99,8 +99,7 @@ files, lms = load_labels(args.labels)
 vocab = load_vocab(vocab_map)
 infer_preds = np.empty(shape=(len(files), 3), dtype=object)
 for idx, f in enumerate(files):
-  key = f.replace("Book_1", "Book 1")
-  probs = softmax(logits[key])
+  probs = softmax(logits[f])
   if args.mode == "greedy":
     spaces, text = greedy_decoder(probs, vocab)
     infer_preds[idx, 0] = f

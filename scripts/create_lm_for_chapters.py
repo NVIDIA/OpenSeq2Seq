@@ -24,16 +24,16 @@ i = 1
 if not os.path.isdir(output_path):
   os.makedirs(output_path)
 op_csv=[]
-os.system("chmod +x kenlm/build/bin/lmplz")
-os.system("chmod +x kenlm/build/bin/build_binary")
+os.system("chmod +x deocders/kenlm/build/bin/lmplz")
+os.system("chmod +x deocders/kenlm/build/bin/build_binary")
 for ch in book:
   print("####Processing chapter {}####".format(i))
   op_path = output_path+"/chapter_{}.binary".format(i)
   chapter = "".join(ch)
   with open("/tmp/temp_ch.txt","w") as f:
     f.write(chapter)
-  os.system("kenlm/build/bin/lmplz -o {} </tmp/temp_ch.txt >/tmp/temp_ch.arpa".format(ngrams))
-  os.system("kenlm/build/bin/build_binary -s /tmp/temp_ch.arpa {}".format(op_path))
+  os.system("deocders/kenlm/build/bin/lmplz -o {} </tmp/temp_ch.txt >/tmp/temp_ch.arpa".format(ngrams))
+  os.system("deocders/kenlm/build/bin/build_binary -s /tmp/temp_ch.arpa {}".format(op_path))
   os.remove("/tmp/temp_ch.arpa")
   os.remove("/tmp/temp_ch.txt")
   op_csv.append([files[i-1],op_path])
