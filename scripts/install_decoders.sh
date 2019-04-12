@@ -1,12 +1,8 @@
 #!/bin/sh
 set -xe
-git clone https://github.com/PaddlePaddle/DeepSpeech 
-cd DeepSpeech
-git checkout a76fc69
-cd ..
-mv DeepSpeech/decoders/swig_wrapper.py DeepSpeech/decoders/swig/ctc_decoders.py
-mv DeepSpeech/decoders/swig ./decoders
-rm -rf DeepSpeech
+git clone https://github.com/arnav1993k/CTCDecoder
+mv CTCDecoder/ ./decoders
+rm -rf CTCDecoder
 cd decoders
 sed -i "s/\.decode('utf-8')//g" ctc_decoders.py
 sed -i 's/\.decode("utf-8")//g' ctc_decoders.py
