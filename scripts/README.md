@@ -45,5 +45,8 @@ python scripts/infer_decoder.py --logits=<path of logits in from step 3> --label
 
 Step 7: Create and split sentences from the decoded outputs to create audio files
 ```bash
-python generate_data_from_book.py --input_csv=<csv path from step 6> --book_path=<path of the book(.txt)> output_path=<output_dir>
+python scripts/generate_data_from_book.py --input_csv=<csv path from step 6> --book_path=<path of the book(.txt)> output_path=<output_dir>
 ```
+
+Examples if the following location:
+https://drive.google.com/drive/u/0/folders/1L640rSQx8nOxoHZwBWDPZzlhCNVu4IsQ
