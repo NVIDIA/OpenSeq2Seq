@@ -10,7 +10,7 @@ from open_seq2seq.optimizers.novograd  import NovoGrad
 import tensorflow as tf
 
 data_root =""
-data_root = "/raid/Imagenet/tf-imagenet/"
+#data_root = "/raid/Imagenet/tf-imagenet/"
 base_model = Image2Label
 
 base_params = {
