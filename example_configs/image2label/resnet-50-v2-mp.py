@@ -7,7 +7,7 @@ from open_seq2seq.data import ImagenetDataLayer
 from open_seq2seq.optimizers.lr_policies import piecewise_constant, poly_decay
 import tensorflow as tf
 
-
+data_root =""
 base_model = Image2Label
 
 base_params = {
@@ -65,7 +65,7 @@ base_params = {
   "loss": CrossEntropyLoss,
   "data_layer": ImagenetDataLayer,
   "data_layer_params": {
-    "data_dir": "data/tf-imagenet",
+    "data_dir": data_root+"data", # "data",
     "image_size": 224,
     "num_classes": 1000,
   },
