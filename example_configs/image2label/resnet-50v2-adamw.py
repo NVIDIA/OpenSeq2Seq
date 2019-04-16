@@ -8,10 +8,9 @@ from open_seq2seq.optimizers.lr_policies import piecewise_constant,  poly_decay
 from open_seq2seq.optimizers.novograd  import NovoGrad
 
 import tensorflow as tf
-from tensorflow.contrib.opt import AdamWOptimizer
 
 data_root =""
-#data_root = "/raid/Imagenet/tf-imagenet/"
+data_root = "/raid/Imagenet/tf-imagenet/"
 base_model = Image2Label
 
 base_params = {
@@ -30,9 +29,9 @@ base_params = {
   "print_samples_steps": 10000,
   "eval_steps": 5000,
   "save_checkpoint_steps": 5000,
-  "logdir": "logs/rn50/adamw/lr0.02_wd0.001",
+  "logdir": "logs/rn50/adamw/lr0.01_wd0.001",
 
-  "optimizer": AdamWOptimizer,
+  "optimizer": "AdamW",
   "optimizer_params": {
     "beta1": 0.9,
     "beta2": 0.999,
@@ -42,7 +41,7 @@ base_params = {
 
   "lr_policy": poly_decay,
   "lr_policy_params": {
-    "learning_rate": 0.02, # 1 GPU: 0.002,
+    "learning_rate": 0.01, # 1 GPU: 0.002,
     "power": 2,
     # "warmup_steps": 200,
   },
