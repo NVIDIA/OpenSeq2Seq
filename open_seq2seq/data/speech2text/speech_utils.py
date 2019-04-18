@@ -255,6 +255,14 @@ def augment_audio_signal(signal, sample_freq, augmentation):
   return signal_float
 
 def aug_with_pitch(original_sound,sample_freq):
+  """Function that performs audio signal augmentation by changing pitch.
+
+  Args:
+    original_sound (np.array): np.array containing raw audio signal.
+    sample_freq (float): frames per second.
+  Returns:
+    np.array: np.array with augmented audio signal.
+  """
   original_sound = normalize_signal(original_sound.astype(np.float32))
   pitch_shift = np.random.randint(0,10)
   prob = np.random.rand()
@@ -266,6 +274,22 @@ def aug_with_pitch(original_sound,sample_freq):
   return shifted_wave
 
 def aug_custom_noise(original_sound,custom_noise,augmentation):
+  """Function that performs audio signal augmentation by adding external ambient noise.
+
+    Args:
+      original_sound (np.array): np.array containing raw audio signal.
+      sample_freq (float): frames per second.
+      custom_noise (list(np.array)): list of raw audio to be added as noise
+      augmentation (dict): dictionary of augmentation parameters.
+        If not None, has to have 'speed_perturbation_ratio',
+        'noise_level_min', or 'noise_level_max' fields, e.g.::
+          augmentation={
+            'noise_level_min': -90,
+            'noise_level_max': -46,
+          }
+    Returns:
+      np.array: np.array with augmented audio signal.
+    """
   original_sound = normalize_signal(original_sound.astype(np.float32))
   original = copy.deepcopy(original_sound)
   original_sound /= (original_sound.std() + 1e-20)
