@@ -143,7 +143,7 @@ def get_preprocessed_data_path(filename, params):
   return preprocessed_path
 
 
-def get_speech_features_from_file(filename, params, custom_noise=None):
+def get_speech_features_from_file(filename, params):
   """Function to get a numpy array of features, from an audio file.
       if params['cache_features']==True, try load preprocessed data from
       disk, or store after preprocesseng.
@@ -187,11 +187,11 @@ def get_speech_features_from_file(filename, params, custom_noise=None):
 
   except PreprocessOnTheFlyException:
     sample_freq, signal = wave.read(filename)
-    features, duration = get_speech_features(signal, sample_freq, params, custom_noise=custom_noise)
+    features, duration = get_speech_features(signal, sample_freq, params)
 
   except (OSError, FileNotFoundError, RegenerateCacheException):
     sample_freq, signal = wave.read(filename)
-    features, duration = get_speech_features(signal, sample_freq, params, custom_noise=custom_noise)
+    features, duration = get_speech_features(signal, sample_freq, params)
 
     preprocessed_data_path = get_preprocessed_data_path(filename, params)
     save_features(features, duration, preprocessed_data_path,
@@ -300,7 +300,7 @@ def preemphasis(signal, coeff=0.97):
   return np.append(signal[0], signal[1:] - coeff * signal[:-1])
 
 
-def get_speech_features(signal, sample_freq, params, custom_noise=None):
+def get_speech_features(signal, sample_freq, params):
   """
   Get speech features using either librosa (recommended) or
   python_speech_features
@@ -321,7 +321,7 @@ def get_speech_features(signal, sample_freq, params, custom_noise=None):
   window_size = params.get('window_size', 20e-3)
   window_stride = params.get('window_stride', 10e-3)
   augmentation = params.get('augmentation', None)
-
+  custom_noise = params.get('custom_noise', None)
   if backend == 'librosa':
     window_fn = WINDOWS_FNS[params.get('window', "hanning")]
     dither = params.get('dither', 0.0)
