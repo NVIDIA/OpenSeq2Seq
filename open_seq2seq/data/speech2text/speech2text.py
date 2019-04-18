@@ -172,7 +172,7 @@ class Speech2TextDataLayer(DataLayer):
     self.params['max_duration'] = self.params.get('max_duration', -1.0)
     self.params['window_size'] = self.params.get('window_size', 20e-3)
     self.params['window_stride'] = self.params.get('window_stride', 10e-3)
-
+    self.params['custom_noise'] = self.all_noise
     mel_basis = None
     if (self.params.get("precompute_mel_basis", False) and
         self.params["input_type"] == "logfbank"):
@@ -422,8 +422,7 @@ class Speech2TextDataLayer(DataLayer):
 
     source, audio_duration = get_speech_features_from_file(
         audio_filename,
-        params=self.params,
-        custom_noise = self.all_noise
+        params=self.params
     )
     return source.astype(self.params['dtype'].as_numpy_dtype()), \
         np.int32([len(source)]), \
