@@ -10,7 +10,7 @@ from open_seq2seq.optimizers.novograd  import NovoGrad
 import tensorflow as tf
 
 data_root =""
-#data_root = "/raid/Imagenet/tf-imagenet/"
+# data_root = "/raid/Imagenet/tf-imagenet/"
 base_model = Image2Label
 
 base_params = {
@@ -29,7 +29,7 @@ base_params = {
   "print_samples_steps": 10000,
   "eval_steps": 5000,
   "save_checkpoint_steps": 5000,
-  "logdir": "logs/rn50/adamw/lr0.01_wd0.001",
+  "logdir": "logs/rn50/adamw/cos0.01_wd0.001",
 
   "optimizer": "AdamW",
   "optimizer_params": {
@@ -39,13 +39,17 @@ base_params = {
     "weight_decay": 0.001,
   },
 
-  "lr_policy": poly_decay,
+  "lr_policy": tf.train.cosine_decay,
   "lr_policy_params": {
     "learning_rate": 0.01, # 1 GPU: 0.002,
-    "power": 2,
-    # "warmup_steps": 200,
   },
 
+  # "lr_policy": poly_decay,
+  # "lr_policy_params": {
+  #   "learning_rate": 0.01, # 1 GPU: 0.002,
+  #   "power": 2,
+  #   # "warmup_steps": 200,
+  # },
   # "optimizer": "Momentum",
   # "optimizer_params": {
   #   "momentum": 0.95,
