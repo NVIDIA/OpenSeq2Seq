@@ -145,9 +145,9 @@ class Speech2TextDataLayer(DataLayer):
           noise,sr = librosa.load(n,16000)
           all_noise.append(noise)
     if len(all_noise)>0:
-        self.all_noise=all_noise
+      self.all_noise=all_noise
     else:
-        self.all_noise=None
+      self.all_noise=None
     for csv in params['dataset_files']:
       files = pd.read_csv(csv, encoding='utf-8')
       if self._files is None:
