@@ -9,3 +9,4 @@ from .cross_entropy_loss import CrossEntropyLoss
 from .tacotron_loss import TacotronLoss
 from .wavenet_loss import WavenetLoss
 from .jca_loss import MultiTaskCTCEntropyLoss
+from .kentavr_loss import KentavrLoss
