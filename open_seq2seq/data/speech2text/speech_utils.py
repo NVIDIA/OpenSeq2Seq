@@ -345,8 +345,6 @@ def get_speech_features(signal, sample_freq, params):
   window_size = params.get('window_size', 20e-3)
   window_stride = params.get('window_stride', 10e-3)
   augmentation = params.get('augmentation', None)
-  custom_noise = params.get('custom_noise', None)
-  prob_noise = params.get('prob_noise', [0.5, 0.5, 0.5])
   if backend == 'librosa':
     window_fn = WINDOWS_FNS[params.get('window', "hanning")]
     dither = params.get('dither', 0.0)
@@ -363,14 +361,13 @@ def get_speech_features(signal, sample_freq, params):
         signal, sample_freq, num_features, features_type,
         window_size, window_stride, augmentation, window_fn=window_fn,
         dither=dither, norm_per_feature=norm_per_feature, num_fft=num_fft,
-        mel_basis=mel_basis, custom_noise=custom_noise, prob_noise=prob_noise
+        mel_basis=mel_basis
     )
   else:
     pad_to = params.get('pad_to', 8)
     features, duration = get_speech_features_psf(
         signal, sample_freq, num_features, pad_to, features_type,
-        window_size, window_stride, augmentation, custom_noise=custom_noise,
-        prob_noise=prob_noise
+        window_size, window_stride, augmentation
     )
 
   return features, duration 
@@ -386,8 +383,7 @@ def get_speech_features_librosa(signal, sample_freq, num_features,
                                 dither=0.0,
                                 norm_per_feature=False,
                                 mel_basis=None,
-                                custom_noise=None,
-                                prob_noise=[0.5, 0.5, 0.5]):
+                                ):
   """Function to convert raw audio signal to numpy array of features.
   Backend: librosa
   Args:
@@ -408,6 +404,8 @@ def get_speech_features_librosa(signal, sample_freq, num_features,
     audio_duration (float): duration of the signal in seconds
   """
   if augmentation is not None:
+    custom_noise = augmentation['custom_noise']
+    prob_noise = augmentation['prob_noise']
     prob = np.random.rand()
     if prob < prob_noise[0]:
       signal = augment_audio_signal(signal, sample_freq, augmentation)
@@ -415,15 +413,12 @@ def get_speech_features_librosa(signal, sample_freq, num_features,
     if prob < prob_noise[1]:
       signal = aug_with_pitch(signal, sample_freq)
     if custom_noise is not None:
-      if 'noise_level_max' not in augmentation:
+      if 'custom_noise_level_max' not in augmentation:
         raise ValueError('noise_level_max has to be included in augmentation '
                          'when augmentation it is not None')
-      if 'noise_level_min' not in augmentation:
+      if 'custom_noise_level_max' not in augmentation:
         raise ValueError('noise_level_min has to be included in augmentation '
                          'when augmentation it is not None')
-      if 'time_stretch_ratio' not in augmentation:
-        raise ValueError('time_stretch_ratio has to be included in augmentation '
-                             'when augmentation it is not None')
       prob = np.random.rand()
       if prob < prob_noise[2]:
         signal = aug_custom_noise(signal, custom_noise, augmentation)
@@ -502,8 +497,7 @@ def get_speech_features_psf(signal, sample_freq, num_features,
                             window_size=20e-3,
                             window_stride=10e-3,
                             augmentation=None,
-                            custom_noise=None,
-                            prob_noise=[0.5, 0.5, 0.5]):
+                            ):
   """Function to convert raw audio signal to numpy array of features.
   Backend: python_speech_features
   Args:
@@ -525,6 +519,8 @@ def get_speech_features_psf(signal, sample_freq, num_features,
     audio_duration (float): duration of the signal in seconds
   """
   if augmentation is not None:
+    custom_noise = augmentation['custom_noise']
+    prob_noise = augmentation['prob_noise']
     prob = np.random.rand()
     if prob < prob_noise[0]:
       signal = augment_audio_signal(signal, sample_freq, augmentation)
@@ -532,14 +528,11 @@ def get_speech_features_psf(signal, sample_freq, num_features,
     if prob < prob_noise[1]:
       signal = aug_with_pitch(signal, sample_freq)
     if custom_noise is not None:
-      if 'noise_level_max' not in augmentation:
+      if 'custom_noise_level_max' not in augmentation:
         raise ValueError('noise_level_max has to be included in augmentation '
                          'when augmentation it is not None')
-      if 'noise_level_min' not in augmentation:
+      if 'custom_noise_level_min' not in augmentation:
         raise ValueError('noise_level_min has to be included in augmentation '
-                         'when augmentation it is not None')
-      if 'time_stretch_ratio' not in augmentation:
-        raise ValueError('time_stretch_ratio has to be included in augmentation '
                          'when augmentation it is not None')
       prob = np.random.rand()
       if prob < prob_noise[2]:

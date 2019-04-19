@@ -172,8 +172,15 @@ class Speech2TextDataLayer(DataLayer):
     self.params['max_duration'] = self.params.get('max_duration', -1.0)
     self.params['window_size'] = self.params.get('window_size', 20e-3)
     self.params['window_stride'] = self.params.get('window_stride', 10e-3)
-    self.params['custom_noise'] = self.all_noise
-    self.params['prob_noise'] = self.params.get('prob_noise',[0.5, 0.5, 0.5])
+    if self.params['augmentation'] is not None:
+      self.params['augmentation']['custom_noise'] = self.all_noise
+      if 'prob_noise' not in self.params['augmentation']:
+        self.params['augmentation']['prob_noise']=[1,0,0]
+      if self.all_noise is not None:
+        if 'custom_noise_level_max' not in self.params['augmentation']:
+          self.params['augmentation']['custom_noise_level_max'] = -5
+        if 'custom_noise_level_min' not in self.params['augmentation']:
+          self.params['augmentation']['custom_noise_level_min'] = -40
     mel_basis = None
     if (self.params.get("precompute_mel_basis", False) and
         self.params["input_type"] == "logfbank"):
