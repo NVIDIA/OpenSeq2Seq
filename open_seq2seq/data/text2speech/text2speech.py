@@ -51,6 +51,11 @@ class Text2SpeechDataLayer(DataLayer):
             'mel_type': ['slaney', 'htk'],
             "exp_mag": bool,
             'style_input': [None, 'wav'],
+            'n_samples_train': int,
+            'n_samples_eval': int,
+            'n_fft': int,
+            'fmax': float,
+            'max_normalization': bool
         }
     )
 
@@ -97,7 +102,7 @@ class Text2SpeechDataLayer(DataLayer):
       All signals less than this will be cut from the training set. Defaults to
       0.
     * **duration_max** (int) --- Maximum duration in steps for speech signal.
-      All signals greater than this will be cut from the training set. Defaults 
+      All signals greater than this will be cut from the training set. Defaults
       to 4000.
     * **mel_type** (str) --- One of ['slaney', 'htk']. Decides which algorithm to
       use to compute mel specs.
@@ -113,13 +118,15 @@ class Text2SpeechDataLayer(DataLayer):
         worker_id
     )
 
+    self._cache = {}
+
     names = ['wav_filename', 'raw_transcript', 'transcript']
     sep = '\x7c'
     header = None
 
     if self.params["dataset"] == "LJ":
       self._sampling_rate = 22050
-      self._n_fft = 1024
+      self._n_fft = self.params.get("n_fft", 1024)
     elif self.params["dataset"] == "MAILABS":
       self._sampling_rate = 16000
       self._n_fft = 800
@@ -136,6 +143,8 @@ class Text2SpeechDataLayer(DataLayer):
     self.params['char2idx']['</s>'] = 2
     self.params['idx2char'] = {i: w for w, i in self.params['char2idx'].items()}
     self.params['src_vocab_size'] = len(self.params['char2idx'])
+
+    self.max_normalization = self.params.get('max_normalization', False)
 
     n_feats = self.params['num_audio_features']
     if "both" in self.params["output_type"]:
@@ -203,7 +212,8 @@ class Text2SpeechDataLayer(DataLayer):
           n_fft=self._n_fft,
           n_mels=n_mels,
           htk=htk,
-          norm=norm
+          norm=norm,
+          fmax=self.params.get('fmax', None)
       )
     else:
       self._mel_basis = None
@@ -226,6 +236,22 @@ class Text2SpeechDataLayer(DataLayer):
         self._files = files
       else:
         self._files = self._files.append(files)
+
+    if self.params['mode'] == 'train' and 'n_samples_train' in self.params:
+      indices = self._files['transcript'].str.len().sort_values().index
+      self._files = self._files.reindex(indices)
+
+      n_samples = self.params.get('n_samples_train')
+      print('Using just the {} shortest samples'.format(n_samples))
+      self._files = self._files.iloc[:n_samples]
+
+    if self.params['mode'] == 'eval':
+      indices = self._files['transcript'].str.len().sort_values().index
+      self._files = self._files.reindex(indices)
+
+      if 'n_samples_eval' in self.params:
+        n_samples = self.params['n_samples_eval']
+        self._files = self._files.iloc[:n_samples]
 
     if (self.params['mode'] != 'infer'
         or self.params.get("style_input", None) == "wav"):
@@ -259,6 +285,7 @@ class Text2SpeechDataLayer(DataLayer):
   def build_graph(self):
     with tf.device('/cpu:0'):
       """Builds data reading graph."""
+
       self._dataset = tf.data.Dataset.from_tensor_slices(self._files)
       if self.params['shuffle']:
         self._dataset = self._dataset.shuffle(self._size)
@@ -426,19 +453,24 @@ class Text2SpeechDataLayer(DataLayer):
     else:
       features_type = self.params['output_type']
 
-    spectrogram = get_speech_features_from_file(
-        file_path,
-        self.params['num_audio_features'],
-        features_type=features_type,
-        n_fft=self._n_fft,
-        mag_power=self.params.get('mag_power', 2),
-        feature_normalize=self.params["feature_normalize"],
-        mean=self.params.get("feature_normalize_mean", 0.),
-        std=self.params.get("feature_normalize_std", 1.),
-        trim=self.params.get("trim", False),
-        data_min=self.params.get("data_min", 1e-5),
-        mel_basis=self._mel_basis
-    )
+    if audio_filename in self._cache:
+      spectrogram = self._cache[audio_filename]
+    else:
+      spectrogram = get_speech_features_from_file(
+          file_path,
+          self.params['num_audio_features'],
+          features_type=features_type,
+          n_fft=self._n_fft,
+          mag_power=self.params.get('mag_power', 2),
+          feature_normalize=self.params["feature_normalize"],
+          mean=self.params.get("feature_normalize_mean", 0.),
+          std=self.params.get("feature_normalize_std", 1.),
+          trim=self.params.get("trim", False),
+          data_min=self.params.get("data_min", 1e-5),
+          mel_basis=self._mel_basis
+      )
+
+      self._cache[audio_filename] = spectrogram
 
     if self._both:
       mel_spectrogram, spectrogram = spectrogram
