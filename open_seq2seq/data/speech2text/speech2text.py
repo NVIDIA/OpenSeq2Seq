@@ -53,6 +53,7 @@ class Speech2TextDataLayer(DataLayer):
         'num_fft': int,
         'precompute_mel_basis': bool,
         'sample_freq': int,
+        'noise_files': str,
     })
 
   def __init__(self, params, model, num_workers, worker_id):
@@ -134,6 +135,19 @@ class Speech2TextDataLayer(DataLayer):
     self._files = None
     if self.params["interactive"]:
       return
+    all_noise = []
+    if "noise_files" in params:
+      noise_files_df = pd.read_csv(params["noise_files"], encoding='utf-8')
+      noise_files = noise_files_df.loc[:,"filename"].values
+      if noise_files is not None:
+        for n in noise_files:
+          print("Adding noise file {}".format(n))
+          noise,sr = librosa.load(n,16000)
+          all_noise.append(noise)
+    if len(all_noise)>0:
+      self.all_noise=all_noise
+    else:
+      self.all_noise=None
     for csv in params['dataset_files']:
       files = pd.read_csv(csv, encoding='utf-8')
       if self._files is None:
@@ -158,7 +172,8 @@ class Speech2TextDataLayer(DataLayer):
     self.params['max_duration'] = self.params.get('max_duration', -1.0)
     self.params['window_size'] = self.params.get('window_size', 20e-3)
     self.params['window_stride'] = self.params.get('window_stride', 10e-3)
-
+    self.params['custom_noise'] = self.all_noise
+    self.params['prob_noise'] = self.params.get('prob_noise',[0.5, 0.5, 0.5])
     mel_basis = None
     if (self.params.get("precompute_mel_basis", False) and
         self.params["input_type"] == "logfbank"):
@@ -356,6 +371,10 @@ class Speech2TextDataLayer(DataLayer):
       audio_length_arr.append(audio_length)
       x_id_arr.append(x_id)
     max_len = np.max(audio_length_arr)
+    pad_to = self.params.get("pad_to", 8)
+    if pad_to > 0 and self.params.get('backend') == 'librosa':
+      max_len += (pad_to - max_len % pad_to) % pad_to
+
     for i, audio in enumerate(audio_arr):
       audio = np.pad(
           audio, ((0, max_len-len(audio)), (0, 0)),
@@ -422,7 +441,7 @@ class Speech2TextDataLayer(DataLayer):
       sample id.
     """
     source, audio_duration = get_speech_features(
-        wav, 16000., params
+        wav, 16000., self.params
     )
     return source.astype(self.params['dtype'].as_numpy_dtype()), \
         np.int32([len(source)]), np.int32([0]), \
