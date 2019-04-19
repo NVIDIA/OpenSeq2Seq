@@ -18,7 +18,7 @@ base_params = {
   "use_horovod": True, # False, #
   "num_gpus": 1,
   "batch_size_per_gpu": 128,
-
+  "iter_size": 1,
   "num_epochs": 100,
 
   "dtype": "mixed",
