@@ -44,7 +44,7 @@ decoder_hidden_size = 512
 base_params = {
   "random_seed": 0,
   "use_horovod": True if not debug else False,
-  "max_steps": 1_000_000,
+  "max_steps": 1000000,
   "bench_start": 0,
 
   "num_gpus": num_gpus,
