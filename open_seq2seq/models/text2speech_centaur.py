@@ -12,13 +12,13 @@ from .encoder_decoder import EncoderDecoderModel
 from .text2speech import plot_spectrograms, save_audio
 
 
-class Text2SpeechKentavr(EncoderDecoderModel):
+class Text2SpeechCentaur(EncoderDecoderModel):
   """
-  Text-to-speech data layer class for Kentavr model.
+  Text-to-speech data layer class for Centaur model.
   """
 
   def __init__(self, params, mode="train", hvd=None):
-    super(Text2SpeechKentavr, self).__init__(params, mode=mode, hvd=hvd)
+    super(Text2SpeechCentaur, self).__init__(params, mode=mode, hvd=hvd)
     self._save_to_tensorboard = self.params["save_to_tensorboard"]
 
   def maybe_print_logs(self, input_values, output_values, training_step):

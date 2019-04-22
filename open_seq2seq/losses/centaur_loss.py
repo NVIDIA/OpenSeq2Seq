@@ -6,9 +6,9 @@ import tensorflow as tf
 from .loss import Loss
 
 
-class KentavrLoss(Loss):
-  def __init__(self, params, model, name="kentavr_loss"):
-    super(KentavrLoss, self).__init__(params, model, name)
+class CentaurLoss(Loss):
+  def __init__(self, params, model, name="centaur_loss"):
+    super(CentaurLoss, self).__init__(params, model, name)
     self._n_feats = self._model.get_data_layer().params["num_audio_features"]
 
     if "both" in self._model.get_data_layer().params["output_type"]:
@@ -18,7 +18,7 @@ class KentavrLoss(Loss):
 
   def _compute_loss(self, input_dict):
     """
-    Computes loss for Kentavr model.
+    Computes loss for Centaur model.
 
     Args:
       input_dict (dict): inputs to compute loss. Contains:

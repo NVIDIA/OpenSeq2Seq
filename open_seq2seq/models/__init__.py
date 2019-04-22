@@ -7,4 +7,4 @@ from .image2label import Image2Label
 from .lstm_lm import LSTMLM
 from .text2speech import Text2Speech
 from .text2speech_wavenet import Text2SpeechWavenet
-from .text2speech_kentavr import Text2SpeechKentavr
+from .text2speech_centaur import Text2SpeechCentaur

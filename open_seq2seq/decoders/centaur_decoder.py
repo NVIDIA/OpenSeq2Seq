@@ -1,21 +1,21 @@
 import tensorflow as tf
 from tensorflow.python.ops import math_ops
 
-from open_seq2seq.parts.kentavr import AttentionBlock
-from open_seq2seq.parts.kentavr import ConvBlock
-from open_seq2seq.parts.kentavr import Prenet
+from open_seq2seq.parts.centaur import AttentionBlock
+from open_seq2seq.parts.centaur import ConvBlock
+from open_seq2seq.parts.centaur import Prenet
 from open_seq2seq.parts.transformer import utils
 from open_seq2seq.parts.transformer.common import LayerNormalization
 from .decoder import Decoder
 
 
-class KentavrDecoder(Decoder):
+class CentaurDecoder(Decoder):
   """
-  Kentavr decoder that consists of modified transformer blocks followed by convolutional layers.
+  Centaur decoder that consists of modified transformer blocks followed by convolutional layers.
   """
 
-  def __init__(self, params, model, name="kentavr_decoder", mode="train"):
-    super(KentavrDecoder, self).__init__(params, model, name, mode)
+  def __init__(self, params, model, name="centaur_decoder", mode="train"):
+    super(CentaurDecoder, self).__init__(params, model, name, mode)
 
     data_layer_params = model.get_data_layer().params
     n_feats = data_layer_params["num_audio_features"]
@@ -222,7 +222,7 @@ class KentavrDecoder(Decoder):
       weights = []
 
       for index in range(len(self.attentions)):
-        op = "ForwardPass/kentavr_decoder/attention_block_%d/attention/attention/attention_weights" % index
+        op = "ForwardPass/centaur_decoder/attention_block_%d/attention/attention/attention_weights" % index
         weights_operation = tf.get_default_graph().get_operation_by_name(op)
         weight = weights_operation.values()[0]
         weights.append(weight)
@@ -365,7 +365,7 @@ class KentavrDecoder(Decoder):
         weights = []
 
         for index in range(len(self.attentions)):
-          op = forward + "/kentavr_decoder/while/attention_block_%d/attention/attention/attention_weights" % index
+          op = forward + "/centaur_decoder/while/attention_block_%d/attention/attention/attention_weights" % index
           weights_operation = tf.get_default_graph().get_operation_by_name(op)
           weight = weights_operation.values()[0]
           weights.append(weight)
@@ -408,7 +408,7 @@ class KentavrDecoder(Decoder):
   def _convert_outputs(outputs, reduction_factor, batch_size):
     with tf.variable_scope("output_converter"):
       for key in ["spec", "post_net_spec", "stop_token_logits", "mag_spec"]:
-        outputs[key] = KentavrDecoder._expand(outputs[key], reduction_factor)
+        outputs[key] = CentaurDecoder._expand(outputs[key], reduction_factor)
 
       alignments = [[outputs["alignments"][it][:, sample, :, :, :] for it in range(1)] for sample in range(batch_size)]
 

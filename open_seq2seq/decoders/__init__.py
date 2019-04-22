@@ -13,4 +13,4 @@ from .lm_decoders import FakeDecoder
 from .tacotron2_decoder import Tacotron2Decoder
 from .las_decoder import ListenAttendSpellDecoder
 from .jca_decoder import JointCTCAttentionDecoder
-from .kentavr_decoder import KentavrDecoder
+from .centaur_decoder import CentaurDecoder

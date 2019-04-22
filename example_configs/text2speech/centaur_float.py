@@ -4,14 +4,14 @@ import os
 import tensorflow as tf
 
 from open_seq2seq.data import Text2SpeechDataLayer
-from open_seq2seq.decoders import KentavrDecoder
-from open_seq2seq.encoders import KentavrEncoder
-from open_seq2seq.losses import KentavrLoss
-from open_seq2seq.models import Text2SpeechKentavr
+from open_seq2seq.decoders import CentaurDecoder
+from open_seq2seq.encoders import CentaurEncoder
+from open_seq2seq.losses import CentaurLoss
+from open_seq2seq.models import Text2SpeechCentaur
 from open_seq2seq.optimizers.lr_policies import poly_decay
 from open_seq2seq.optimizers.novograd import NovoGrad
 
-base_model = Text2SpeechKentavr
+base_model = Text2SpeechCentaur
 
 dataset = "LJ"
 dataset_location = "/data/LJSpeech"
@@ -56,7 +56,7 @@ base_params = {
   "eval_steps": 5000 if not debug else 50,
   "save_checkpoint_steps": 5000,
   "save_to_tensorboard": True,
-  "logdir": "result/kentavr-float",
+  "logdir": "result/centaur-float",
   "max_grad_norm": 1.,
 
   "optimizer": NovoGrad,
@@ -78,7 +78,7 @@ base_params = {
   "summaries": ["learning_rate", "variables", "gradients", "larc_summaries",
                 "variable_norm", "gradient_norm", "global_gradient_norm"],
 
-  "encoder": KentavrEncoder,
+  "encoder": CentaurEncoder,
   "encoder_params": {
     "src_vocab_size": 94,
     "embedding_size": encoder_hidden_size,
@@ -109,7 +109,7 @@ base_params = {
     ]
   },
 
-  "decoder": KentavrDecoder,
+  "decoder": CentaurDecoder,
   "decoder_params": {
     "attention_layers": attention_layers,
     "self_attention_conv_params": {
@@ -158,7 +158,7 @@ base_params = {
     "layer_postprocess_dropout": 0.1
   },
 
-  "loss": KentavrLoss,
+  "loss": CentaurLoss,
   "loss_params": {
     "use_mask": True,
     "l1_norm": True

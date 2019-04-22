@@ -1,18 +1,18 @@
 import tensorflow as tf
 
 from open_seq2seq.encoders import Encoder
-from open_seq2seq.parts.kentavr import ConvBlock
+from open_seq2seq.parts.centaur import ConvBlock
 from open_seq2seq.parts.transformer import embedding_layer
 from open_seq2seq.parts.transformer import utils
 
 
-class KentavrEncoder(Encoder):
+class CentaurEncoder(Encoder):
   """
-  Kentavr encoder that consists of convolutional layers.
+  Centaur encoder that consists of convolutional layers.
   """
 
-  def __init__(self, params, model, name="kentavr_encoder", mode="train"):
-    super(KentavrEncoder, self).__init__(params, model, name=name, mode=mode)
+  def __init__(self, params, model, name="centaur_encoder", mode="train"):
+    super(CentaurEncoder, self).__init__(params, model, name=name, mode=mode)
     self.training = mode == "train"
     self.layers = []
 

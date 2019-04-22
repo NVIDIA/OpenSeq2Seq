@@ -1,6 +1,6 @@
 import tensorflow as tf
 
-from open_seq2seq.parts.kentavr import ConvBlock
+from open_seq2seq.parts.centaur import ConvBlock
 from open_seq2seq.parts.transformer import attention_layer
 from open_seq2seq.parts.transformer.common import PrePostProcessingWrapper
 from open_seq2seq.parts.transformer.ffn_layer import FeedFowardNetwork
