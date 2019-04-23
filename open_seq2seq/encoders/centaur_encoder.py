@@ -20,10 +20,10 @@ class CentaurEncoder(Encoder):
     regularizer = self._params.get("regularizer", None)
 
     embedding = embedding_layer.EmbeddingSharedWeights(
-      vocab_size=self._params["src_vocab_size"],
-      hidden_size=self._params["embedding_size"],
-      pad_vocab_to_eight=self.params.get("pad_embeddings_2_eight", False),
-      regularizer=regularizer
+        vocab_size=self._params["src_vocab_size"],
+        hidden_size=self._params["embedding_size"],
+        pad_vocab_to_eight=self.params.get("pad_embeddings_2_eight", False),
+        regularizer=regularizer
     )
     self.layers.append(embedding)
 
@@ -33,22 +33,22 @@ class CentaurEncoder(Encoder):
 
     for index, params in enumerate(self._params["conv_layers"]):
       layer = ConvBlock.create(
-        index=index,
-        conv_params=params,
-        regularizer=regularizer,
-        bn_momentum=bn_momentum,
-        bn_epsilon=bn_epsilon,
-        cnn_dropout_prob=cnn_dropout_prob,
-        training=self.training
+          index=index,
+          conv_params=params,
+          regularizer=regularizer,
+          bn_momentum=bn_momentum,
+          bn_epsilon=bn_epsilon,
+          cnn_dropout_prob=cnn_dropout_prob,
+          training=self.training
       )
 
       self.layers.append(layer)
 
     linear_projection = tf.layers.Dense(
-      name="linear_projection",
-      units=self._params["output_size"],
-      use_bias=False,
-      kernel_regularizer=regularizer
+        name="linear_projection",
+        units=self._params["output_size"],
+        use_bias=False,
+        kernel_regularizer=regularizer
     )
     self.layers.append(linear_projection)
 
@@ -67,27 +67,27 @@ class CentaurEncoder(Encoder):
     inputs_attention_bias = utils.get_padding_bias(x)
 
     return {
-      "outputs": y,
-      "inputs_attention_bias": inputs_attention_bias,
-      "src_lengths": text_len
+        "outputs": y,
+        "inputs_attention_bias": inputs_attention_bias,
+        "src_lengths": text_len
     }
 
   @staticmethod
   def get_required_params():
     return dict(Encoder.get_required_params(), **{
-      "src_vocab_size": int,
-      "embedding_size": int,
-      "output_size": int,
-      "conv_layers": list
+        "src_vocab_size": int,
+        "embedding_size": int,
+        "output_size": int,
+        "conv_layers": list
     })
 
   @staticmethod
   def get_optional_params():
     return dict(Encoder.get_optional_params(), **{
-      "pad_embeddings_2_eight": bool,
-      "regularizer": None,
-      "bn_momentum": float,
-      "bn_epsilon": float,
-      "cnn_dropout_prob": float,
-      "norm_type": str
+        "pad_embeddings_2_eight": bool,
+        "regularizer": None,
+        "bn_momentum": float,
+        "bn_epsilon": float,
+        "cnn_dropout_prob": float,
+        "norm_type": str
     })
