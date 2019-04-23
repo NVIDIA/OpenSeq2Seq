@@ -1,3 +1,4 @@
+# Copyright (c) 2019 NVIDIA Corporation
 import tensorflow as tf
 from tensorflow.python.ops import math_ops
 
@@ -69,6 +70,11 @@ class CentaurDecoder(Decoder):
     force_layers = self._params.get("force_layers", range(n_layers))
 
     for index in range(n_layers):
+      window_size = None
+
+      if index in force_layers:
+        window_size = self._params.get("window_size", None)
+
       attention = AttentionBlock(
           name="attention_block_%d" % index,
           hidden_size=self._params["hidden_size"],
@@ -79,7 +85,7 @@ class CentaurDecoder(Decoder):
           cnn_dropout_prob=self._params.get("attention_cnn_dropout_prob", 0.5),
           conv_params=conv_params,
           n_heads=n_heads,
-          window_size=self._params.get("window_size", None) if index in force_layers else None,
+          window_size=window_size,
           back_step_size=self._params.get("back_step_size", None)
       )
       self.attentions.append(attention)
@@ -178,7 +184,11 @@ class CentaurDecoder(Decoder):
       encoder_outputs += pos_encoding
 
     for i, attention in enumerate(self.attentions):
-      positions = alignment_positions[i, :, :, :] if alignment_positions is not None else None
+      positions = None
+
+      if alignment_positions is not None:
+        positions = alignment_positions[i, :, :, :]
+
       y = attention(y, encoder_outputs, enc_dec_attention_bias, positions=positions)
 
     y = self.output_normalization(y)
@@ -235,7 +245,11 @@ class CentaurDecoder(Decoder):
 
       outputs["alignments"] = [tf.stack(weights)]
 
-    return self._convert_outputs(outputs, self.reduction_factor, self._model.params["batch_size_per_gpu"])
+    return self._convert_outputs(
+        outputs,
+        self.reduction_factor,
+        self._model.params["batch_size_per_gpu"]
+    )
 
   def _infer(self, encoder_outputs, enc_dec_attention_bias, sequence_lengths):
     if sequence_lengths is None:
@@ -245,16 +259,19 @@ class CentaurDecoder(Decoder):
 
     maximum_iterations //= self.reduction_factor
 
-    state, state_shape_invariants = self._inference_initial_state(encoder_outputs, enc_dec_attention_bias)
+    state, state_shape_invariants = self._inference_initial_state(
+        encoder_outputs,
+        enc_dec_attention_bias
+    )
 
     state = tf.while_loop(
-      cond=self._inference_cond,
-      body=self._inference_step,
-      loop_vars=[state],
-      shape_invariants=state_shape_invariants,
-      back_prop=False,
-      maximum_iterations=maximum_iterations,
-      parallel_iterations=1
+        cond=self._inference_cond,
+        body=self._inference_step,
+        loop_vars=[state],
+        shape_invariants=state_shape_invariants,
+        back_prop=False,
+        maximum_iterations=maximum_iterations,
+        parallel_iterations=1
     )
 
     return self._convert_outputs(
@@ -264,6 +281,8 @@ class CentaurDecoder(Decoder):
     )
 
   def _inference_initial_state(self, encoder_outputs, encoder_decoder_attention_bias):
+    """Create initial state for inference."""
+
     with tf.variable_scope("inference_initial_state"):
       batch_size = tf.shape(encoder_outputs)[0]
       n_layers = self._params.get("attention_layers", 1)
@@ -279,14 +298,14 @@ class CentaurDecoder(Decoder):
               "spec": tf.zeros([batch_size, 0, self.n_mel * self.reduction_factor]),
               "post_net_spec": tf.zeros([batch_size, 0, self.n_mel * self.reduction_factor]),
               "alignments": [
-                tf.zeros([0, 0, 0, 0, 0])
+                  tf.zeros([0, 0, 0, 0, 0])
               ],
               "stop_token_logits": tf.zeros([batch_size, 0, 1 * self.reduction_factor]),
               "lengths": tf.zeros([batch_size], dtype=tf.int32),
               "mag_spec": tf.zeros([batch_size, 0, self.n_mag * self.reduction_factor])
-        },
-        "encoder_outputs": encoder_outputs,
-        "encoder_decoder_attention_bias": encoder_decoder_attention_bias
+          },
+          "encoder_outputs": encoder_outputs,
+          "encoder_decoder_attention_bias": encoder_decoder_attention_bias
       }
 
       state_shape_invariants = {
@@ -298,7 +317,7 @@ class CentaurDecoder(Decoder):
               "spec": tf.TensorShape([None, None, self.n_mel * self.reduction_factor]),
               "post_net_spec": tf.TensorShape([None, None, self.n_mel * self.reduction_factor]),
               "alignments": [
-                tf.TensorShape([None, None, None, None, None]),
+                  tf.TensorShape([None, None, None, None, None]),
               ],
               "stop_token_logits": tf.TensorShape([None, None, 1 * self.reduction_factor]),
               "lengths": tf.TensorShape([None]),
@@ -311,11 +330,15 @@ class CentaurDecoder(Decoder):
       return state, state_shape_invariants
 
   def _inference_cond(self, state):
+    """Check if it's time to stop inference."""
+
     with tf.variable_scope("inference_cond"):
       all_finished = math_ops.reduce_all(state["finished"])
       return tf.logical_not(all_finished)
 
   def _inference_step(self, state):
+    """Make one inference step."""
+
     decoder_inputs = state["inputs"]
     encoder_outputs = state["encoder_outputs"]
     enc_dec_attention_bias = state["encoder_decoder_attention_bias"]
@@ -339,12 +362,20 @@ class CentaurDecoder(Decoder):
       next_inputs = self._shrink(next_inputs, n_features, self.reduction_factor)
 
       # Set zero if sequence is finished
-      next_inputs = tf.where(state["finished"], tf.zeros_like(next_inputs), next_inputs)
+      next_inputs = tf.where(
+          state["finished"],
+          tf.zeros_like(next_inputs),
+          next_inputs
+      )
       next_inputs = tf.concat([decoder_inputs, next_inputs], 1)
 
       # Update lengths
       lengths = state["outputs"]["lengths"]
-      lengths = tf.where(state["finished"], lengths, lengths + 1 * self.reduction_factor)
+      lengths = tf.where(
+          state["finished"],
+          lengths,
+          lengths + 1 * self.reduction_factor
+      )
       outputs["lengths"] = lengths
 
       # Update spec, post_net_spec and mag_spec
@@ -365,9 +396,13 @@ class CentaurDecoder(Decoder):
 
       # Uncomment next line if you want to use stop token predictions
       # finished = tf.reshape(tf.cast(tf.round(stop_prediction), tf.bool), [-1])
-      finished = tf.reshape(tf.cast(tf.round(tf.zeros_like(stop_prediction)), tf.bool), [-1])
+      finished = tf.cast(tf.round(tf.zeros_like(stop_prediction)), tf.bool)
+      finished = tf.reshape(finished, [-1])
 
-      stop_token_logits = tf.concat([state["outputs"]["stop_token_logits"], stop_token_logits], 1)
+      stop_token_logits = tf.concat(
+          [state["outputs"]["stop_token_logits"], stop_token_logits],
+          axis=1
+      )
       outputs["stop_token_logits"] = stop_token_logits
 
       with tf.variable_scope("alignments"):
@@ -383,8 +418,15 @@ class CentaurDecoder(Decoder):
         weights = tf.stack(weights)
         outputs["alignments"] = [weights]
 
-      alignment_positions = tf.argmax(weights, axis=-1, output_type=tf.int32)[:, :, :, -1:]
-      state["alignment_positions"] = tf.concat([state["alignment_positions"], alignment_positions], axis=-1)
+      alignment_positions = tf.argmax(
+          weights,
+          axis=-1,
+          output_type=tf.int32
+      )[:, :, :, -1:]
+      state["alignment_positions"] = tf.concat(
+          [state["alignment_positions"], alignment_positions],
+          axis=-1
+      )
 
       state["iteration"] = state["iteration"] + 1
       state["inputs"] = next_inputs
@@ -398,7 +440,12 @@ class CentaurDecoder(Decoder):
     """Shrink the given input by reduction_factor."""
 
     shape = tf.shape(values)
-    values = tf.reshape(values, [shape[0], shape[1] // reduction_factor, last_dim * reduction_factor])
+    new_shape = [
+        shape[0],
+        shape[1] // reduction_factor,
+        last_dim * reduction_factor
+    ]
+    values = tf.reshape(values, new_shape)
     return values
 
   @staticmethod
@@ -406,7 +453,12 @@ class CentaurDecoder(Decoder):
     """Expand the given input by reduction_factor."""
 
     shape = tf.shape(values)
-    values = tf.reshape(values, [shape[0], shape[1] * reduction_factor, shape[2] // reduction_factor])
+    new_shape = [
+        shape[0],
+        shape[1] * reduction_factor,
+        shape[2] // reduction_factor
+    ]
+    values = tf.reshape(values, new_shape)
     return values
 
   @staticmethod
@@ -415,8 +467,9 @@ class CentaurDecoder(Decoder):
 
     length = tf.shape(x)[1]
     features_count = tf.shape(x)[2]
-    features_count_even = features_count if (features_count % 2 == 0) else (features_count + 1)
-    position_encoding = tf.cast(utils.get_position_encoding(length, features_count_even), dtype)
+    features_count += features_count % 2
+    pos_encoding = utils.get_position_encoding(length, features_count)
+    position_encoding = tf.cast(pos_encoding, dtype)
     position_encoding = position_encoding[:, :features_count]
     return position_encoding
 
@@ -434,8 +487,12 @@ class CentaurDecoder(Decoder):
 
       return {
           "outputs": [
-            outputs["spec"], outputs["post_net_spec"], alignments,
-            tf.sigmoid(outputs["stop_token_logits"]), outputs["lengths"], outputs["mag_spec"]
+              outputs["spec"],
+              outputs["post_net_spec"],
+              alignments,
+              tf.sigmoid(outputs["stop_token_logits"]),
+              outputs["lengths"],
+              outputs["mag_spec"]
           ],
           "stop_token_logits": outputs["stop_token_logits"]
       }

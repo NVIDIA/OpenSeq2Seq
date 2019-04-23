@@ -1,10 +1,23 @@
+# Copyright (c) 2019 NVIDIA Corporation
 import tensorflow as tf
 
 from .batch_norm import BatchNorm1D
 
 
 class ConvBlock:
-  def __init__(self, name, conv, norm, activation_fn, dropout, training, is_residual, is_causal):
+  """
+  Convolutional block for Centaur model.
+  """
+
+  def __init__(self,
+               name,
+               conv,
+               norm,
+               activation_fn,
+               dropout,
+               training,
+               is_residual,
+               is_causal):
     self.name = name
     self.conv = conv
     self.norm = norm
@@ -49,24 +62,24 @@ class ConvBlock:
     activation_fn = conv_params.get("activation_fn", tf.nn.relu)
 
     conv = tf.layers.Conv1D(
-      name="conv_%d" % index,
-      filters=conv_params["num_channels"],
-      kernel_size=conv_params["kernel_size"],
-      strides=conv_params["stride"],
-      padding=conv_params["padding"],
-      kernel_regularizer=regularizer
+        name="conv_%d" % index,
+        filters=conv_params["num_channels"],
+        kernel_size=conv_params["kernel_size"],
+        strides=conv_params["stride"],
+        padding=conv_params["padding"],
+        kernel_regularizer=regularizer
     )
 
     norm = BatchNorm1D(
-      name="bn_%d" % index,
-      gamma_regularizer=regularizer,
-      momentum=bn_momentum,
-      epsilon=bn_epsilon
+        name="bn_%d" % index,
+        gamma_regularizer=regularizer,
+        momentum=bn_momentum,
+        epsilon=bn_epsilon
     )
 
     dropout = tf.layers.Dropout(
-      name="dropout_%d" % index,
-      rate=cnn_dropout_prob
+        name="dropout_%d" % index,
+        rate=cnn_dropout_prob
     )
 
     if "is_causal" in conv_params:
@@ -75,4 +88,13 @@ class ConvBlock:
     if "is_residual" in conv_params:
       is_residual = conv_params["is_residual"]
 
-    return ConvBlock("layer_%d" % index, conv, norm, activation_fn, dropout, training, is_residual, is_causal)
+    return ConvBlock(
+        name="layer_%d" % index,
+        conv=conv,
+        norm=norm,
+        activation_fn=activation_fn,
+        dropout=dropout,
+        training=training,
+        is_residual=is_residual,
+        is_causal=is_causal
+    )
