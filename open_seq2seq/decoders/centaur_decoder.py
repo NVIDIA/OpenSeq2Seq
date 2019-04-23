@@ -11,7 +11,8 @@ from .decoder import Decoder
 
 class CentaurDecoder(Decoder):
   """
-  Centaur decoder that consists of modified transformer blocks followed by convolutional layers.
+  Centaur decoder that consists of modified transformer blocks
+  followed by convolutional layers.
   """
 
   def __init__(self, params, model, name="centaur_decoder", mode="train"):
@@ -25,6 +26,7 @@ class CentaurDecoder(Decoder):
     self.prenet = None
     self.linear_projection = None
     self.attentions = []
+    self.output_normalization = None
     self.conv_layers = []
     self.mag_conv_layers = []
     self.stop_token_projection_layer = None
@@ -37,15 +39,16 @@ class CentaurDecoder(Decoder):
 
   def _build_layers(self):
     regularizer = self._params.get("regularizer", None)
+    inference_dropout = self._params.get("prenet_use_inference_dropout", False)
 
     self.prenet = Prenet(
-      n_layers=self._params["prenet_layers"],
-      hidden_size=self._params["prenet_hidden_size"],
-      activation_fn=self._params.get("prenet_activation_fn", tf.nn.relu),
-      dropout=self._params.get("prenet_dropout", 0.5),
-      regularizer=regularizer,
-      training=self.training or self._params.get("prenet_use_inference_dropout", False),
-      dtype=self._params["dtype"]
+        n_layers=self._params["prenet_layers"],
+        hidden_size=self._params["prenet_hidden_size"],
+        activation_fn=self._params.get("prenet_activation_fn", tf.nn.relu),
+        dropout=self._params.get("prenet_dropout", 0.5),
+        regularizer=regularizer,
+        training=self.training or inference_dropout,
+        dtype=self._params["dtype"]
     )
 
     cnn_dropout_prob = self._params.get("cnn_dropout_prob", 0.5)
@@ -53,11 +56,11 @@ class CentaurDecoder(Decoder):
     bn_epsilon = self._params.get("bn_epsilon", -1e8)
 
     self.linear_projection = tf.layers.Dense(
-      name="linear_projection",
-      units=self._params["hidden_size"],
-      use_bias=False,
-      kernel_regularizer=regularizer,
-      dtype=self._params["dtype"]
+        name="linear_projection",
+        units=self._params["hidden_size"],
+        use_bias=False,
+        kernel_regularizer=regularizer,
+        dtype=self._params["dtype"]
     )
 
     n_layers = self._params.get("attention_layers", 1)
@@ -67,17 +70,17 @@ class CentaurDecoder(Decoder):
 
     for index in range(n_layers):
       attention = AttentionBlock(
-        name="attention_block_%d" % index,
-        hidden_size=self._params["hidden_size"],
-        attention_dropout=self._params["attention_dropout"],
-        layer_postprocess_dropout=self._params["layer_postprocess_dropout"],
-        regularizer=regularizer,
-        training=self.training,
-        cnn_dropout_prob=self._params.get("attention_cnn_dropout_prob", 0.5),
-        conv_params=conv_params,
-        n_heads=n_heads,
-        window_size=self._params.get("window_size", None) if index in force_layers else None,
-        back_step_size=self._params.get("back_step_size", None)
+          name="attention_block_%d" % index,
+          hidden_size=self._params["hidden_size"],
+          attention_dropout=self._params["attention_dropout"],
+          layer_postprocess_dropout=self._params["layer_postprocess_dropout"],
+          regularizer=regularizer,
+          training=self.training,
+          cnn_dropout_prob=self._params.get("attention_cnn_dropout_prob", 0.5),
+          conv_params=conv_params,
+          n_heads=n_heads,
+          window_size=self._params.get("window_size", None) if index in force_layers else None,
+          back_step_size=self._params.get("back_step_size", None)
       )
       self.attentions.append(attention)
 
@@ -88,13 +91,13 @@ class CentaurDecoder(Decoder):
         params["num_channels"] = self.n_mel * self.reduction_factor
 
       layer = ConvBlock.create(
-        index=index,
-        conv_params=params,
-        regularizer=regularizer,
-        bn_momentum=bn_momentum,
-        bn_epsilon=bn_epsilon,
-        cnn_dropout_prob=cnn_dropout_prob,
-        training=self.training
+          index=index,
+          conv_params=params,
+          regularizer=regularizer,
+          bn_momentum=bn_momentum,
+          bn_epsilon=bn_epsilon,
+          cnn_dropout_prob=cnn_dropout_prob,
+          training=self.training
       )
       self.conv_layers.append(layer)
 
@@ -103,35 +106,35 @@ class CentaurDecoder(Decoder):
         params["num_channels"] = self.n_mag * self.reduction_factor
 
       layer = ConvBlock.create(
-        index=index,
-        conv_params=params,
-        regularizer=regularizer,
-        bn_momentum=bn_momentum,
-        bn_epsilon=bn_epsilon,
-        cnn_dropout_prob=cnn_dropout_prob,
-        training=self.training
+          index=index,
+          conv_params=params,
+          regularizer=regularizer,
+          bn_momentum=bn_momentum,
+          bn_epsilon=bn_epsilon,
+          cnn_dropout_prob=cnn_dropout_prob,
+          training=self.training
       )
       self.mag_conv_layers.append(layer)
 
     self.stop_token_projection_layer = tf.layers.Dense(
-      name="stop_token_projection",
-      units=1 * self.reduction_factor,
-      use_bias=True,
-      kernel_regularizer=regularizer
+        name="stop_token_projection",
+        units=1 * self.reduction_factor,
+        use_bias=True,
+        kernel_regularizer=regularizer
     )
 
     self.mel_projection_layer = tf.layers.Dense(
-      name="mel_projection",
-      units=self.n_mel * self.reduction_factor,
-      use_bias=True,
-      kernel_regularizer=regularizer
+        name="mel_projection",
+        units=self.n_mel * self.reduction_factor,
+        use_bias=True,
+        kernel_regularizer=regularizer
     )
 
     self.mag_projection_layer = tf.layers.Dense(
-      name="mag_projection",
-      units=self.n_mag * self.reduction_factor,
-      use_bias=True,
-      kernel_regularizer=regularizer
+        name="mag_projection",
+        units=self.n_mag * self.reduction_factor,
+        use_bias=True,
+        kernel_regularizer=regularizer
     )
 
   def _decode(self, input_dict):
@@ -143,16 +146,19 @@ class CentaurDecoder(Decoder):
       targets = None
 
     encoder_outputs = input_dict["encoder_output"]["outputs"]
-    inputs_attention_bias = input_dict["encoder_output"]["inputs_attention_bias"]
+    attention_bias = input_dict["encoder_output"]["inputs_attention_bias"]
     spec_length = None
 
     if self.mode == "train" or self.mode == "eval":
-      spec_length = input_dict["target_tensors"][2] if "target_tensors" in input_dict else None
+      spec_length = None
+
+      if "target_tensors" in input_dict:
+        spec_length = input_dict["target_tensors"][2]
 
     if self.training:
-      return self._train(targets, encoder_outputs, inputs_attention_bias, spec_length)
+      return self._train(targets, encoder_outputs, attention_bias, spec_length)
 
-    return self._infer(encoder_outputs, inputs_attention_bias, spec_length)
+    return self._infer(encoder_outputs, attention_bias, spec_length)
 
   def _decode_pass(self,
                    decoder_inputs,
@@ -195,12 +201,12 @@ class CentaurDecoder(Decoder):
       sequence_lengths = tf.zeros([batch_size])
 
     return {
-      "spec": mel_spec,
-      "post_net_spec": mel_spec,
-      "alignments": None,
-      "stop_token_logits": stop_token_logits,
-      "lengths": sequence_lengths,
-      "mag_spec": mag_spec
+        "spec": mel_spec,
+        "post_net_spec": mel_spec,
+        "alignments": None,
+        "stop_token_logits": stop_token_logits,
+        "lengths": sequence_lengths,
+        "mag_spec": mag_spec
     }
 
   def _train(self, targets, encoder_outputs, enc_dec_attention_bias, sequence_lengths):
@@ -212,10 +218,10 @@ class CentaurDecoder(Decoder):
       decoder_inputs = tf.pad(targets, [[0, 0], [1, 0], [0, 0]])[:, :-1, :]
 
     outputs = self._decode_pass(
-      decoder_inputs=decoder_inputs,
-      encoder_outputs=encoder_outputs,
-      enc_dec_attention_bias=enc_dec_attention_bias,
-      sequence_lengths=sequence_lengths
+        decoder_inputs=decoder_inputs,
+        encoder_outputs=encoder_outputs,
+        enc_dec_attention_bias=enc_dec_attention_bias,
+        sequence_lengths=sequence_lengths
     )
 
     with tf.variable_scope("alignments"):
@@ -251,7 +257,11 @@ class CentaurDecoder(Decoder):
       parallel_iterations=1
     )
 
-    return self._convert_outputs(state["outputs"], self.reduction_factor, self._model.params["batch_size_per_gpu"])
+    return self._convert_outputs(
+        state["outputs"],
+        self.reduction_factor,
+        self._model.params["batch_size_per_gpu"]
+    )
 
   def _inference_initial_state(self, encoder_outputs, encoder_decoder_attention_bias):
     with tf.variable_scope("inference_initial_state"):
@@ -261,41 +271,41 @@ class CentaurDecoder(Decoder):
       n_features = self.n_mel + self.n_mag
 
       state = {
-        "iteration": tf.constant(0),
-        "inputs": tf.zeros([batch_size, 1, n_features * self.reduction_factor]),
-        "finished": tf.cast(tf.zeros([batch_size]), tf.bool),
-        "alignment_positions": tf.zeros([n_layers, batch_size, n_heads, 1], dtype=tf.int32),
-        "outputs": {
-          "spec": tf.zeros([batch_size, 0, self.n_mel * self.reduction_factor]),
-          "post_net_spec": tf.zeros([batch_size, 0, self.n_mel * self.reduction_factor]),
-          "alignments": [
-            tf.zeros([0, 0, 0, 0, 0])
-          ],
-          "stop_token_logits": tf.zeros([batch_size, 0, 1 * self.reduction_factor]),
-          "lengths": tf.zeros([batch_size], dtype=tf.int32),
-          "mag_spec": tf.zeros([batch_size, 0, self.n_mag * self.reduction_factor])
+          "iteration": tf.constant(0),
+          "inputs": tf.zeros([batch_size, 1, n_features * self.reduction_factor]),
+          "finished": tf.cast(tf.zeros([batch_size]), tf.bool),
+          "alignment_positions": tf.zeros([n_layers, batch_size, n_heads, 1], dtype=tf.int32),
+          "outputs": {
+              "spec": tf.zeros([batch_size, 0, self.n_mel * self.reduction_factor]),
+              "post_net_spec": tf.zeros([batch_size, 0, self.n_mel * self.reduction_factor]),
+              "alignments": [
+                tf.zeros([0, 0, 0, 0, 0])
+              ],
+              "stop_token_logits": tf.zeros([batch_size, 0, 1 * self.reduction_factor]),
+              "lengths": tf.zeros([batch_size], dtype=tf.int32),
+              "mag_spec": tf.zeros([batch_size, 0, self.n_mag * self.reduction_factor])
         },
         "encoder_outputs": encoder_outputs,
         "encoder_decoder_attention_bias": encoder_decoder_attention_bias
       }
 
       state_shape_invariants = {
-        "iteration": tf.TensorShape([]),
-        "inputs": tf.TensorShape([None, None, n_features * self.reduction_factor]),
-        "finished": tf.TensorShape([None]),
-        "alignment_positions": tf.TensorShape([n_layers, None, n_heads, None]),
-        "outputs": {
-          "spec": tf.TensorShape([None, None, self.n_mel * self.reduction_factor]),
-          "post_net_spec": tf.TensorShape([None, None, self.n_mel * self.reduction_factor]),
-          "alignments": [
-            tf.TensorShape([None, None, None, None, None]),
-          ],
-          "stop_token_logits": tf.TensorShape([None, None, 1 * self.reduction_factor]),
-          "lengths": tf.TensorShape([None]),
-          "mag_spec": tf.TensorShape([None, None, None])
-        },
-        "encoder_outputs": encoder_outputs.shape,
-        "encoder_decoder_attention_bias": encoder_decoder_attention_bias.shape
+          "iteration": tf.TensorShape([]),
+          "inputs": tf.TensorShape([None, None, n_features * self.reduction_factor]),
+          "finished": tf.TensorShape([None]),
+          "alignment_positions": tf.TensorShape([n_layers, None, n_heads, None]),
+          "outputs": {
+              "spec": tf.TensorShape([None, None, self.n_mel * self.reduction_factor]),
+              "post_net_spec": tf.TensorShape([None, None, self.n_mel * self.reduction_factor]),
+              "alignments": [
+                tf.TensorShape([None, None, None, None, None]),
+              ],
+              "stop_token_logits": tf.TensorShape([None, None, 1 * self.reduction_factor]),
+              "lengths": tf.TensorShape([None]),
+              "mag_spec": tf.TensorShape([None, None, None])
+          },
+          "encoder_outputs": encoder_outputs.shape,
+          "encoder_decoder_attention_bias": encoder_decoder_attention_bias.shape
       }
 
       return state, state_shape_invariants
@@ -312,10 +322,10 @@ class CentaurDecoder(Decoder):
     alignment_positions = state["alignment_positions"]
 
     outputs = self._decode_pass(
-      decoder_inputs=decoder_inputs,
-      encoder_outputs=encoder_outputs,
-      enc_dec_attention_bias=enc_dec_attention_bias,
-      alignment_positions=alignment_positions
+        decoder_inputs=decoder_inputs,
+        encoder_outputs=encoder_outputs,
+        enc_dec_attention_bias=enc_dec_attention_bias,
+        alignment_positions=alignment_positions
     )
 
     with tf.variable_scope("inference_step"):
@@ -346,9 +356,9 @@ class CentaurDecoder(Decoder):
       # Update stop token logits
       stop_token_logits = outputs["stop_token_logits"][:, -1:, :]
       stop_token_logits = tf.where(
-        state["finished"],
-        tf.zeros_like(stop_token_logits),
-        stop_token_logits
+          state["finished"],
+          tf.zeros_like(stop_token_logits),
+          stop_token_logits
       )
       stop_prediction = tf.sigmoid(stop_token_logits)
       stop_prediction = tf.reduce_max(stop_prediction, axis=-1)
@@ -385,18 +395,24 @@ class CentaurDecoder(Decoder):
 
   @staticmethod
   def _shrink(values, last_dim, reduction_factor):
+    """Shrink the given input by reduction_factor."""
+
     shape = tf.shape(values)
     values = tf.reshape(values, [shape[0], shape[1] // reduction_factor, last_dim * reduction_factor])
     return values
 
   @staticmethod
   def _expand(values, reduction_factor):
+    """Expand the given input by reduction_factor."""
+
     shape = tf.shape(values)
     values = tf.reshape(values, [shape[0], shape[1] * reduction_factor, shape[2] // reduction_factor])
     return values
 
   @staticmethod
   def _positional_encoding(x, dtype):
+    """Add positional encoding to the given input."""
+
     length = tf.shape(x)[1]
     features_count = tf.shape(x)[2]
     features_count_even = features_count if (features_count % 2 == 0) else (features_count + 1)
@@ -406,47 +422,51 @@ class CentaurDecoder(Decoder):
 
   @staticmethod
   def _convert_outputs(outputs, reduction_factor, batch_size):
+    """Convert output of the decoder to appropriate format."""
+
     with tf.variable_scope("output_converter"):
       for key in ["spec", "post_net_spec", "stop_token_logits", "mag_spec"]:
         outputs[key] = CentaurDecoder._expand(outputs[key], reduction_factor)
 
-      alignments = [[outputs["alignments"][it][:, sample, :, :, :] for it in range(1)] for sample in range(batch_size)]
+      alignments = []
+      for sample in range(batch_size):
+        alignments.append([outputs["alignments"][0][:, sample, :, :, :]])
 
       return {
-        "outputs": [
-          outputs["spec"], outputs["post_net_spec"], alignments,
-          tf.sigmoid(outputs["stop_token_logits"]), outputs["lengths"], outputs["mag_spec"]
-        ],
-        "stop_token_logits": outputs["stop_token_logits"]
+          "outputs": [
+            outputs["spec"], outputs["post_net_spec"], alignments,
+            tf.sigmoid(outputs["stop_token_logits"]), outputs["lengths"], outputs["mag_spec"]
+          ],
+          "stop_token_logits": outputs["stop_token_logits"]
       }
 
   @staticmethod
   def get_required_params():
     return dict(Decoder.get_required_params(), **{
-      "prenet_layers": int,
-      "prenet_hidden_size": int,
-      "hidden_size": int,
-      "conv_layers": list,
-      "mag_conv_layers": None,
-      "attention_dropout": float,
-      "layer_postprocess_dropout": float
+        "prenet_layers": int,
+        "prenet_hidden_size": int,
+        "hidden_size": int,
+        "conv_layers": list,
+        "mag_conv_layers": None,
+        "attention_dropout": float,
+        "layer_postprocess_dropout": float
     })
 
   @staticmethod
   def get_optional_params():
     return dict(Decoder.get_optional_params(), **{
-      "prenet_activation_fn": None,
-      "prenet_dropout": float,
-      "prenet_use_inference_dropout": bool,
-      "cnn_dropout_prob": float,
-      "bn_momentum": float,
-      "bn_epsilon": float,
-      "reduction_factor": int,
-      "attention_layers": int,
-      "self_attention_conv_params": None,
-      "attention_heads": int,
-      "attention_cnn_dropout_prob": float,
-      "window_size": int,
-      "back_step_size": int,
-      "force_layers": list
+        "prenet_activation_fn": None,
+        "prenet_dropout": float,
+        "prenet_use_inference_dropout": bool,
+        "cnn_dropout_prob": float,
+        "bn_momentum": float,
+        "bn_epsilon": float,
+        "reduction_factor": int,
+        "attention_layers": int,
+        "self_attention_conv_params": None,
+        "attention_heads": int,
+        "attention_cnn_dropout_prob": float,
+        "window_size": int,
+        "back_step_size": int,
+        "force_layers": list
     })
