@@ -405,11 +405,11 @@ def get_speech_features_librosa(signal, sample_freq, num_features,
   width_freq_mask = augmentation.get('width_freq_mask', 10)
   width_time_mask = augmentation.get('width_time_mask', 100)
 
-  for idx in n_freq_mask:
+  for idx in range(n_freq_mask):
     freq_band = np.random.randint(width_freq_mask + 1)
     freq_base = np.random.randint(0, features.shape[1] - freq_band)
     features[:, freq_base:freq_base+freq_band] = 0
-  for idx in n_time_mask:
+  for idx in range(n_time_mask):
     time_band = np.random.randint(width_time_mask + 1)
     time_base = np.random.randint(0, features.shape[0] - time_band)
     features[time_base:time_base+time_band, :] = 0
