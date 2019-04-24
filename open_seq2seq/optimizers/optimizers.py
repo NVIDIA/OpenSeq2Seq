@@ -40,6 +40,7 @@ OPTIMIZER_CLS_NAMES = {
     "Momentum": tf.train.MomentumOptimizer,
     "RMSProp": tf.train.RMSPropOptimizer,
     "SGD": tf.train.GradientDescentOptimizer,
+    "AdamW": tf.contrib.opt.AdamWOptimizer,
 }
 
 OPTIMIZER_SUMMARIES = [
@@ -177,6 +178,9 @@ def optimize_loss(loss,
     update_ops = set(tf.get_collection(tf.GraphKeys.UPDATE_OPS))
     loss = control_flow_ops.with_dependencies(list(update_ops), loss)
 
+    if optimizer=="AdamW":
+      optimizer_params["weight_decay"] = optimizer_params["weight_decay"]*lr
+
     # Create optimizer, given specified parameters.
     if isinstance(optimizer, six.string_types):
       if optimizer not in OPTIMIZER_CLS_NAMES:
@@ -186,6 +190,7 @@ def optimize_loss(loss,
             )
         )
       optimizer = OPTIMIZER_CLS_NAMES[optimizer]
+
     opt = optimizer(learning_rate=lr, **optimizer_params)
 
     if isinstance(loss_scaling, six.string_types):
