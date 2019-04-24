@@ -24,6 +24,25 @@ class AttentionBlock:
                window_size=None,
                back_step_size=None,
                name="attention_block"):
+    """
+    Attention block constructor.
+
+    Args:
+      hidden_size: dimensionality of hidden embeddings.
+      attention_dropout: dropout rate for attention layer.
+      layer_postprocess_dropout:  dropout rate for sublayer.
+      training: whether it is training mode.
+      cnn_dropout_prob: dropout probabilty for cnn layers.
+      regularizer: regularizer for the convolution kernel.
+      conv_params: description of convolutional layer.
+      n_heads: number of attention heads. Defaults to 1.
+      window_size: size of attention window for forcing
+        monotonic attention during the inference. Defaults to None.
+      back_step_size: number of steps attention is allowed to
+        go back during the inference. Defaults to 0.
+      name: name of the block.
+    """
+
     self.name = name
     self.conv = None
 

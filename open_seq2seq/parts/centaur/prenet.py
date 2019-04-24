@@ -16,6 +16,21 @@ class Prenet:
                training=True,
                dtype=None,
                name="prenet"):
+    """
+    Pre-net constructor.
+
+    Args:
+      n_layers: number of fully-connected layers to use.
+      hidden_size: number of units in each pre-net layer.
+      activation_fn: activation function to use.
+      dropout: dropout rate. Defaults to 0.5.
+      regularizer: regularizer for the convolution kernel.
+        Defaults to None.
+      training: whether it is training mode. Defaults to None.
+      dtype: dtype of the layer's weights. Defaults to None.
+      name: name of the block.
+    """
+
     self.name = name
     self.layers = []
     self.dropout = dropout

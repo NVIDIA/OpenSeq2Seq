@@ -18,6 +18,20 @@ class ConvBlock:
                training,
                is_residual,
                is_causal):
+    """
+    Convolutional block constructor.
+
+    Args:
+      name: name of the block.
+      conv: convolutional layer.
+      norm: normalization layer to use after the convolutional layer.
+      activation_fn: activation function to use after the normalization.
+      dropout: dropout rate.
+      training: whether it is training mode.
+      is_residual: whether the block should contain a residual connection.
+      is_causal: whether the convolutional layer should be causal.
+    """
+
     self.name = name
     self.conv = conv
     self.norm = norm

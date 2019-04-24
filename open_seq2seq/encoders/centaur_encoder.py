@@ -11,7 +11,60 @@ class CentaurEncoder(Encoder):
   Centaur encoder that consists of convolutional layers.
   """
 
+  @staticmethod
+  def get_required_params():
+    return dict(Encoder.get_required_params(), **{
+        "src_vocab_size": int,
+        "embedding_size": int,
+        "output_size": int,
+        "conv_layers": list
+    })
+
+  @staticmethod
+  def get_optional_params():
+    return dict(Encoder.get_optional_params(), **{
+        "pad_embeddings_2_eight": bool,
+        "regularizer": None,
+        "bn_momentum": float,
+        "bn_epsilon": float,
+        "cnn_dropout_prob": float,
+        "norm_type": str
+    })
+
   def __init__(self, params, model, name="centaur_encoder", mode="train"):
+    """
+    Centaur encoder constructor.
+
+    See parent class for arguments description.
+
+    Config parameters:
+
+    * **src_vocab_size** (int) --- number of symbols in alphabet.
+    * **embedding_size** (int) --- dimensionality of character embedding.
+    * **output_size** (int) --- dimensionality of output embedding.
+    * **conv_layers** (list) --- list with the description of convolutional
+      layers. For example::
+        "conv_layers": [
+          {
+            "kernel_size": [5], "stride": [1],
+            "num_channels": 512, "padding": "SAME"
+          },
+          {
+            "kernel_size": [5], "stride": [1],
+            "num_channels": 512, "padding": "SAME"
+          },
+          {
+            "kernel_size": [5], "stride": [1],
+            "num_channels": 512, "padding": "SAME"
+          }
+        ]
+    * **bn_momentum** (float) --- momentum for batch norm. Defaults to 0.95.
+    * **bn_epsilon** (float) --- epsilon for batch norm. Defaults to 1e-8.
+    * **cnn_dropout_prob** (float) --- dropout probabilty for cnn layers.
+      Defaults to 0.5.
+
+    """
+
     super(CentaurEncoder, self).__init__(params, model, name=name, mode=mode)
     self.training = mode == "train"
     self.layers = []
@@ -71,23 +124,3 @@ class CentaurEncoder(Encoder):
         "inputs_attention_bias": inputs_attention_bias,
         "src_lengths": text_len
     }
-
-  @staticmethod
-  def get_required_params():
-    return dict(Encoder.get_required_params(), **{
-        "src_vocab_size": int,
-        "embedding_size": int,
-        "output_size": int,
-        "conv_layers": list
-    })
-
-  @staticmethod
-  def get_optional_params():
-    return dict(Encoder.get_optional_params(), **{
-        "pad_embeddings_2_eight": bool,
-        "regularizer": None,
-        "bn_momentum": float,
-        "bn_epsilon": float,
-        "cnn_dropout_prob": float,
-        "norm_type": str
-    })

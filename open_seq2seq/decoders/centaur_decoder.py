@@ -16,7 +16,90 @@ class CentaurDecoder(Decoder):
   followed by convolutional layers.
   """
 
+  @staticmethod
+  def get_required_params():
+    return dict(Decoder.get_required_params(), **{
+        "prenet_layers": int,
+        "prenet_hidden_size": int,
+        "hidden_size": int,
+        "conv_layers": list,
+        "mag_conv_layers": None,
+        "attention_dropout": float,
+        "layer_postprocess_dropout": float
+    })
+
+  @staticmethod
+  def get_optional_params():
+    return dict(Decoder.get_optional_params(), **{
+        "prenet_activation_fn": None,
+        "prenet_dropout": float,
+        "prenet_use_inference_dropout": bool,
+        "cnn_dropout_prob": float,
+        "bn_momentum": float,
+        "bn_epsilon": float,
+        "reduction_factor": int,
+        "attention_layers": int,
+        "self_attention_conv_params": dict,
+        "attention_heads": int,
+        "attention_cnn_dropout_prob": float,
+        "window_size": int,
+        "back_step_size": int,
+        "force_layers": list
+    })
+
   def __init__(self, params, model, name="centaur_decoder", mode="train"):
+    """
+    Centaur decoder constructor.
+
+    See parent class for arguments description.
+
+    Config parameters:
+
+    * **prenet_layers** (int) --- number of fully-connected layers to use.
+    * **prenet_hidden_size** (int) --- number of units in each pre-net layer.
+    * **hidden_size** (int) --- dimensionality of hidden embeddings.
+    * **conv_layers** (list) --- list with the description of convolutional
+      layers. For example:
+        "conv_layers": [
+          {
+            "kernel_size": [5],
+            "stride": [1],
+            "num_channels": decoder_hidden_size,
+            "padding": "VALID",
+            "is_causal": True,
+            "activation_fn": tf.nn.relu
+          }
+        ] * 4
+    * **mag_conv_layers** (list) --- list with the description of convolutional
+      layers to reconstruct magnitude.
+    * **attention_dropout** (float) --- dropout rate for attention layers.
+    * **layer_postprocess_dropout** (float) --- dropout rate for
+      transformer block sublayers.
+    * **prenet_activation_fn** (callable) --- activation function to use for the
+      prenet lyaers. Defaults to relu.
+    * **prenet_dropout** (float) --- dropout rate for the pre-net. Defaults to 0.5.
+    * **prenet_use_inference_dropout** (bool) --- whether to use dropout during the inference.
+      Defaults to False.
+    * **cnn_dropout_prob** (float) --- dropout probabilty for cnn layers.
+      Defaults to 0.5.
+    * **bn_momentum** (float) --- momentum for batch norm. Defaults to 0.95.
+    * **bn_epsilon** (float) --- epsilon for batch norm. Defaults to 1e-8.
+    * **reduction_factor** (int) --- number of frames to predict in a time.
+      Defaults to 1.
+    * **attention_layers** (int) --- number of attention blocks. Defaults to 4.
+    * **self_attention_conv_params** (dict) --- description of convolutional
+      layer inside attention blocks. Defaults to None.
+    * **attention_heads** (int) --- number of attention heads. Defaults to 1.
+    * **attention_cnn_dropout_prob** (float) --- dropout rate for convolutional
+      layers inside attention blocks. Defaults to 0.5.
+    * **window_size** (int) --- size of attention window for forcing
+      monotonic attention during the inference. Defaults to None.
+    * **back_step_size** (int) --- number of steps attention is allowed to
+      go back during the inference. Defaults to 0.
+    * **force_layers** (list) --- indices of layers where forcing of
+      monotonic attention should be enabled. Defaults to all layers.
+    """
+
     super(CentaurDecoder, self).__init__(params, model, name, mode)
 
     data_layer_params = model.get_data_layer().params
@@ -64,7 +147,7 @@ class CentaurDecoder(Decoder):
         dtype=self._params["dtype"]
     )
 
-    n_layers = self._params.get("attention_layers", 1)
+    n_layers = self._params.get("attention_layers", 4)
     n_heads = self._params.get("attention_heads", 1)
     conv_params = self._params.get("self_attention_conv_params", None)
     force_layers = self._params.get("force_layers", range(n_layers))
@@ -496,34 +579,3 @@ class CentaurDecoder(Decoder):
           ],
           "stop_token_prediction": outputs["stop_token_logits"]
       }
-
-  @staticmethod
-  def get_required_params():
-    return dict(Decoder.get_required_params(), **{
-        "prenet_layers": int,
-        "prenet_hidden_size": int,
-        "hidden_size": int,
-        "conv_layers": list,
-        "mag_conv_layers": None,
-        "attention_dropout": float,
-        "layer_postprocess_dropout": float
-    })
-
-  @staticmethod
-  def get_optional_params():
-    return dict(Decoder.get_optional_params(), **{
-        "prenet_activation_fn": None,
-        "prenet_dropout": float,
-        "prenet_use_inference_dropout": bool,
-        "cnn_dropout_prob": float,
-        "bn_momentum": float,
-        "bn_epsilon": float,
-        "reduction_factor": int,
-        "attention_layers": int,
-        "self_attention_conv_params": None,
-        "attention_heads": int,
-        "attention_cnn_dropout_prob": float,
-        "window_size": int,
-        "back_step_size": int,
-        "force_layers": list
-    })
