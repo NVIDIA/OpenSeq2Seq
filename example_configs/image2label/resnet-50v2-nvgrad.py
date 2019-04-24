@@ -10,7 +10,6 @@ from open_seq2seq.optimizers.novograd  import NovoGrad
 import tensorflow as tf
 
 data_root =""
-# data_root = "/raid/Imagenet/tf-imagenet/"
 base_model = Image2Label
 
 base_params = {
@@ -36,31 +35,15 @@ base_params = {
     "beta1": 0.95,
     "beta2": 0.98,
     "epsilon": 1e-08,
-    "weight_decay": 0.001,
+    "weight_decay": 0.004,
     "grad_averaging": False
   },
 
   "lr_policy": poly_decay,
   "lr_policy_params": {
-    "learning_rate": 0.02,
+    "learning_rate": 0.03,
     "power": 2,
-    # "warmup_steps": 200,
   },
-
-  # "optimizer": "Momentum",
-  # "optimizer_params": {
-  #   "momentum": 0.95,
-  # },
-  # "lr_policy": piecewise_constant,
-  # "lr_policy_params": {
-  #   "learning_rate": 0.1,
-  #   "boundaries": [30, 60, 80, 90],
-  #   "decay_rates": [0.1, 0.01, 0.001, 1e-4],
-  # },
-  # "regularizer": tf.contrib.layers.l2_regularizer,
-  # "regularizer_params": {
-  #   'scale': 0.0001, # 0.0001,
-  # },
 
   "initializer": tf.variance_scaling_initializer,
 

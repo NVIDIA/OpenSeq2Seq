@@ -16,7 +16,7 @@ base_model = Image2Label
 base_params = {
   "random_seed": 0,
   "use_horovod":  False, #True,
-  "num_gpus": 1,
+  "num_gpus": 8,
   "batch_size_per_gpu": 128,
 
   "num_epochs": 100,
@@ -28,7 +28,7 @@ base_params = {
   "print_loss_steps": 100,
   "print_samples_steps": 10000,
   "eval_steps": 5000,
-  "save_checkpoint_steps": 5000,
+  "save_checkpoint_steps": 50000,
   "logdir": "logs/rn50/adamw/cos0.01_wd0.001",
 
   "optimizer": "AdamW",
@@ -36,34 +36,13 @@ base_params = {
     "beta1": 0.9,
     "beta2": 0.999,
     "epsilon": 1e-08,
-    "weight_decay": 0.001,
+    "weight_decay": 0.1,
   },
 
   "lr_policy": tf.train.cosine_decay,
   "lr_policy_params": {
-    "learning_rate": 0.01, # 1 GPU: 0.002,
+    "learning_rate": 0.002, # 8 GPUs
   },
-
-  # "lr_policy": poly_decay,
-  # "lr_policy_params": {
-  #   "learning_rate": 0.01, # 1 GPU: 0.002,
-  #   "power": 2,
-  #   # "warmup_steps": 200,
-  # },
-  # "optimizer": "Momentum",
-  # "optimizer_params": {
-  #   "momentum": 0.95,
-  # },
-  # "lr_policy": piecewise_constant,
-  # "lr_policy_params": {
-  #   "learning_rate": 0.1,
-  #   "boundaries": [30, 60, 80, 90],
-  #   "decay_rates": [0.1, 0.01, 0.001, 1e-4],
-  # },
-  # "regularizer": tf.contrib.layers.l2_regularizer,
-  # "regularizer_params": {
-  #   'scale': 0.0001, # 0.0001,
-  # },
 
   "initializer": tf.variance_scaling_initializer,
 
