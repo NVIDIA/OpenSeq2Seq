@@ -34,7 +34,7 @@ class Text2SpeechLoss(Loss):
 
   def _compute_loss(self, input_dict):
     """
-    Computes loss for Centaur model.
+    Computes loss for text-to-speech model.
 
     Args:
       input_dict (dict): inputs to compute loss. Contains:
