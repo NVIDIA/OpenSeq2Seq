@@ -7,7 +7,7 @@ from open_seq2seq.data import ImagenetDataLayer
 from open_seq2seq.optimizers.lr_policies import piecewise_constant, poly_decay
 import tensorflow as tf
 
-data_root =""
+data_root = ""
 base_model = Image2Label
 
 base_params = {
@@ -25,7 +25,7 @@ base_params = {
   "print_samples_steps": 2000,
   "eval_steps": 5000,
   "save_checkpoint_steps": 5000,
-  "logdir": "logs/rn50/sgd/lr0.02_wd0.0001",
+  "logdir": "logs/rn50",
 
   "optimizer": "Momentum",
   "optimizer_params": {
