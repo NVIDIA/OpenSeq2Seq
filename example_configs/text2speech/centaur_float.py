@@ -167,6 +167,7 @@ base_params = {
   "data_layer": Text2SpeechDataLayer,
   "data_layer_params": {
     "dataset": dataset,
+    "use_cache": True,
     "num_audio_features": num_audio_features,
     "output_type": output_type,
     "vocab_file": "open_seq2seq/test_utils/vocab_tts.txt",

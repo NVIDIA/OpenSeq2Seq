@@ -17,7 +17,8 @@ from .speech_utils import get_speech_features_from_file,\
                           inverse_mel, normalize, denormalize
 
 class Text2SpeechDataLayer(DataLayer):
-  """Text-to-speech data layer class
+  """
+  Text-to-speech data layer class
   """
 
   @staticmethod
@@ -55,7 +56,8 @@ class Text2SpeechDataLayer(DataLayer):
             'n_samples_eval': int,
             'n_fft': int,
             'fmax': float,
-            'max_normalization': bool
+            'max_normalization': bool,
+            'use_cache': bool
         }
     )
 
@@ -109,6 +111,13 @@ class Text2SpeechDataLayer(DataLayer):
       Defaults to htk.
     * **style_input** (str) --- Can be either None or "wav". Must be set to "wav"
       for GST. Defaults to None.
+    * **n_samples_train** (int) --- number of the shortest examples to use for training.
+    * **n_samples_eval** (int) --- number of the shortest examples to use for evaluation.
+    * **n_fft** (int) --- FFT window size.
+    * **fmax** (float) --- highest frequency to use.
+    * **max_normalization** (bool) --- whether to divide the final audio signal
+      by its' absolute maximum.
+    * **use_cache** (bool) --- whether to use cache.
 
     """
     super(Text2SpeechDataLayer, self).__init__(
@@ -118,6 +127,7 @@ class Text2SpeechDataLayer(DataLayer):
         worker_id
     )
 
+    self.use_cache = self.params.get('use_cache', False)
     self._cache = {}
 
     names = ['wav_filename', 'raw_transcript', 'transcript']
@@ -453,7 +463,7 @@ class Text2SpeechDataLayer(DataLayer):
     else:
       features_type = self.params['output_type']
 
-    if audio_filename in self._cache:
+    if self.use_cache and audio_filename in self._cache:
       spectrogram = self._cache[audio_filename]
     else:
       spectrogram = get_speech_features_from_file(
@@ -470,7 +480,8 @@ class Text2SpeechDataLayer(DataLayer):
           mel_basis=self._mel_basis
       )
 
-      self._cache[audio_filename] = spectrogram
+      if self.use_cache:
+        self._cache[audio_filename] = spectrogram
 
     if self._both:
       mel_spectrogram, spectrogram = spectrogram
