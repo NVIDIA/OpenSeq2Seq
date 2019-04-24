@@ -1,7 +1,7 @@
 # pylint: skip-file
 import os
 import tensorflow as tf
-from open_seq2seq.models import Text2Speech
+from open_seq2seq.models import Text2SpeechTacotron
 from open_seq2seq.encoders import Tacotron2Encoder
 from open_seq2seq.decoders import Tacotron2Decoder
 from open_seq2seq.data import Text2SpeechDataLayer
@@ -9,7 +9,7 @@ from open_seq2seq.losses import Text2SpeechLoss
 from open_seq2seq.optimizers.lr_policies import fixed_lr, transformer_policy, exp_decay
 
 
-base_model = Text2Speech
+base_model = Text2SpeechTacotron
 
 dataset = "LJ"
 dataset_location = "/data/speech/LJSpeech"
