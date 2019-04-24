@@ -404,7 +404,7 @@ def get_speech_features_librosa(signal, sample_freq, num_features,
     n_freq_mask = augmentation.get('n_freq_mask', 0)
     n_time_mask = augmentation.get('n_time_mask', 0)
     width_freq_mask = augmentation.get('width_freq_mask', 10)
-    width_time_mask = augmentation.get('width_time_mask', 100)
+    width_time_mask = augmentation.get('width_time_mask', 50)
 
     for idx in range(n_freq_mask):
       freq_band = np.random.randint(width_freq_mask + 1)
@@ -412,8 +412,9 @@ def get_speech_features_librosa(signal, sample_freq, num_features,
       features[:, freq_base:freq_base+freq_band] = 0
     for idx in range(n_time_mask):
       time_band = np.random.randint(width_time_mask + 1)
-      time_base = np.random.randint(0, features.shape[0] - time_band)
-      features[time_base:time_base+time_band, :] = 0
+      if features.shape[0] - time_band > 0:
+        time_base = np.random.randint(features.shape[0] - time_band)
+        features[time_base:time_base+time_band, :] = 0
 
   # now it is safe to pad
   # if pad_to > 0:
