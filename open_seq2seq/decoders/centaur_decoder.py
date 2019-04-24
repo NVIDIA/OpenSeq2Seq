@@ -494,7 +494,7 @@ class CentaurDecoder(Decoder):
               outputs["lengths"],
               outputs["mag_spec"]
           ],
-          "stop_token_logits": outputs["stop_token_logits"]
+          "stop_token_prediction": outputs["stop_token_logits"]
       }
 
   @staticmethod

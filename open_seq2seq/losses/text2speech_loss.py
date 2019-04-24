@@ -7,13 +7,24 @@ import tensorflow as tf
 from .loss import Loss
 
 
-class CentaurLoss(Loss):
+class Text2SpeechLoss(Loss):
   """
-  Loss for Centaur model.
+  Default text-to-speech loss.
   """
 
-  def __init__(self, params, model, name="centaur_loss"):
-    super(CentaurLoss, self).__init__(params, model, name)
+  @staticmethod
+  def get_optional_params():
+    return {
+        "use_mask": bool,
+        "scale": float,
+        "stop_token_weight": float,
+        "mel_weight": float,
+        "mag_weight": float,
+        "l1_norm": bool
+    }
+
+  def __init__(self, params, model, name="text2speech_loss"):
+    super(Text2SpeechLoss, self).__init__(params, model, name)
     self._n_feats = self._model.get_data_layer().params["num_audio_features"]
 
     if "both" in self._model.get_data_layer().params["output_type"]:
@@ -32,7 +43,6 @@ class CentaurLoss(Loss):
                 * mel: mel-spectrogram predicted by the decoder [batch, time, n_mel]
                 * post_net_mel: spectrogram after adding the residual
                   corrections from the post net of shape [batch, time, feats]
-                * decoder_lengths: the length of specs [batch]
                 * mag: mag-spectrogram predicted by the decoder [batch, time, n_mag]
             ]
             "stop_token_predictions": stop_token predictions of shape [batch, time, 1]
@@ -49,8 +59,7 @@ class CentaurLoss(Loss):
 
     decoder_predictions = input_dict["decoder_output"]["outputs"][0]
     post_net_predictions = input_dict["decoder_output"]["outputs"][1]
-    decoder_lengths = input_dict["decoder_output"]["outputs"][4]
-    stop_token_predictions = input_dict["decoder_output"]["stop_token_logits"]
+    stop_token_predictions = input_dict["decoder_output"]["stop_token_prediction"]
 
     if self._both:
       mag_pred = input_dict["decoder_output"]["outputs"][5]
@@ -132,43 +141,37 @@ class CentaurLoss(Loss):
     post_net_target = spec
 
     if self.params.get("use_mask", True):
-      spec_mask = tf.sequence_mask(
-          lengths=tf.minimum(spec_lengths, decoder_lengths),
+      mask = tf.sequence_mask(
+          lengths=spec_lengths,
           maxlen=max_length,
           dtype=tf.float32
       )
-      spec_mask = tf.expand_dims(spec_mask, axis=-1)
+      mask = tf.expand_dims(mask, axis=-1)
 
       decoder_loss = loss_f(
           labels=decoder_target,
           predictions=decoder_predictions,
-          weights=spec_mask
+          weights=mask
       )
       post_net_loss = loss_f(
           labels=post_net_target,
           predictions=post_net_predictions,
-          weights=spec_mask
+          weights=mask
       )
 
       if self._both:
         mag_loss = loss_f(
             labels=mag_target,
             predictions=mag_pred,
-            weights=spec_mask
+            weights=mask
         )
 
-      stop_token_mask = tf.sequence_mask(
-          lengths=spec_lengths,
-          maxlen=max_length,
-          dtype=tf.float32
-      )
-      stop_token_mask = tf.expand_dims(stop_token_mask, axis=-1)
       stop_token_loss = tf.nn.sigmoid_cross_entropy_with_logits(
           labels=stop_token,
           logits=stop_token_predictions
       )
-      stop_token_loss = stop_token_loss * stop_token_mask
-      stop_token_loss = tf.reduce_sum(stop_token_loss) / tf.reduce_sum(stop_token_mask)
+      stop_token_loss = stop_token_loss * mask
+      stop_token_loss = tf.reduce_sum(stop_token_loss) / tf.reduce_sum(mask)
     else:
       decoder_loss = loss_f(
           labels=decoder_target,
@@ -189,11 +192,14 @@ class CentaurLoss(Loss):
       )
       stop_token_loss = tf.reduce_mean(stop_token_loss)
 
-    stop_token_weight = self.params.get("stop_token_weight", 1.0)
     mel_weight = self.params.get("mel_weight", 1.0)
-    loss = mel_weight * decoder_loss \
-           + mel_weight * post_net_loss \
-           + stop_token_weight * stop_token_loss
+    decoder_loss = mel_weight * decoder_loss
+    post_net_loss = mel_weight * post_net_loss
+
+    stop_token_weight = self.params.get("stop_token_weight", 1.0)
+    stop_token_loss = stop_token_weight * stop_token_loss
+
+    loss = decoder_loss + post_net_loss + stop_token_loss
 
     if self._both:
       mag_weight = self.params.get("mag_weight", 1.0)
@@ -203,14 +209,3 @@ class CentaurLoss(Loss):
       loss = loss * self.params["scale"]
 
     return loss
-
-  @staticmethod
-  def get_optional_params():
-    return {
-        "use_mask": bool,
-        "scale": float,
-        "stop_token_weight": float,
-        "mel_weight": float,
-        "mag_weight": float,
-        "l1_norm": bool
-    }

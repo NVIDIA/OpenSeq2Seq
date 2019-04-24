@@ -6,7 +6,7 @@ import tensorflow as tf
 from open_seq2seq.data import Text2SpeechDataLayer
 from open_seq2seq.decoders import CentaurDecoder
 from open_seq2seq.encoders import CentaurEncoder
-from open_seq2seq.losses import CentaurLoss
+from open_seq2seq.losses import Text2SpeechLoss
 from open_seq2seq.models import Text2SpeechCentaur
 from open_seq2seq.optimizers.lr_policies import poly_decay
 from open_seq2seq.optimizers.novograd import NovoGrad
@@ -158,7 +158,7 @@ base_params = {
     "layer_postprocess_dropout": 0.1
   },
 
-  "loss": CentaurLoss,
+  "loss": Text2SpeechLoss,
   "loss_params": {
     "use_mask": True,
     "l1_norm": True
@@ -167,7 +167,6 @@ base_params = {
   "data_layer": Text2SpeechDataLayer,
   "data_layer_params": {
     "dataset": dataset,
-    "n_samples_eval": 64,
     "num_audio_features": num_audio_features,
     "output_type": output_type,
     "vocab_file": "open_seq2seq/test_utils/vocab_tts.txt",
