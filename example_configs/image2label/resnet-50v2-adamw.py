@@ -4,13 +4,11 @@ from open_seq2seq.encoders import ResNetEncoder
 from open_seq2seq.decoders import FullyConnectedDecoder
 from open_seq2seq.losses import CrossEntropyLoss
 from open_seq2seq.data import ImagenetDataLayer
-from open_seq2seq.optimizers.lr_policies import piecewise_constant,  poly_decay
-from open_seq2seq.optimizers.novograd  import NovoGrad
 
 import tensorflow as tf
 
-data_root =""
-# data_root = "/raid/Imagenet/tf-imagenet/"
+data_root = ""
+
 base_model = Image2Label
 
 base_params = {
@@ -29,7 +27,7 @@ base_params = {
   "print_samples_steps": 10000,
   "eval_steps": 5000,
   "save_checkpoint_steps": 50000,
-  "logdir": "logs/rn50/adamw/cos0.01_wd0.001",
+  "logdir": "logs/rn50-adamw",
 
   "optimizer": "AdamW",
   "optimizer_params": {
