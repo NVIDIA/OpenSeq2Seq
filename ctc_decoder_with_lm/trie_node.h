@@ -31,7 +31,7 @@ limitations under the License.
 
 class TrieNode {
 public:
-  static const int MAGIC = 'TRIE';
+  static const int MAGIC = 0x54524945;  // 'TRIE'
   static const int FILE_VERSION = 1;
 
   TrieNode(int vocab_size)
