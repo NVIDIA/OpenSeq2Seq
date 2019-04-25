@@ -248,6 +248,13 @@ use to compute mel specs.
 Defaults to htk.</li>
 <li><strong>style_input</strong> (str) — Can be either None or “wav”. Must be set to “wav”
 for GST. Defaults to None.</li>
+<li><strong>n_samples_train</strong> (int) — number of the shortest examples to use for training.</li>
+<li><strong>n_samples_eval</strong> (int) — number of the shortest examples to use for evaluation.</li>
+<li><strong>n_fft</strong> (int) — FFT window size.</li>
+<li><strong>fmax</strong> (float) — highest frequency to use.</li>
+<li><strong>max_normalization</strong> (bool) — whether to divide the final audio signal
+by its’ absolute maximum.</li>
+<li><strong>use_cache</strong> (bool) — whether to use cache.</li>
 </ul>
 </dd></dl>
 

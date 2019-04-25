@@ -108,6 +108,7 @@
 <li class="toctree-l3"><a class="reference internal" href="#module-decoders.transformer_decoder">transformer_decoder</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#module-decoders.convs2s_decoder">convs2s_decoder</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#module-decoders.tacotron2_decoder">tacotron2_decoder</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-decoders.centaur_decoder">centaur_decoder</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="losses.html">losses</a></li>
@@ -1120,7 +1121,7 @@ class <code class="xref py py-meth docutils literal notranslate"><span class="pr
 <code class="descname">__init__</code><span class="sig-paren">(</span><em>params</em>, <em>model</em>, <em>name='tacotron_2_decoder'</em>, <em>mode='train'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/decoders/tacotron2_decoder.html#Tacotron2Decoder.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#decoders.tacotron2_decoder.Tacotron2Decoder.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Tacotron-2 like decoder constructor. A lot of optional configurations are
 currently for testing. Not all configurations are supported. Use of thed
-efault config is reccommended.</p>
+efault config is recommended.</p>
 <p>See parent class for arguments description.</p>
 <p>Config parameters:</p>
 <ul>
@@ -1313,6 +1314,179 @@ class <a class="reference internal" href="#decoders.tacotron2_decoder.Tacotron2D
 <tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Dictionary containing all the parameters that <strong>have to</strong> be
 included into the <code class="docutils literal notranslate"><span class="pre">params</span></code> parameter of the
 class <a class="reference internal" href="#decoders.tacotron2_decoder.Tacotron2Decoder.__init__" title="decoders.tacotron2_decoder.Tacotron2Decoder.__init__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__init__()</span></code></a> method.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-decoders.centaur_decoder">
+<span id="centaur-decoder"></span><h2>centaur_decoder<a class="headerlink" href="#module-decoders.centaur_decoder" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="decoders.centaur_decoder.CentaurDecoder">
+<em class="property">class </em><code class="descclassname">decoders.centaur_decoder.</code><code class="descname">CentaurDecoder</code><span class="sig-paren">(</span><em>params</em>, <em>model</em>, <em>name='centaur_decoder'</em>, <em>mode='train'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/decoders/centaur_decoder.html#CentaurDecoder"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#decoders.centaur_decoder.CentaurDecoder" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#decoders.decoder.Decoder" title="decoders.decoder.Decoder"><code class="xref py py-class docutils literal notranslate"><span class="pre">decoders.decoder.Decoder</span></code></a></p>
+<p>Centaur decoder that consists of attention blocks
+followed by convolutional layers.</p>
+<dl class="method">
+<dt id="decoders.centaur_decoder.CentaurDecoder.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>params</em>, <em>model</em>, <em>name='centaur_decoder'</em>, <em>mode='train'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/decoders/centaur_decoder.html#CentaurDecoder.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#decoders.centaur_decoder.CentaurDecoder.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Centaur decoder constructor.</p>
+<p>See parent class for arguments description.</p>
+<p>Config parameters:</p>
+<ul>
+<li><p class="first"><strong>prenet_layers</strong> (int) — number of fully-connected layers to use.</p>
+</li>
+<li><p class="first"><strong>prenet_hidden_size</strong> (int) — number of units in each pre-net layer.</p>
+</li>
+<li><p class="first"><strong>hidden_size</strong> (int) — dimensionality of hidden embeddings.</p>
+</li>
+<li><p class="first"><strong>conv_layers</strong> (list) — list with the description of convolutional
+layers. For example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="s2">&quot;conv_layers&quot;</span><span class="p">:</span> <span class="p">[</span>
+  <span class="p">{</span>
+    <span class="s2">&quot;kernel_size&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">5</span><span class="p">],</span> <span class="s2">&quot;stride&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+    <span class="s2">&quot;num_channels&quot;</span><span class="p">:</span> <span class="mi">512</span><span class="p">,</span> <span class="s2">&quot;padding&quot;</span><span class="p">:</span> <span class="s2">&quot;VALID&quot;</span><span class="p">,</span> <span class="s2">&quot;is_causal&quot;</span><span class="p">:</span> <span class="kc">True</span>
+  <span class="p">},</span>
+  <span class="p">{</span>
+    <span class="s2">&quot;kernel_size&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">5</span><span class="p">],</span> <span class="s2">&quot;stride&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+    <span class="s2">&quot;num_channels&quot;</span><span class="p">:</span> <span class="mi">512</span><span class="p">,</span> <span class="s2">&quot;padding&quot;</span><span class="p">:</span> <span class="s2">&quot;VALID&quot;</span><span class="p">,</span> <span class="s2">&quot;is_causal&quot;</span><span class="p">:</span> <span class="kc">True</span>
+  <span class="p">},</span>
+  <span class="p">{</span>
+    <span class="s2">&quot;kernel_size&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">5</span><span class="p">],</span> <span class="s2">&quot;stride&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+    <span class="s2">&quot;num_channels&quot;</span><span class="p">:</span> <span class="mi">512</span><span class="p">,</span> <span class="s2">&quot;padding&quot;</span><span class="p">:</span> <span class="s2">&quot;VALID&quot;</span><span class="p">,</span> <span class="s2">&quot;is_causal&quot;</span><span class="p">:</span> <span class="kc">True</span>
+  <span class="p">},</span>
+  <span class="p">{</span>
+    <span class="s2">&quot;kernel_size&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">5</span><span class="p">],</span> <span class="s2">&quot;stride&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+    <span class="s2">&quot;num_channels&quot;</span><span class="p">:</span> <span class="mi">512</span><span class="p">,</span> <span class="s2">&quot;padding&quot;</span><span class="p">:</span> <span class="s2">&quot;VALID&quot;</span><span class="p">,</span> <span class="s2">&quot;is_causal&quot;</span><span class="p">:</span> <span class="kc">True</span>
+  <span class="p">}</span>
+<span class="p">]</span>
+</pre></div>
+</div>
+</li>
+<li><p class="first"><strong>mag_conv_layers</strong> (list) — list with the description of convolutional
+layers to reconstruct magnitude.</p>
+</li>
+<li><p class="first"><strong>attention_dropout</strong> (float) — dropout rate for attention layers.</p>
+</li>
+<li><p class="first"><strong>layer_postprocess_dropout</strong> (float) — dropout rate for
+transformer block sublayers.</p>
+</li>
+<li><p class="first"><strong>prenet_activation_fn</strong> (callable) — activation function to use for the
+prenet lyaers. Defaults to relu.</p>
+</li>
+<li><p class="first"><strong>prenet_dropout</strong> (float) — dropout rate for the pre-net. Defaults to 0.5.</p>
+</li>
+<li><p class="first"><strong>prenet_use_inference_dropout</strong> (bool) — whether to use dropout during the inference.
+Defaults to False.</p>
+</li>
+<li><p class="first"><strong>cnn_dropout_prob</strong> (float) — dropout probabilty for cnn layers.
+Defaults to 0.5.</p>
+</li>
+<li><p class="first"><strong>bn_momentum</strong> (float) — momentum for batch norm. Defaults to 0.95.</p>
+</li>
+<li><p class="first"><strong>bn_epsilon</strong> (float) — epsilon for batch norm. Defaults to 1e-8.</p>
+</li>
+<li><p class="first"><strong>reduction_factor</strong> (int) — number of frames to predict in a time.
+Defaults to 1.</p>
+</li>
+<li><p class="first"><strong>attention_layers</strong> (int) — number of attention blocks. Defaults to 4.</p>
+</li>
+<li><p class="first"><strong>self_attention_conv_params</strong> (dict) — description of convolutional
+layer inside attention blocks. Defaults to None.</p>
+</li>
+<li><p class="first"><strong>attention_heads</strong> (int) — number of attention heads. Defaults to 1.</p>
+</li>
+<li><p class="first"><strong>attention_cnn_dropout_prob</strong> (float) — dropout rate for convolutional
+layers inside attention blocks. Defaults to 0.5.</p>
+</li>
+<li><p class="first"><strong>window_size</strong> (int) — size of attention window for forcing
+monotonic attention during the inference. Defaults to None.</p>
+</li>
+<li><p class="first"><strong>back_step_size</strong> (int) — number of steps attention is allowed to
+go back during the inference. Defaults to 0.</p>
+</li>
+<li><p class="first"><strong>force_layers</strong> (list) — indices of layers where forcing of
+monotonic attention should be enabled. Defaults to all layers.</p>
+</li>
+</ul>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="decoders.centaur_decoder.CentaurDecoder._convert_outputs">
+<em class="property">static </em><code class="descname">_convert_outputs</code><span class="sig-paren">(</span><em>outputs</em>, <em>reduction_factor</em>, <em>batch_size</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/decoders/centaur_decoder.html#CentaurDecoder._convert_outputs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#decoders.centaur_decoder.CentaurDecoder._convert_outputs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert output of the decoder to appropriate format.</p>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="decoders.centaur_decoder.CentaurDecoder._expand">
+<em class="property">static </em><code class="descname">_expand</code><span class="sig-paren">(</span><em>values</em>, <em>reduction_factor</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/decoders/centaur_decoder.html#CentaurDecoder._expand"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#decoders.centaur_decoder.CentaurDecoder._expand" title="Permalink to this definition">¶</a></dt>
+<dd><p>Expand the given input by reduction_factor.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="decoders.centaur_decoder.CentaurDecoder._inference_cond">
+<code class="descname">_inference_cond</code><span class="sig-paren">(</span><em>state</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/decoders/centaur_decoder.html#CentaurDecoder._inference_cond"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#decoders.centaur_decoder.CentaurDecoder._inference_cond" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check if it’s time to stop inference.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="decoders.centaur_decoder.CentaurDecoder._inference_initial_state">
+<code class="descname">_inference_initial_state</code><span class="sig-paren">(</span><em>encoder_outputs</em>, <em>encoder_decoder_attention_bias</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/decoders/centaur_decoder.html#CentaurDecoder._inference_initial_state"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#decoders.centaur_decoder.CentaurDecoder._inference_initial_state" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create initial state for inference.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="decoders.centaur_decoder.CentaurDecoder._inference_step">
+<code class="descname">_inference_step</code><span class="sig-paren">(</span><em>state</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/decoders/centaur_decoder.html#CentaurDecoder._inference_step"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#decoders.centaur_decoder.CentaurDecoder._inference_step" title="Permalink to this definition">¶</a></dt>
+<dd><p>Make one inference step.</p>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="decoders.centaur_decoder.CentaurDecoder._positional_encoding">
+<em class="property">static </em><code class="descname">_positional_encoding</code><span class="sig-paren">(</span><em>x</em>, <em>dtype</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/decoders/centaur_decoder.html#CentaurDecoder._positional_encoding"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#decoders.centaur_decoder.CentaurDecoder._positional_encoding" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add positional encoding to the given input.</p>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="decoders.centaur_decoder.CentaurDecoder._shrink">
+<em class="property">static </em><code class="descname">_shrink</code><span class="sig-paren">(</span><em>values</em>, <em>last_dim</em>, <em>reduction_factor</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/decoders/centaur_decoder.html#CentaurDecoder._shrink"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#decoders.centaur_decoder.CentaurDecoder._shrink" title="Permalink to this definition">¶</a></dt>
+<dd><p>Shrink the given input by reduction_factor.</p>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="decoders.centaur_decoder.CentaurDecoder.get_optional_params">
+<em class="property">static </em><code class="descname">get_optional_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/decoders/centaur_decoder.html#CentaurDecoder.get_optional_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#decoders.centaur_decoder.CentaurDecoder.get_optional_params" title="Permalink to this definition">¶</a></dt>
+<dd><p>Static method with description of optional parameters.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Dictionary containing all the parameters that <strong>can</strong> be
+included into the <code class="docutils literal notranslate"><span class="pre">params</span></code> parameter of the
+class <a class="reference internal" href="#decoders.centaur_decoder.CentaurDecoder.__init__" title="decoders.centaur_decoder.CentaurDecoder.__init__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__init__()</span></code></a> method.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="decoders.centaur_decoder.CentaurDecoder.get_required_params">
+<em class="property">static </em><code class="descname">get_required_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/decoders/centaur_decoder.html#CentaurDecoder.get_required_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#decoders.centaur_decoder.CentaurDecoder.get_required_params" title="Permalink to this definition">¶</a></dt>
+<dd><p>Static method with description of required parameters.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Dictionary containing all the parameters that <strong>have to</strong> be
+included into the <code class="docutils literal notranslate"><span class="pre">params</span></code> parameter of the
+class <a class="reference internal" href="#decoders.centaur_decoder.CentaurDecoder.__init__" title="decoders.centaur_decoder.CentaurDecoder.__init__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__init__()</span></code></a> method.</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
 </tr>

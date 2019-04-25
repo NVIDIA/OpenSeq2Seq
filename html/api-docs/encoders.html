@@ -112,6 +112,7 @@
 <li class="toctree-l3"><a class="reference internal" href="#module-encoders.cnn_encoder">cnn_encoder</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#module-encoders.tacotron2_encoder">tacotron2_encoder</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#module-encoders.wavenet_encoder">wavenet_encoder</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-encoders.centaur_encoder">centaur_encoder</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="decoders.html">decoders</a></li>
@@ -1916,6 +1917,94 @@ class <a class="reference internal" href="#encoders.wavenet_encoder.WavenetEncod
 <code class="descclassname">encoders.wavenet_encoder.</code><code class="descname">wavenet_conv_block</code><span class="sig-paren">(</span><em>layer_type</em>, <em>name</em>, <em>inputs</em>, <em>condition_filter</em>, <em>condition_gate</em>, <em>filters</em>, <em>kernel_size</em>, <em>strides</em>, <em>padding</em>, <em>regularizer</em>, <em>training</em>, <em>data_format</em>, <em>bn_momentum</em>, <em>bn_epsilon</em>, <em>layers_per_block</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/encoders/wavenet_encoder.html#wavenet_conv_block"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#encoders.wavenet_encoder.wavenet_conv_block" title="Permalink to this definition">¶</a></dt>
 <dd><p>Defines a single WaveNet block using the architecture specified in the
 original paper, including skip and residual connections</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-encoders.centaur_encoder">
+<span id="centaur-encoder"></span><h2>centaur_encoder<a class="headerlink" href="#module-encoders.centaur_encoder" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="encoders.centaur_encoder.CentaurEncoder">
+<em class="property">class </em><code class="descclassname">encoders.centaur_encoder.</code><code class="descname">CentaurEncoder</code><span class="sig-paren">(</span><em>params</em>, <em>model</em>, <em>name='centaur_encoder'</em>, <em>mode='train'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/encoders/centaur_encoder.html#CentaurEncoder"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#encoders.centaur_encoder.CentaurEncoder" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">open_seq2seq.encoders.encoder.Encoder</span></code></p>
+<p>Centaur encoder that consists of convolutional layers.</p>
+<dl class="method">
+<dt id="encoders.centaur_encoder.CentaurEncoder.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>params</em>, <em>model</em>, <em>name='centaur_encoder'</em>, <em>mode='train'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/encoders/centaur_encoder.html#CentaurEncoder.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#encoders.centaur_encoder.CentaurEncoder.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Centaur encoder constructor.</p>
+<p>See parent class for arguments description.</p>
+<p>Config parameters:</p>
+<ul>
+<li><p class="first"><strong>src_vocab_size</strong> (int) — number of symbols in alphabet.</p>
+</li>
+<li><p class="first"><strong>embedding_size</strong> (int) — dimensionality of character embedding.</p>
+</li>
+<li><p class="first"><strong>output_size</strong> (int) — dimensionality of output embedding.</p>
+</li>
+<li><p class="first"><strong>conv_layers</strong> (list) — list with the description of convolutional
+layers. For example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="s2">&quot;conv_layers&quot;</span><span class="p">:</span> <span class="p">[</span>
+  <span class="p">{</span>
+    <span class="s2">&quot;kernel_size&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">5</span><span class="p">],</span> <span class="s2">&quot;stride&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+    <span class="s2">&quot;num_channels&quot;</span><span class="p">:</span> <span class="mi">512</span><span class="p">,</span> <span class="s2">&quot;padding&quot;</span><span class="p">:</span> <span class="s2">&quot;SAME&quot;</span>
+  <span class="p">},</span>
+  <span class="p">{</span>
+    <span class="s2">&quot;kernel_size&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">5</span><span class="p">],</span> <span class="s2">&quot;stride&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+    <span class="s2">&quot;num_channels&quot;</span><span class="p">:</span> <span class="mi">512</span><span class="p">,</span> <span class="s2">&quot;padding&quot;</span><span class="p">:</span> <span class="s2">&quot;SAME&quot;</span>
+  <span class="p">},</span>
+  <span class="p">{</span>
+    <span class="s2">&quot;kernel_size&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">5</span><span class="p">],</span> <span class="s2">&quot;stride&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+    <span class="s2">&quot;num_channels&quot;</span><span class="p">:</span> <span class="mi">512</span><span class="p">,</span> <span class="s2">&quot;padding&quot;</span><span class="p">:</span> <span class="s2">&quot;SAME&quot;</span>
+  <span class="p">}</span>
+<span class="p">]</span>
+</pre></div>
+</div>
+</li>
+<li><p class="first"><strong>bn_momentum</strong> (float) — momentum for batch norm. Defaults to 0.95.</p>
+</li>
+<li><p class="first"><strong>bn_epsilon</strong> (float) — epsilon for batch norm. Defaults to 1e-8.</p>
+</li>
+<li><p class="first"><strong>cnn_dropout_prob</strong> (float) — dropout probabilty for cnn layers.
+Defaults to 0.5.</p>
+</li>
+</ul>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="encoders.centaur_encoder.CentaurEncoder.get_optional_params">
+<em class="property">static </em><code class="descname">get_optional_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/encoders/centaur_encoder.html#CentaurEncoder.get_optional_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#encoders.centaur_encoder.CentaurEncoder.get_optional_params" title="Permalink to this definition">¶</a></dt>
+<dd><p>Static method with description of optional parameters.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Dictionary containing all the parameters that <strong>can</strong> be
+included into the <code class="docutils literal notranslate"><span class="pre">params</span></code> parameter of the
+class <a class="reference internal" href="#encoders.centaur_encoder.CentaurEncoder.__init__" title="encoders.centaur_encoder.CentaurEncoder.__init__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__init__()</span></code></a> method.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="encoders.centaur_encoder.CentaurEncoder.get_required_params">
+<em class="property">static </em><code class="descname">get_required_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/encoders/centaur_encoder.html#CentaurEncoder.get_required_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#encoders.centaur_encoder.CentaurEncoder.get_required_params" title="Permalink to this definition">¶</a></dt>
+<dd><p>Static method with description of required parameters.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Dictionary containing all the parameters that <strong>have to</strong> be
+included into the <code class="docutils literal notranslate"><span class="pre">params</span></code> parameter of the
+class <a class="reference internal" href="#encoders.centaur_encoder.CentaurEncoder.__init__" title="encoders.centaur_encoder.CentaurEncoder.__init__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__init__()</span></code></a> method.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
 </dd></dl>
 
 </div>

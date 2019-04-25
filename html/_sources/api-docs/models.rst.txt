@@ -46,6 +46,22 @@ text2speech
     :undoc-members:
     :show-inheritance:
 
+text2speech_centaur
+-----------------------
+
+.. automodule:: models.text2speech_centaur
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+text2speech_tacotron
+-----------------------
+
+.. automodule:: models.text2speech_tacotron
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 text2speech_wavenet
 -----------------------
 

@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Tacotron 2 with Global Style Tokens &mdash; OpenSeq2Seq 0.2 documentation</title>
+  <title>Centaur &mdash; OpenSeq2Seq 0.2 documentation</title>
   
 
   
@@ -33,8 +33,8 @@
   <link rel="stylesheet" href="../_static/theme_override.css" type="text/css" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="WaveNet" href="wavenet.html" />
-    <link rel="prev" title="Tacotron 2 Audio Samples" href="tacotron-2-samples.html" /> 
+    <link rel="next" title="Language Model" href="../language-model.html" />
+    <link rel="prev" title="WaveNet" href="wavenet.html" /> 
 
   
   <script src="../_static/js/modernizr.min.js"></script>
@@ -92,15 +92,18 @@
 <li class="toctree-l1 current"><a class="reference internal" href="../speech-synthesis.html">Speech Synthesis</a><ul class="current">
 <li class="toctree-l2 current"><a class="reference internal" href="../speech-synthesis.html#models">Models</a><ul class="current">
 <li class="toctree-l3"><a class="reference internal" href="tacotron-2.html">Tacotron 2</a></li>
-<li class="toctree-l3 current"><a class="current reference internal" href="#">Tacotron 2 with Global Style Tokens</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="tacotron-2-gst.html">Tacotron 2 with Global Style Tokens</a></li>
+<li class="toctree-l3"><a class="reference internal" href="wavenet.html">WaveNet</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">Centaur</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#model">Model</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#model-description">Model Description</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#encoder">Encoder</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#decoder">Decoder</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#loss">Loss</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#training">Training</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#inference">Inference</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#tips-and-tricks">Tips and Tricks</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#audio-samples">Audio Samples</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="wavenet.html">WaveNet</a></li>
-<li class="toctree-l3"><a class="reference internal" href="centaur.html">Centaur</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../speech-synthesis.html#getting-started">Getting started</a></li>
@@ -161,13 +164,13 @@
         
           <li><a href="../speech-synthesis.html">Speech Synthesis</a> &raquo;</li>
         
-      <li>Tacotron 2 with Global Style Tokens</li>
+      <li>Centaur</li>
     
     
       <li class="wy-breadcrumbs-aside">
         
             
-            <a href="../_sources/speech-synthesis/tacotron-2-gst.rst.txt" rel="nofollow"> View page source</a>
+            <a href="../_sources/speech-synthesis/centaur.rst.txt" rel="nofollow"> View page source</a>
           
         
       </li>
@@ -180,57 +183,64 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="tacotron-2-with-global-style-tokens">
-<span id="tacotron-2-gst"></span><h1>Tacotron 2 with Global Style Tokens<a class="headerlink" href="#tacotron-2-with-global-style-tokens" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="centaur">
+<span id="id1"></span><h1>Centaur<a class="headerlink" href="#centaur" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="model">
 <h2>Model<a class="headerlink" href="#model" title="Permalink to this headline">¶</a></h2>
-<p>This model extends Tacotron 2 with
-<a class="reference external" href="https://ai.googleblog.com/2018/03/expressive-speech-synthesis-with.html">Global Style Tokens</a>
-(see also <a class="reference external" href="https://arxiv.org/abs/1803.09017">paper</a>). We differ from the published
-paper in that we use Tacotron 2 from OpenSeq2Seq as opposed to Tacotron.</p>
+<p>Centaur is our hand-designed encoder-decoder model based on the
+<a class="reference external" href="https://arxiv.org/pdf/1809.08895.pdf">Neural Speech Synthesis with Transformer Network</a>
+and <a class="reference external" href="https://arxiv.org/pdf/1710.07654.pdf">Deep Voice 3</a> papers.</p>
+<div class="figure align-center" id="id2">
+<a class="reference internal image-reference" href="../_images/centaur.png"><img alt="../_images/centaur.png" src="../_images/centaur.png" style="width: 611.6px; height: 888.8000000000001px;" /></a>
+<p class="caption"><span class="caption-text">Centaur Model</span></p>
 </div>
-<div class="section" id="model-description">
-<h2>Model Description<a class="headerlink" href="#model-description" title="Permalink to this headline">¶</a></h2>
-<p>Tacotron 2 with Global Style Tokens adds a reference encoder to the Tacotron 2 model.
-The reference encoder takes as input a spectrogram which is treated as the style
-that the model should learn to match. The reference encoder is similar to the text
-encoder. It first passes through a stack of convolutional layers followed by a
-recurrent GRU network. We take the last state and treat that as the query vector to
-an attention mechanism. The attention mechanism is the same as the one used in the
-Transformer implementation. The keys and values are randomized at the beginning of training.
-The output of this attention module is called the style embedding and concatenated
-to the text embedding at every time step of the text embedding. This merged embedding
-is then passed to the tacotron attention and decoder block to be decoded into a spectrogram.</p>
+</div>
+<div class="section" id="encoder">
+<h2>Encoder<a class="headerlink" href="#encoder" title="Permalink to this headline">¶</a></h2>
+<p>The encoder architecture is simple. It consists of an embedding layer and a few convolutional blocks
+followed by a linear projection.</p>
+<p>Each convolution block is represented by a convolutional layer followed by batch normalization and ReLU
+with dropout and residual connection:</p>
+<div class="figure align-center" id="id3">
+<a class="reference internal image-reference" href="../_images/centaur_conv_block.png"><img alt="../_images/centaur_conv_block.png" src="../_images/centaur_conv_block.png" style="width: 208.8px; height: 381.6px;" /></a>
+<p class="caption"><span class="caption-text">Centaur Convolutional Block</span></p>
+</div>
+</div>
+<div class="section" id="decoder">
+<h2>Decoder<a class="headerlink" href="#decoder" title="Permalink to this headline">¶</a></h2>
+<p>The decoder architecture is more complicated. It is comprised of a pre-net, attention blocks, convolutional blocks, and
+linear projections.</p>
+<p>The pre-net is represented by 2 fully connected layers with ReLU activation and a final linear projection.</p>
+<p>The attention block is similar to the transformer block described in the
+<a class="reference external" href="https://arxiv.org/pdf/1706.03762.pdf">Attention Is All You Need</a> paper,
+but the self-attention mechanism was replaced with our convolutional block and a single attention head is used.
+The aim of Centaur’s attention block is to learn proper monotonic encoder-decoder attention. Also we should mention here that
+we add positional encoding to encoder and pre-net outputs without any trainable weights.</p>
+<p>The next few convolutional blocks followed by two linear projections predict the mel spectogram and the stop token.
+Additional convolutional blocks with linear projection are used to predict the final magnitude spectogram, which is used
+by the Griffin-Lim algorithm to generate speech.</p>
+</div>
+<div class="section" id="loss">
+<h2>Loss<a class="headerlink" href="#loss" title="Permalink to this headline">¶</a></h2>
+<p>We use L1 norm to penalize mel and magnitude spectogram predictions. Because we do not use mel spectograms to generate
+speech, one can consider it as an auxiliary loss. Cross entropy loss is used for stop token predictions.</p>
 </div>
 <div class="section" id="training">
 <h2>Training<a class="headerlink" href="#training" title="Permalink to this headline">¶</a></h2>
-<p>We use global style tokens to model multi-speaker speech synthesis. Namely, we
-are able to learn the speaker identities from the <a class="reference external" href="http://www.m-ailabs.bayern/en/the-mailabs-speech-dataset/">MAILABS</a>
-US dataset. Note: The MAILABS dataset has some files that exist in the csv, but
-are not present in the dataset; see <a class="reference external" href="https://github.com/NVIDIA/OpenSeq2Seq/issues/337">issue 337</a>.</p>
-<dl class="docutils">
-<dt>Training Instructions:</dt>
-<dd><ol class="first last arabic simple">
-<li>Extract the dataset to a directory</li>
-<li>Change data_root inside tacotron_gst_combine_csv.py to point to where the
-dataset was extracted.</li>
-<li>Run tacotron_gst_combine_csv.py inside the scripts directory. The script
-will merge all the metadata csv files into one large train csv file.</li>
-<li>Change line 15 of <a class="reference external" href="https://github.com/NVIDIA/OpenSeq2Seq/blob/master/example_configs/text2speech/tacotron_gst.py">tacotron_gst.py</a>
-such <code class="docutils literal notranslate"><span class="pre">dataset_location</span></code> points to where the dataset was extracted</li>
-<li>Train the model by running <code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">run.py</span> <span class="pre">--config_file=example_configs/text2speech/tacotron_gst.py</span> <span class="pre">--mode=train</span></code></li>
-</ol>
-</dd>
-</dl>
+<p>The model is trained with NovoGrad with an initial learning rate of 1e-2 with a polynomial decay.
+Also L2 regularization was used during the training.</p>
 </div>
-<div class="section" id="inference">
-<h2>Inference<a class="headerlink" href="#inference" title="Permalink to this headline">¶</a></h2>
-<p>Inference is similar to Tacotron infer, except tacotron-gst additionally
-requires a style wav inside the infer csv. <code class="docutils literal notranslate"><span class="pre">train.csv</span></code> should contains lines
-with lines in the following format:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">path</span><span class="o">/</span><span class="n">to</span><span class="o">/</span><span class="n">style</span><span class="o">.</span><span class="n">wav</span> <span class="o">|</span> <span class="n">UNUSED</span> <span class="o">|</span> <span class="n">This</span> <span class="ow">is</span> <span class="n">an</span> <span class="n">example</span> <span class="n">sentence</span> <span class="n">that</span> <span class="n">I</span> <span class="n">want</span> <span class="n">to</span> <span class="n">generate</span><span class="o">.</span>
-</pre></div>
+<div class="section" id="tips-and-tricks">
+<h2>Tips and Tricks<a class="headerlink" href="#tips-and-tricks" title="Permalink to this headline">¶</a></h2>
+<p>One of the most important tasks of the model is to learn a smooth monotonic attention. If the alignment is poor,
+the model can skip or repeat words, which is undesirable. We can help the model achieve this goal using two tricks.
+The first one is to use a reduction factor, which means to predict multiple frames per time step. The smaller this
+number is, the better the voice quality will be. However, monotonic attention will be more difficult to learn. In our experiments we generate 2 audio frames
+per step. The second trick is to force monotonic attention during inference using a fixed size window.</p>
 </div>
+<div class="section" id="audio-samples">
+<h2>Audio Samples<a class="headerlink" href="#audio-samples" title="Permalink to this headline">¶</a></h2>
+<p>Audio samples with the centaur model can be found <a class="reference internal" href="centaur-samples.html"><span class="doc">here</span></a>.</p>
 </div>
 </div>
 
@@ -242,10 +252,10 @@ with lines in the following format:</p>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="wavenet.html" class="btn btn-neutral float-right" title="WaveNet" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="../language-model.html" class="btn btn-neutral float-right" title="Language Model" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="tacotron-2-samples.html" class="btn btn-neutral" title="Tacotron 2 Audio Samples" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="wavenet.html" class="btn btn-neutral" title="WaveNet" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   

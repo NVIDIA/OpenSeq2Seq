@@ -104,6 +104,8 @@
 <li class="toctree-l3"><a class="reference internal" href="#module-models.speech2text">speech2text</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#module-models.text2text">text2text</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#module-models.text2speech">text2speech</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-models.text2speech_centaur">text2speech_centaur</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-models.text2speech_tacotron">text2speech_tacotron</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#module-models.text2speech_wavenet">text2speech_wavenet</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#module-models.image2label">image2label</a></li>
 </ul>
@@ -1448,6 +1450,7 @@ that is, output tensors for one batch on the <em>first</em> GPU.</li>
 <dt id="models.text2speech.Text2Speech">
 <em class="property">class </em><code class="descclassname">models.text2speech.</code><code class="descname">Text2Speech</code><span class="sig-paren">(</span><em>params</em>, <em>mode='train'</em>, <em>hvd=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/models/text2speech.html#Text2Speech"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#models.text2speech.Text2Speech" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#models.encoder_decoder.EncoderDecoderModel" title="models.encoder_decoder.EncoderDecoderModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">models.encoder_decoder.EncoderDecoderModel</span></code></a></p>
+<p>Text-to-speech data layer.</p>
 <dl class="method">
 <dt id="models.text2speech.Text2Speech.evaluate">
 <code class="descname">evaluate</code><span class="sig-paren">(</span><em>input_values</em>, <em>output_values</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/models/text2speech.html#Text2Speech.evaluate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#models.text2speech.Text2Speech.evaluate" title="Permalink to this definition">¶</a></dt>
@@ -1497,7 +1500,7 @@ current batch, which will then be averaged in finalization method).</p>
 
 <dl class="method">
 <dt id="models.text2speech.Text2Speech.finalize_evaluation">
-<code class="descname">finalize_evaluation</code><span class="sig-paren">(</span><em>results_per_batch</em>, <em>training_step=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/models/text2speech.html#Text2Speech.finalize_evaluation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#models.text2speech.Text2Speech.finalize_evaluation" title="Permalink to this definition">¶</a></dt>
+<code class="descname">finalize_evaluation</code><span class="sig-paren">(</span><em>results_per_batch</em>, <em>training_step=None</em>, <em>samples_count=1</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/models/text2speech.html#Text2Speech.finalize_evaluation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#models.text2speech.Text2Speech.finalize_evaluation" title="Permalink to this definition">¶</a></dt>
 <dd><p>This method can be used in conjunction with
 <a class="reference internal" href="#models.text2speech.Text2Speech.evaluate" title="models.text2speech.Text2Speech.evaluate"><code class="xref py py-meth docutils literal notranslate"><span class="pre">self.evaluate()</span></code></a> to calculate
 evaluation metrics.
@@ -1557,6 +1560,22 @@ equal to number of evaluation batches).</li>
 be saved to.</li>
 </ul>
 </td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="models.text2speech.Text2Speech.get_alignments">
+<code class="descname">get_alignments</code><span class="sig-paren">(</span><em>attention_mask</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/models/text2speech.html#Text2Speech.get_alignments"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#models.text2speech.Text2Speech.get_alignments" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get attention alignment plots.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>attention_mask</strong> – attention alignment.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Specs and titles to plot.</td>
 </tr>
 </tbody>
 </table>
@@ -1652,6 +1671,34 @@ that is, output tensors for one batch on the <em>first</em> GPU.</li>
 </table>
 </dd></dl>
 
+<dl class="method">
+<dt id="models.text2speech.Text2Speech.print_logs">
+<code class="descname">print_logs</code><span class="sig-paren">(</span><em>mode</em>, <em>specs</em>, <em>titles</em>, <em>stop_token_pred</em>, <em>stop_target</em>, <em>audio_length</em>, <em>step</em>, <em>predicted_final_spec</em>, <em>predicted_mag_spec=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/models/text2speech.html#Text2Speech.print_logs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#models.text2speech.Text2Speech.print_logs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Save audio files and plots.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>mode</strong> – “train” or “eval”.</li>
+<li><strong>specs</strong> – spectograms to plot.</li>
+<li><strong>titles</strong> – spectogram titles.</li>
+<li><strong>stop_token_pred</strong> – stop token prediction.</li>
+<li><strong>stop_target</strong> – stop target.</li>
+<li><strong>audio_length</strong> – length of the audio.</li>
+<li><strong>step</strong> – current step.</li>
+<li><strong>predicted_final_spec</strong> – predicted mel spectogram.</li>
+<li><strong>predicted_mag_spec</strong> – predicted magnitude spectogram.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">Dictionary to log.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
 </dd></dl>
 
 <dl class="function">
@@ -1697,7 +1744,7 @@ containing the image and will be logged to the current tensorboard file.</li>
 
 <dl class="function">
 <dt id="models.text2speech.save_audio">
-<code class="descclassname">models.text2speech.</code><code class="descname">save_audio</code><span class="sig-paren">(</span><em>magnitudes</em>, <em>logdir</em>, <em>step</em>, <em>sampling_rate</em>, <em>n_fft=1024</em>, <em>mode='train'</em>, <em>number=0</em>, <em>save_format='tensorboard'</em>, <em>power=1.5</em>, <em>gl_iters=50</em>, <em>verbose=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/models/text2speech.html#save_audio"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#models.text2speech.save_audio" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">models.text2speech.</code><code class="descname">save_audio</code><span class="sig-paren">(</span><em>magnitudes</em>, <em>logdir</em>, <em>step</em>, <em>sampling_rate</em>, <em>n_fft=1024</em>, <em>mode='train'</em>, <em>number=0</em>, <em>save_format='tensorboard'</em>, <em>power=1.5</em>, <em>gl_iters=50</em>, <em>verbose=True</em>, <em>max_normalization=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/models/text2speech.html#save_audio"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#models.text2speech.save_audio" title="Permalink to this definition">¶</a></dt>
 <dd><p>Helper function to create a wav file to be logged to disk or a tf.Summary to
 be logged to tensorboard.</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -1726,6 +1773,58 @@ summary object. Each method can be enabled by passing save_format as
 </tr>
 </tbody>
 </table>
+</dd></dl>
+
+</div>
+<div class="section" id="module-models.text2speech_centaur">
+<span id="text2speech-centaur"></span><h2>text2speech_centaur<a class="headerlink" href="#module-models.text2speech_centaur" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="models.text2speech_centaur.Text2SpeechCentaur">
+<em class="property">class </em><code class="descclassname">models.text2speech_centaur.</code><code class="descname">Text2SpeechCentaur</code><span class="sig-paren">(</span><em>params</em>, <em>mode='train'</em>, <em>hvd=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/models/text2speech_centaur.html#Text2SpeechCentaur"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#models.text2speech_centaur.Text2SpeechCentaur" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#models.text2speech.Text2Speech" title="models.text2speech.Text2Speech"><code class="xref py py-class docutils literal notranslate"><span class="pre">models.text2speech.Text2Speech</span></code></a></p>
+<p>Text-to-speech data layer for Centaur.</p>
+<dl class="method">
+<dt id="models.text2speech_centaur.Text2SpeechCentaur.get_alignments">
+<code class="descname">get_alignments</code><span class="sig-paren">(</span><em>attention_mask</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/models/text2speech_centaur.html#Text2SpeechCentaur.get_alignments"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#models.text2speech_centaur.Text2SpeechCentaur.get_alignments" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get attention alignment plots.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>attention_mask</strong> – attention alignment.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Specs and titles to plot.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-models.text2speech_tacotron">
+<span id="text2speech-tacotron"></span><h2>text2speech_tacotron<a class="headerlink" href="#module-models.text2speech_tacotron" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="models.text2speech_tacotron.Text2SpeechTacotron">
+<em class="property">class </em><code class="descclassname">models.text2speech_tacotron.</code><code class="descname">Text2SpeechTacotron</code><span class="sig-paren">(</span><em>params</em>, <em>mode='train'</em>, <em>hvd=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/models/text2speech_tacotron.html#Text2SpeechTacotron"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#models.text2speech_tacotron.Text2SpeechTacotron" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#models.text2speech.Text2Speech" title="models.text2speech.Text2Speech"><code class="xref py py-class docutils literal notranslate"><span class="pre">models.text2speech.Text2Speech</span></code></a></p>
+<p>Text-to-speech data layer for Tacotron.</p>
+<dl class="method">
+<dt id="models.text2speech_tacotron.Text2SpeechTacotron.get_alignments">
+<code class="descname">get_alignments</code><span class="sig-paren">(</span><em>attention_mask</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/models/text2speech_tacotron.html#Text2SpeechTacotron.get_alignments"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#models.text2speech_tacotron.Text2SpeechTacotron.get_alignments" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get attention alignment plots.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>attention_mask</strong> – attention alignment.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Specs and titles to plot.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
 </dd></dl>
 
 </div>

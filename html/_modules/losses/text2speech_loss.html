@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>losses.tacotron_loss &mdash; OpenSeq2Seq 0.2 documentation</title>
+  <title>losses.text2speech_loss &mdash; OpenSeq2Seq 0.2 documentation</title>
   
 
   
@@ -143,7 +143,7 @@
         
           <li><a href="../index.html">Module code</a> &raquo;</li>
         
-      <li>losses.tacotron_loss</li>
+      <li>losses.text2speech_loss</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -158,8 +158,8 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <h1>Source code for losses.tacotron_loss</h1><div class="highlight"><pre>
-<span></span><span class="c1"># Copyright (c) 2018 NVIDIA Corporation</span>
+  <h1>Source code for losses.text2speech_loss</h1><div class="highlight"><pre>
+<span></span><span class="c1"># Copyright (c) 2019 NVIDIA Corporation</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">unicode_literals</span>
 
@@ -168,70 +168,66 @@
 <span class="kn">from</span> <span class="nn">.loss</span> <span class="k">import</span> <span class="n">Loss</span>
 
 
-<div class="viewcode-block" id="TacotronLoss"><a class="viewcode-back" href="../../api-docs/losses.html#losses.tacotron_loss.TacotronLoss">[docs]</a><span class="k">class</span> <span class="nc">TacotronLoss</span><span class="p">(</span><span class="n">Loss</span><span class="p">):</span>
+<div class="viewcode-block" id="Text2SpeechLoss"><a class="viewcode-back" href="../../api-docs/losses.html#losses.text2speech_loss.Text2SpeechLoss">[docs]</a><span class="k">class</span> <span class="nc">Text2SpeechLoss</span><span class="p">(</span><span class="n">Loss</span><span class="p">):</span>
+  <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">  Default text-to-speech loss.</span>
+<span class="sd">  &quot;&quot;&quot;</span>
 
-  <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;tacotron_loss&quot;</span><span class="p">):</span>
-    <span class="nb">super</span><span class="p">(</span><span class="n">TacotronLoss</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">_n_feats</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="o">.</span><span class="n">get_data_layer</span><span class="p">()</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;num_audio_features&#39;</span><span class="p">]</span>
-    <span class="k">if</span> <span class="s2">&quot;both&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="o">.</span><span class="n">get_data_layer</span><span class="p">()</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;output_type&#39;</span><span class="p">]:</span>
+<div class="viewcode-block" id="Text2SpeechLoss.get_optional_params"><a class="viewcode-back" href="../../api-docs/losses.html#losses.text2speech_loss.Text2SpeechLoss.get_optional_params">[docs]</a>  <span class="nd">@staticmethod</span>
+  <span class="k">def</span> <span class="nf">get_optional_params</span><span class="p">():</span>
+    <span class="k">return</span> <span class="p">{</span>
+        <span class="s2">&quot;use_mask&quot;</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
+        <span class="s2">&quot;scale&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="s2">&quot;stop_token_weight&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="s2">&quot;mel_weight&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="s2">&quot;mag_weight&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="s2">&quot;l1_norm&quot;</span><span class="p">:</span> <span class="nb">bool</span>
+    <span class="p">}</span></div>
+
+  <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;text2speech_loss&quot;</span><span class="p">):</span>
+    <span class="nb">super</span><span class="p">(</span><span class="n">Text2SpeechLoss</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_n_feats</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="o">.</span><span class="n">get_data_layer</span><span class="p">()</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;num_audio_features&quot;</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="s2">&quot;both&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="o">.</span><span class="n">get_data_layer</span><span class="p">()</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;output_type&quot;</span><span class="p">]:</span>
       <span class="bp">self</span><span class="o">.</span><span class="n">_both</span> <span class="o">=</span> <span class="kc">True</span>
     <span class="k">else</span><span class="p">:</span>
       <span class="bp">self</span><span class="o">.</span><span class="n">_both</span> <span class="o">=</span> <span class="kc">False</span>
 
-<div class="viewcode-block" id="TacotronLoss.get_optional_params"><a class="viewcode-back" href="../../api-docs/losses.html#losses.tacotron_loss.TacotronLoss.get_optional_params">[docs]</a>  <span class="k">def</span> <span class="nf">get_optional_params</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Static method with description of optional parameters.</span>
-
-<span class="sd">      Returns:</span>
-<span class="sd">        dict:</span>
-<span class="sd">            Dictionary containing all the parameters that **can** be</span>
-<span class="sd">            included into the ``params`` parameter of the</span>
-<span class="sd">            class :meth:`__init__` method.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="p">{</span>
-        <span class="s1">&#39;use_mask&#39;</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
-        <span class="s1">&#39;scale&#39;</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
-    <span class="p">}</span></div>
-
-<div class="viewcode-block" id="TacotronLoss._compute_loss"><a class="viewcode-back" href="../../api-docs/losses.html#losses.tacotron_loss.TacotronLoss._compute_loss">[docs]</a>  <span class="k">def</span> <span class="nf">_compute_loss</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_dict</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Computes loss according to the tacotron 2 paper.</span>
+<div class="viewcode-block" id="Text2SpeechLoss._compute_loss"><a class="viewcode-back" href="../../api-docs/losses.html#losses.text2speech_loss.Text2SpeechLoss._compute_loss">[docs]</a>  <span class="k">def</span> <span class="nf">_compute_loss</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_dict</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Computes loss for text-to-speech model.</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">      input_dict (dict): inputs to compute loss. Contains:</span>
+<span class="sd">      input_dict (dict):</span>
+<span class="sd">        * &quot;decoder_output&quot;: dictionary containing:</span>
+<span class="sd">            &quot;outputs&quot;: array containing:</span>
+<span class="sd">                * mel: mel-spectrogram predicted by the decoder [batch, time, n_mel]</span>
+<span class="sd">                * post_net_mel: spectrogram after adding the residual</span>
+<span class="sd">                  corrections from the post net of shape [batch, time, feats]</span>
+<span class="sd">                * mag: mag-spectrogram predicted by the decoder [batch, time, n_mag]</span>
+<span class="sd">            &quot;stop_token_predictions&quot;: stop_token predictions of shape [batch, time, 1]</span>
 
-<span class="sd">          * &quot;decoder_output&quot;: dicionary containing:</span>
-
-<span class="sd">              &quot;outputs&quot;: array containing [</span>
-
-<span class="sd">                  * decoder_predictions: spectrogram predicted by the decoder</span>
-<span class="sd">                    rnn of shape [batch, time, feats]</span>
-<span class="sd">                  * post_net_predictions: spectrogram after adding the residual</span>
-<span class="sd">                    corrections from the post net of shape [batch, time, feats]</span>
-<span class="sd">                  * stop_token_predictions: stop_token predictions of shape</span>
-<span class="sd">                    [batch, time, 1]</span>
-
-<span class="sd">              ]</span>
-
-<span class="sd">          * &quot;target_tensors&quot;: array containing [</span>
-
-<span class="sd">              * spec: the true spectrogram of shape [batch, time, feats]</span>
-<span class="sd">              * stop_token: the stop_token of shape [batch, time]</span>
-
-<span class="sd">            ]</span>
+<span class="sd">        * &quot;target_tensors&quot;: array containing:</span>
+<span class="sd">            * spec: the true spectrogram of shape [batch, time, feats]</span>
+<span class="sd">            * stop_token: the stop_token of shape [batch, time]</span>
+<span class="sd">            * spec_length: the length of specs [batch]</span>
 
 <span class="sd">    Returns:</span>
-<span class="sd">       Singleton loss tensor</span>
+<span class="sd">      Singleton loss tensor</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c1"># Compute loss in fp32</span>
-    <span class="n">decoder_predictions</span> <span class="o">=</span> <span class="n">input_dict</span><span class="p">[</span><span class="s1">&#39;decoder_output&#39;</span><span class="p">][</span><span class="s1">&#39;outputs&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
-    <span class="n">post_net_predictions</span> <span class="o">=</span> <span class="n">input_dict</span><span class="p">[</span><span class="s1">&#39;decoder_output&#39;</span><span class="p">][</span><span class="s1">&#39;outputs&#39;</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
-    <span class="n">stop_token_predictions</span> <span class="o">=</span> <span class="n">input_dict</span><span class="p">[</span><span class="s1">&#39;decoder_output&#39;</span><span class="p">][</span><span class="s1">&#39;stop_token_prediction&#39;</span><span class="p">]</span>
+
+    <span class="n">decoder_predictions</span> <span class="o">=</span> <span class="n">input_dict</span><span class="p">[</span><span class="s2">&quot;decoder_output&quot;</span><span class="p">][</span><span class="s2">&quot;outputs&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">post_net_predictions</span> <span class="o">=</span> <span class="n">input_dict</span><span class="p">[</span><span class="s2">&quot;decoder_output&quot;</span><span class="p">][</span><span class="s2">&quot;outputs&quot;</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">stop_token_predictions</span> <span class="o">=</span> <span class="n">input_dict</span><span class="p">[</span><span class="s2">&quot;decoder_output&quot;</span><span class="p">][</span><span class="s2">&quot;stop_token_prediction&quot;</span><span class="p">]</span>
+
     <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_both</span><span class="p">:</span>
-      <span class="n">mag_pred</span> <span class="o">=</span> <span class="n">input_dict</span><span class="p">[</span><span class="s1">&#39;decoder_output&#39;</span><span class="p">][</span><span class="s1">&#39;outputs&#39;</span><span class="p">][</span><span class="mi">5</span><span class="p">]</span>
+      <span class="n">mag_pred</span> <span class="o">=</span> <span class="n">input_dict</span><span class="p">[</span><span class="s2">&quot;decoder_output&quot;</span><span class="p">][</span><span class="s2">&quot;outputs&quot;</span><span class="p">][</span><span class="mi">5</span><span class="p">]</span>
       <span class="n">mag_pred</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">mag_pred</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
-    <span class="n">spec</span> <span class="o">=</span> <span class="n">input_dict</span><span class="p">[</span><span class="s1">&#39;target_tensors&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
-    <span class="n">stop_token</span> <span class="o">=</span> <span class="n">input_dict</span><span class="p">[</span><span class="s1">&#39;target_tensors&#39;</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+
+    <span class="n">spec</span> <span class="o">=</span> <span class="n">input_dict</span><span class="p">[</span><span class="s2">&quot;target_tensors&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">stop_token</span> <span class="o">=</span> <span class="n">input_dict</span><span class="p">[</span><span class="s2">&quot;target_tensors&quot;</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
     <span class="n">stop_token</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="n">stop_token</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
-    <span class="n">spec_lengths</span> <span class="o">=</span> <span class="n">input_dict</span><span class="p">[</span><span class="s1">&#39;target_tensors&#39;</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span>
+    <span class="n">spec_lengths</span> <span class="o">=</span> <span class="n">input_dict</span><span class="p">[</span><span class="s2">&quot;target_tensors&quot;</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span>
 
     <span class="n">batch_size</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">spec</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
     <span class="n">num_feats</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">spec</span><span class="p">)[</span><span class="mi">2</span><span class="p">]</span>
@@ -260,18 +256,26 @@
         <span class="p">[</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">max_length</span> <span class="o">-</span> <span class="n">tf</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">decoder_predictions</span><span class="p">)[</span><span class="mi">1</span><span class="p">],</span> <span class="mi">1</span><span class="p">]</span>
     <span class="p">)</span>
     <span class="n">spec_pad</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">max_length</span> <span class="o">-</span> <span class="n">tf</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">spec</span><span class="p">)[</span><span class="mi">1</span><span class="p">],</span> <span class="n">num_feats</span><span class="p">])</span>
-    <span class="n">stop_token_pad</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">max_length</span> <span class="o">-</span> <span class="n">tf</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">spec</span><span class="p">)[</span><span class="mi">1</span><span class="p">],</span> <span class="mi">1</span><span class="p">])</span>
+    <span class="n">stop_token_pad</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">ones</span><span class="p">([</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">max_length</span> <span class="o">-</span> <span class="n">tf</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">spec</span><span class="p">)[</span><span class="mi">1</span><span class="p">],</span> <span class="mi">1</span><span class="p">])</span>
     <span class="n">decoder_predictions</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span>
-        <span class="p">[</span><span class="n">decoder_predictions</span><span class="p">,</span> <span class="n">decoder_pad</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span>
+        <span class="p">[</span><span class="n">decoder_predictions</span><span class="p">,</span> <span class="n">decoder_pad</span><span class="p">],</span>
+        <span class="n">axis</span><span class="o">=</span><span class="mi">1</span>
     <span class="p">)</span>
     <span class="n">post_net_predictions</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span>
-        <span class="p">[</span><span class="n">post_net_predictions</span><span class="p">,</span> <span class="n">decoder_pad</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span>
+        <span class="p">[</span><span class="n">post_net_predictions</span><span class="p">,</span> <span class="n">decoder_pad</span><span class="p">],</span>
+        <span class="n">axis</span><span class="o">=</span><span class="mi">1</span>
     <span class="p">)</span>
     <span class="n">stop_token_predictions</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span>
-        <span class="p">[</span><span class="n">stop_token_predictions</span><span class="p">,</span> <span class="n">stop_token_pred_pad</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span>
+        <span class="p">[</span><span class="n">stop_token_predictions</span><span class="p">,</span> <span class="n">stop_token_pred_pad</span><span class="p">],</span>
+        <span class="n">axis</span><span class="o">=</span><span class="mi">1</span>
     <span class="p">)</span>
     <span class="n">spec</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">spec</span><span class="p">,</span> <span class="n">spec_pad</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
     <span class="n">stop_token</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">stop_token</span><span class="p">,</span> <span class="n">stop_token_pad</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;l1_norm&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>
+      <span class="n">loss_f</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">losses</span><span class="o">.</span><span class="n">absolute_difference</span>
+    <span class="k">else</span><span class="p">:</span>
+      <span class="n">loss_f</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">losses</span><span class="o">.</span><span class="n">mean_squared_error</span>
 
     <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_both</span><span class="p">:</span>
       <span class="n">mag_pad</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span>
@@ -282,61 +286,87 @@
           <span class="p">]</span>
       <span class="p">)</span>
       <span class="n">mag_pred</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span>
-         <span class="p">[</span><span class="n">mag_pred</span><span class="p">,</span> <span class="n">mag_pad</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span>
+          <span class="p">[</span><span class="n">mag_pred</span><span class="p">,</span> <span class="n">mag_pad</span><span class="p">],</span>
+          <span class="n">axis</span><span class="o">=</span><span class="mi">1</span>
       <span class="p">)</span>
 
       <span class="n">spec</span><span class="p">,</span> <span class="n">mag_target</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">split</span><span class="p">(</span>
           <span class="n">spec</span><span class="p">,</span>
-          <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_n_feats</span><span class="p">[</span><span class="s1">&#39;mel&#39;</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">_n_feats</span><span class="p">[</span><span class="s1">&#39;magnitude&#39;</span><span class="p">]],</span>
+          <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_n_feats</span><span class="p">[</span><span class="s2">&quot;mel&quot;</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">_n_feats</span><span class="p">[</span><span class="s2">&quot;magnitude&quot;</span><span class="p">]],</span>
           <span class="n">axis</span><span class="o">=</span><span class="mi">2</span>
       <span class="p">)</span>
+
     <span class="n">decoder_target</span> <span class="o">=</span> <span class="n">spec</span>
     <span class="n">post_net_target</span> <span class="o">=</span> <span class="n">spec</span>
 
     <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;use_mask&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">):</span>
       <span class="n">mask</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">sequence_mask</span><span class="p">(</span>
-          <span class="n">lengths</span><span class="o">=</span><span class="n">spec_lengths</span><span class="p">,</span> <span class="n">maxlen</span><span class="o">=</span><span class="n">max_length</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">float32</span>
+          <span class="n">lengths</span><span class="o">=</span><span class="n">spec_lengths</span><span class="p">,</span>
+          <span class="n">maxlen</span><span class="o">=</span><span class="n">max_length</span><span class="p">,</span>
+          <span class="n">dtype</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">float32</span>
       <span class="p">)</span>
       <span class="n">mask</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="n">mask</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
-      <span class="n">decoder_loss</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">losses</span><span class="o">.</span><span class="n">mean_squared_error</span><span class="p">(</span>
-          <span class="n">labels</span><span class="o">=</span><span class="n">decoder_target</span><span class="p">,</span> <span class="n">predictions</span><span class="o">=</span><span class="n">decoder_predictions</span><span class="p">,</span> <span class="n">weights</span><span class="o">=</span><span class="n">mask</span>
+
+      <span class="n">decoder_loss</span> <span class="o">=</span> <span class="n">loss_f</span><span class="p">(</span>
+          <span class="n">labels</span><span class="o">=</span><span class="n">decoder_target</span><span class="p">,</span>
+          <span class="n">predictions</span><span class="o">=</span><span class="n">decoder_predictions</span><span class="p">,</span>
+          <span class="n">weights</span><span class="o">=</span><span class="n">mask</span>
       <span class="p">)</span>
-      <span class="n">post_net_loss</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">losses</span><span class="o">.</span><span class="n">mean_squared_error</span><span class="p">(</span>
-          <span class="n">labels</span><span class="o">=</span><span class="n">post_net_target</span><span class="p">,</span> <span class="n">predictions</span><span class="o">=</span><span class="n">post_net_predictions</span><span class="p">,</span> <span class="n">weights</span><span class="o">=</span><span class="n">mask</span>
+      <span class="n">post_net_loss</span> <span class="o">=</span> <span class="n">loss_f</span><span class="p">(</span>
+          <span class="n">labels</span><span class="o">=</span><span class="n">post_net_target</span><span class="p">,</span>
+          <span class="n">predictions</span><span class="o">=</span><span class="n">post_net_predictions</span><span class="p">,</span>
+          <span class="n">weights</span><span class="o">=</span><span class="n">mask</span>
       <span class="p">)</span>
+
       <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_both</span><span class="p">:</span>
-        <span class="n">mag_loss</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">losses</span><span class="o">.</span><span class="n">mean_squared_error</span><span class="p">(</span>
-            <span class="n">labels</span><span class="o">=</span><span class="n">mag_target</span><span class="p">,</span> <span class="n">predictions</span><span class="o">=</span><span class="n">mag_pred</span><span class="p">,</span> <span class="n">weights</span><span class="o">=</span><span class="n">mask</span>
+        <span class="n">mag_loss</span> <span class="o">=</span> <span class="n">loss_f</span><span class="p">(</span>
+            <span class="n">labels</span><span class="o">=</span><span class="n">mag_target</span><span class="p">,</span>
+            <span class="n">predictions</span><span class="o">=</span><span class="n">mag_pred</span><span class="p">,</span>
+            <span class="n">weights</span><span class="o">=</span><span class="n">mask</span>
         <span class="p">)</span>
+
       <span class="n">stop_token_loss</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">sigmoid_cross_entropy_with_logits</span><span class="p">(</span>
-          <span class="n">labels</span><span class="o">=</span><span class="n">stop_token</span><span class="p">,</span> <span class="n">logits</span><span class="o">=</span><span class="n">stop_token_predictions</span>
+          <span class="n">labels</span><span class="o">=</span><span class="n">stop_token</span><span class="p">,</span>
+          <span class="n">logits</span><span class="o">=</span><span class="n">stop_token_predictions</span>
       <span class="p">)</span>
       <span class="n">stop_token_loss</span> <span class="o">=</span> <span class="n">stop_token_loss</span> <span class="o">*</span> <span class="n">mask</span>
       <span class="n">stop_token_loss</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">reduce_sum</span><span class="p">(</span><span class="n">stop_token_loss</span><span class="p">)</span> <span class="o">/</span> <span class="n">tf</span><span class="o">.</span><span class="n">reduce_sum</span><span class="p">(</span><span class="n">mask</span><span class="p">)</span>
-
     <span class="k">else</span><span class="p">:</span>
-      <span class="n">decoder_loss</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">losses</span><span class="o">.</span><span class="n">mean_squared_error</span><span class="p">(</span>
-          <span class="n">labels</span><span class="o">=</span><span class="n">decoder_target</span><span class="p">,</span> <span class="n">predictions</span><span class="o">=</span><span class="n">decoder_predictions</span>
+      <span class="n">decoder_loss</span> <span class="o">=</span> <span class="n">loss_f</span><span class="p">(</span>
+          <span class="n">labels</span><span class="o">=</span><span class="n">decoder_target</span><span class="p">,</span>
+          <span class="n">predictions</span><span class="o">=</span><span class="n">decoder_predictions</span>
       <span class="p">)</span>
-      <span class="n">post_net_loss</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">losses</span><span class="o">.</span><span class="n">mean_squared_error</span><span class="p">(</span>
-          <span class="n">labels</span><span class="o">=</span><span class="n">post_net_target</span><span class="p">,</span> <span class="n">predictions</span><span class="o">=</span><span class="n">post_net_predictions</span>
+      <span class="n">post_net_loss</span> <span class="o">=</span> <span class="n">loss_f</span><span class="p">(</span>
+          <span class="n">labels</span><span class="o">=</span><span class="n">post_net_target</span><span class="p">,</span>
+          <span class="n">predictions</span><span class="o">=</span><span class="n">post_net_predictions</span>
       <span class="p">)</span>
       <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_both</span><span class="p">:</span>
-        <span class="n">mag_loss</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">losses</span><span class="o">.</span><span class="n">mean_squared_error</span><span class="p">(</span>
-           <span class="n">labels</span><span class="o">=</span><span class="n">mag_target</span><span class="p">,</span> <span class="n">predictions</span><span class="o">=</span><span class="n">mag_pred</span>
+        <span class="n">mag_loss</span> <span class="o">=</span> <span class="n">loss_f</span><span class="p">(</span>
+            <span class="n">labels</span><span class="o">=</span><span class="n">mag_target</span><span class="p">,</span>
+            <span class="n">predictions</span><span class="o">=</span><span class="n">mag_pred</span>
         <span class="p">)</span>
       <span class="n">stop_token_loss</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">sigmoid_cross_entropy_with_logits</span><span class="p">(</span>
-          <span class="n">labels</span><span class="o">=</span><span class="n">stop_token</span><span class="p">,</span> <span class="n">logits</span><span class="o">=</span><span class="n">stop_token_predictions</span>
+          <span class="n">labels</span><span class="o">=</span><span class="n">stop_token</span><span class="p">,</span>
+          <span class="n">logits</span><span class="o">=</span><span class="n">stop_token_predictions</span>
       <span class="p">)</span>
       <span class="n">stop_token_loss</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">reduce_mean</span><span class="p">(</span><span class="n">stop_token_loss</span><span class="p">)</span>
+
+    <span class="n">mel_weight</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;mel_weight&quot;</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
+    <span class="n">decoder_loss</span> <span class="o">=</span> <span class="n">mel_weight</span> <span class="o">*</span> <span class="n">decoder_loss</span>
+    <span class="n">post_net_loss</span> <span class="o">=</span> <span class="n">mel_weight</span> <span class="o">*</span> <span class="n">post_net_loss</span>
+
+    <span class="n">stop_token_weight</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;stop_token_weight&quot;</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
+    <span class="n">stop_token_loss</span> <span class="o">=</span> <span class="n">stop_token_weight</span> <span class="o">*</span> <span class="n">stop_token_loss</span>
 
     <span class="n">loss</span> <span class="o">=</span> <span class="n">decoder_loss</span> <span class="o">+</span> <span class="n">post_net_loss</span> <span class="o">+</span> <span class="n">stop_token_loss</span>
 
     <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_both</span><span class="p">:</span>
-      <span class="n">loss</span> <span class="o">+=</span> <span class="n">mag_loss</span>
+      <span class="n">mag_weight</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;mag_weight&quot;</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
+      <span class="n">loss</span> <span class="o">+=</span> <span class="n">mag_weight</span> <span class="o">*</span> <span class="n">mag_loss</span>
 
     <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;scale&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">):</span>
       <span class="n">loss</span> <span class="o">=</span> <span class="n">loss</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;scale&quot;</span><span class="p">]</span>
+
     <span class="k">return</span> <span class="n">loss</span></div></div>
 </pre></div>
 

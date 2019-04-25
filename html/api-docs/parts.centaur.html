@@ -1,0 +1,407 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>centaur &mdash; OpenSeq2Seq 0.2 documentation</title>
+  
+
+  
+  
+    <link rel="shortcut icon" href="../_static/favicon.ico"/>
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+    <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/theme_override.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/theme_override.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="utils" href="utils.html" />
+    <link rel="prev" title="tacotron" href="parts.tacotron.html" /> 
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> OpenSeq2Seq
+          
+
+          
+            
+            <img src="../_static/logo.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../index.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation Instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../machine-translation.html">Machine Translation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../speech-recognition.html">Speech Recognition</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../speech-commands.html">Speech Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../speech-synthesis.html">Speech Synthesis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../language-model.html">Language Model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../sentiment-analysis.html">Sentiment Analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../distr-training.html">Multi-GPU and Distributed Training</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../mixed-precision.html">Mixed Precision Training</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../optimizers.html">Optimizers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../in-depth-tutorials.html">In-depth Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../interactive-infer-demos.html">Interactive Infer Mode</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">API documentation</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="models.html">models</a></li>
+<li class="toctree-l2"><a class="reference internal" href="data.html">data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="encoders.html">encoders</a></li>
+<li class="toctree-l2"><a class="reference internal" href="decoders.html">decoders</a></li>
+<li class="toctree-l2"><a class="reference internal" href="losses.html">losses</a></li>
+<li class="toctree-l2"><a class="reference internal" href="optimizers.html">optimizers</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="parts.html">parts</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="parts.rnns.html">rnns</a></li>
+<li class="toctree-l3"><a class="reference internal" href="parts.transformer.html">transformer</a></li>
+<li class="toctree-l3"><a class="reference internal" href="parts.convs2s.html">convs2s</a></li>
+<li class="toctree-l3"><a class="reference internal" href="parts.cnns.html">cnns</a></li>
+<li class="toctree-l3"><a class="reference internal" href="parts.tacotron.html">tacotron</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">centaur</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#module-parts.centaur.attention">attention</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-parts.centaur.batch_norm">batch_norm</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-parts.centaur.conv_block">conv_block</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-parts.centaur.prenet">prenet</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="utils.html">utils</a></li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">OpenSeq2Seq</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="modules.html">API documentation</a> &raquo;</li>
+        
+          <li><a href="parts.html">parts</a> &raquo;</li>
+        
+      <li>centaur</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/api-docs/parts.centaur.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-parts.centaur">
+<span id="centaur"></span><h1>centaur<a class="headerlink" href="#module-parts.centaur" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="module-parts.centaur.attention">
+<span id="attention"></span><h2>attention<a class="headerlink" href="#module-parts.centaur.attention" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="parts.centaur.attention.AttentionBlock">
+<em class="property">class </em><code class="descclassname">parts.centaur.attention.</code><code class="descname">AttentionBlock</code><span class="sig-paren">(</span><em>hidden_size</em>, <em>attention_dropout</em>, <em>layer_postprocess_dropout</em>, <em>training</em>, <em>cnn_dropout_prob</em>, <em>regularizer=None</em>, <em>conv_params=None</em>, <em>n_heads=1</em>, <em>window_size=None</em>, <em>back_step_size=None</em>, <em>name='attention_block'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/centaur/attention.html#AttentionBlock"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.centaur.attention.AttentionBlock" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Attention block for Centaur model.</p>
+<dl class="method">
+<dt id="parts.centaur.attention.AttentionBlock.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>hidden_size</em>, <em>attention_dropout</em>, <em>layer_postprocess_dropout</em>, <em>training</em>, <em>cnn_dropout_prob</em>, <em>regularizer=None</em>, <em>conv_params=None</em>, <em>n_heads=1</em>, <em>window_size=None</em>, <em>back_step_size=None</em>, <em>name='attention_block'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/centaur/attention.html#AttentionBlock.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.centaur.attention.AttentionBlock.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Attention block constructor.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>hidden_size</strong> – dimensionality of hidden embeddings.</li>
+<li><strong>attention_dropout</strong> – dropout rate for attention layer.</li>
+<li><strong>layer_postprocess_dropout</strong> – dropout rate for sublayer.</li>
+<li><strong>training</strong> – whether it is training mode.</li>
+<li><strong>cnn_dropout_prob</strong> – dropout probabilty for cnn layers.</li>
+<li><strong>regularizer</strong> – regularizer for the convolution kernel.</li>
+<li><strong>conv_params</strong> – description of convolutional layer.</li>
+<li><strong>n_heads</strong> – number of attention heads. Defaults to 1.</li>
+<li><strong>window_size</strong> – size of attention window for forcing
+monotonic attention during the inference. Defaults to None.</li>
+<li><strong>back_step_size</strong> – number of steps attention is allowed to
+go back during the inference. Defaults to 0.</li>
+<li><strong>name</strong> – name of the block.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-parts.centaur.batch_norm">
+<span id="batch-norm"></span><h2>batch_norm<a class="headerlink" href="#module-parts.centaur.batch_norm" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="parts.centaur.batch_norm.BatchNorm1D">
+<em class="property">class </em><code class="descclassname">parts.centaur.batch_norm.</code><code class="descname">BatchNorm1D</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/centaur/batch_norm.html#BatchNorm1D"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.centaur.batch_norm.BatchNorm1D" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>1D batch normalization layer.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-parts.centaur.conv_block">
+<span id="conv-block"></span><h2>conv_block<a class="headerlink" href="#module-parts.centaur.conv_block" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="parts.centaur.conv_block.ConvBlock">
+<em class="property">class </em><code class="descclassname">parts.centaur.conv_block.</code><code class="descname">ConvBlock</code><span class="sig-paren">(</span><em>name</em>, <em>conv</em>, <em>norm</em>, <em>activation_fn</em>, <em>dropout</em>, <em>training</em>, <em>is_residual</em>, <em>is_causal</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/centaur/conv_block.html#ConvBlock"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.centaur.conv_block.ConvBlock" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Convolutional block for Centaur model.</p>
+<dl class="method">
+<dt id="parts.centaur.conv_block.ConvBlock.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>name</em>, <em>conv</em>, <em>norm</em>, <em>activation_fn</em>, <em>dropout</em>, <em>training</em>, <em>is_residual</em>, <em>is_causal</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/centaur/conv_block.html#ConvBlock.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.centaur.conv_block.ConvBlock.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convolutional block constructor.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>name</strong> – name of the block.</li>
+<li><strong>conv</strong> – convolutional layer.</li>
+<li><strong>norm</strong> – normalization layer to use after the convolutional layer.</li>
+<li><strong>activation_fn</strong> – activation function to use after the normalization.</li>
+<li><strong>dropout</strong> – dropout rate.</li>
+<li><strong>training</strong> – whether it is training mode.</li>
+<li><strong>is_residual</strong> – whether the block should contain a residual connection.</li>
+<li><strong>is_causal</strong> – whether the convolutional layer should be causal.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="parts.centaur.conv_block.ConvBlock.create">
+<em class="property">static </em><code class="descname">create</code><span class="sig-paren">(</span><em>index</em>, <em>conv_params</em>, <em>regularizer</em>, <em>bn_momentum</em>, <em>bn_epsilon</em>, <em>cnn_dropout_prob</em>, <em>training</em>, <em>is_residual=True</em>, <em>is_causal=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/centaur/conv_block.html#ConvBlock.create"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.centaur.conv_block.ConvBlock.create" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-parts.centaur.prenet">
+<span id="prenet"></span><h2>prenet<a class="headerlink" href="#module-parts.centaur.prenet" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="parts.centaur.prenet.Prenet">
+<em class="property">class </em><code class="descclassname">parts.centaur.prenet.</code><code class="descname">Prenet</code><span class="sig-paren">(</span><em>n_layers</em>, <em>hidden_size</em>, <em>activation_fn</em>, <em>dropout=0.5</em>, <em>regularizer=None</em>, <em>training=True</em>, <em>dtype=None</em>, <em>name='prenet'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/centaur/prenet.html#Prenet"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.centaur.prenet.Prenet" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Centaur decoder pre-net.</p>
+<dl class="method">
+<dt id="parts.centaur.prenet.Prenet.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>n_layers</em>, <em>hidden_size</em>, <em>activation_fn</em>, <em>dropout=0.5</em>, <em>regularizer=None</em>, <em>training=True</em>, <em>dtype=None</em>, <em>name='prenet'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/centaur/prenet.html#Prenet.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.centaur.prenet.Prenet.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Pre-net constructor.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>n_layers</strong> – number of fully-connected layers to use.</li>
+<li><strong>hidden_size</strong> – number of units in each pre-net layer.</li>
+<li><strong>activation_fn</strong> – activation function to use.</li>
+<li><strong>dropout</strong> – dropout rate. Defaults to 0.5.</li>
+<li><strong>regularizer</strong> – regularizer for the convolution kernel.
+Defaults to None.</li>
+<li><strong>training</strong> – whether it is training mode. Defaults to None.</li>
+<li><strong>dtype</strong> – dtype of the layer’s weights. Defaults to None.</li>
+<li><strong>name</strong> – name of the block.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="utils.html" class="btn btn-neutral float-right" title="utils" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="parts.tacotron.html" class="btn btn-neutral" title="tacotron" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, NVIDIA.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../',
+            VERSION:'0.2',
+            LANGUAGE:'None',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../_static/jquery.js"></script>
+      <script type="text/javascript" src="../_static/underscore.js"></script>
+      <script type="text/javascript" src="../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          
+          SphinxRtdTheme.Navigation.enableSticky();
+          
+      });
+  </script>  
+  <style>
+    /* Sidebar header (and topbar for mobile) */
+    .wy-side-nav-search, .wy-nav-top {
+      background: #64d81c;
+    }
+    .wy-side-nav-search > div.version {
+      color: #ffffff;
+    }
+    .wy-side-nav-search > img {
+      max-width: 150px;
+    }
+    .wy-side-nav-search > a {
+      font-size: 23px;
+    }
+  </style>
+
+
+</body>
+</html>

@@ -1,0 +1,830 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>decoders.centaur_decoder &mdash; OpenSeq2Seq 0.2 documentation</title>
+  
+
+  
+  
+    <link rel="shortcut icon" href="../../_static/favicon.ico"/>
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+    <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/theme_override.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/theme_override.css" type="text/css" />
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+
+  
+  <script src="../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> OpenSeq2Seq
+          
+
+          
+            
+            <img src="../../_static/logo.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../index.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../installation.html">Installation Instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../machine-translation.html">Machine Translation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../speech-recognition.html">Speech Recognition</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../speech-commands.html">Speech Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../speech-synthesis.html">Speech Synthesis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../language-model.html">Language Model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../sentiment-analysis.html">Sentiment Analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../distr-training.html">Multi-GPU and Distributed Training</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../mixed-precision.html">Mixed Precision Training</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../optimizers.html">Optimizers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../in-depth-tutorials.html">In-depth Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../interactive-infer-demos.html">Interactive Infer Mode</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api-docs/modules.html">API documentation</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">OpenSeq2Seq</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+        
+      <li>decoders.centaur_decoder</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for decoders.centaur_decoder</h1><div class="highlight"><pre>
+<span></span><span class="c1"># Copyright (c) 2019 NVIDIA Corporation</span>
+<span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
+<span class="kn">from</span> <span class="nn">tensorflow.python.ops</span> <span class="k">import</span> <span class="n">math_ops</span>
+
+<span class="kn">from</span> <span class="nn">open_seq2seq.parts.centaur</span> <span class="k">import</span> <span class="n">AttentionBlock</span>
+<span class="kn">from</span> <span class="nn">open_seq2seq.parts.centaur</span> <span class="k">import</span> <span class="n">ConvBlock</span>
+<span class="kn">from</span> <span class="nn">open_seq2seq.parts.centaur</span> <span class="k">import</span> <span class="n">Prenet</span>
+<span class="kn">from</span> <span class="nn">open_seq2seq.parts.transformer</span> <span class="k">import</span> <span class="n">utils</span>
+<span class="kn">from</span> <span class="nn">open_seq2seq.parts.transformer.common</span> <span class="k">import</span> <span class="n">LayerNormalization</span>
+<span class="kn">from</span> <span class="nn">.decoder</span> <span class="k">import</span> <span class="n">Decoder</span>
+
+
+<div class="viewcode-block" id="CentaurDecoder"><a class="viewcode-back" href="../../api-docs/decoders.html#decoders.centaur_decoder.CentaurDecoder">[docs]</a><span class="k">class</span> <span class="nc">CentaurDecoder</span><span class="p">(</span><span class="n">Decoder</span><span class="p">):</span>
+  <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">  Centaur decoder that consists of attention blocks</span>
+<span class="sd">  followed by convolutional layers.</span>
+<span class="sd">  &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="CentaurDecoder.get_required_params"><a class="viewcode-back" href="../../api-docs/decoders.html#decoders.centaur_decoder.CentaurDecoder.get_required_params">[docs]</a>  <span class="nd">@staticmethod</span>
+  <span class="k">def</span> <span class="nf">get_required_params</span><span class="p">():</span>
+    <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="n">Decoder</span><span class="o">.</span><span class="n">get_required_params</span><span class="p">(),</span> <span class="o">**</span><span class="p">{</span>
+        <span class="s2">&quot;prenet_layers&quot;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="s2">&quot;prenet_hidden_size&quot;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="s2">&quot;hidden_size&quot;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="s2">&quot;conv_layers&quot;</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span>
+        <span class="s2">&quot;mag_conv_layers&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="s2">&quot;attention_dropout&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="s2">&quot;layer_postprocess_dropout&quot;</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="p">})</span></div>
+
+<div class="viewcode-block" id="CentaurDecoder.get_optional_params"><a class="viewcode-back" href="../../api-docs/decoders.html#decoders.centaur_decoder.CentaurDecoder.get_optional_params">[docs]</a>  <span class="nd">@staticmethod</span>
+  <span class="k">def</span> <span class="nf">get_optional_params</span><span class="p">():</span>
+    <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="n">Decoder</span><span class="o">.</span><span class="n">get_optional_params</span><span class="p">(),</span> <span class="o">**</span><span class="p">{</span>
+        <span class="s2">&quot;prenet_activation_fn&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="s2">&quot;prenet_dropout&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="s2">&quot;prenet_use_inference_dropout&quot;</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
+        <span class="s2">&quot;cnn_dropout_prob&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="s2">&quot;bn_momentum&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="s2">&quot;bn_epsilon&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="s2">&quot;reduction_factor&quot;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="s2">&quot;attention_layers&quot;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="s2">&quot;self_attention_conv_params&quot;</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
+        <span class="s2">&quot;attention_heads&quot;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="s2">&quot;attention_cnn_dropout_prob&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="s2">&quot;window_size&quot;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="s2">&quot;back_step_size&quot;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="s2">&quot;force_layers&quot;</span><span class="p">:</span> <span class="nb">list</span>
+    <span class="p">})</span></div>
+
+<div class="viewcode-block" id="CentaurDecoder.__init__"><a class="viewcode-back" href="../../api-docs/decoders.html#decoders.centaur_decoder.CentaurDecoder.__init__">[docs]</a>  <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;centaur_decoder&quot;</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;train&quot;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Centaur decoder constructor.</span>
+
+<span class="sd">    See parent class for arguments description.</span>
+
+<span class="sd">    Config parameters:</span>
+
+<span class="sd">    * **prenet_layers** (int) --- number of fully-connected layers to use.</span>
+<span class="sd">    * **prenet_hidden_size** (int) --- number of units in each pre-net layer.</span>
+<span class="sd">    * **hidden_size** (int) --- dimensionality of hidden embeddings.</span>
+<span class="sd">    * **conv_layers** (list) --- list with the description of convolutional</span>
+<span class="sd">      layers. For example::</span>
+<span class="sd">        &quot;conv_layers&quot;: [</span>
+<span class="sd">          {</span>
+<span class="sd">            &quot;kernel_size&quot;: [5], &quot;stride&quot;: [1],</span>
+<span class="sd">            &quot;num_channels&quot;: 512, &quot;padding&quot;: &quot;VALID&quot;, &quot;is_causal&quot;: True</span>
+<span class="sd">          },</span>
+<span class="sd">          {</span>
+<span class="sd">            &quot;kernel_size&quot;: [5], &quot;stride&quot;: [1],</span>
+<span class="sd">            &quot;num_channels&quot;: 512, &quot;padding&quot;: &quot;VALID&quot;, &quot;is_causal&quot;: True</span>
+<span class="sd">          },</span>
+<span class="sd">          {</span>
+<span class="sd">            &quot;kernel_size&quot;: [5], &quot;stride&quot;: [1],</span>
+<span class="sd">            &quot;num_channels&quot;: 512, &quot;padding&quot;: &quot;VALID&quot;, &quot;is_causal&quot;: True</span>
+<span class="sd">          },</span>
+<span class="sd">          {</span>
+<span class="sd">            &quot;kernel_size&quot;: [5], &quot;stride&quot;: [1],</span>
+<span class="sd">            &quot;num_channels&quot;: 512, &quot;padding&quot;: &quot;VALID&quot;, &quot;is_causal&quot;: True</span>
+<span class="sd">          }</span>
+<span class="sd">        ]</span>
+<span class="sd">    * **mag_conv_layers** (list) --- list with the description of convolutional</span>
+<span class="sd">      layers to reconstruct magnitude.</span>
+<span class="sd">    * **attention_dropout** (float) --- dropout rate for attention layers.</span>
+<span class="sd">    * **layer_postprocess_dropout** (float) --- dropout rate for</span>
+<span class="sd">      transformer block sublayers.</span>
+<span class="sd">    * **prenet_activation_fn** (callable) --- activation function to use for the</span>
+<span class="sd">      prenet lyaers. Defaults to relu.</span>
+<span class="sd">    * **prenet_dropout** (float) --- dropout rate for the pre-net. Defaults to 0.5.</span>
+<span class="sd">    * **prenet_use_inference_dropout** (bool) --- whether to use dropout during the inference.</span>
+<span class="sd">      Defaults to False.</span>
+<span class="sd">    * **cnn_dropout_prob** (float) --- dropout probabilty for cnn layers.</span>
+<span class="sd">      Defaults to 0.5.</span>
+<span class="sd">    * **bn_momentum** (float) --- momentum for batch norm. Defaults to 0.95.</span>
+<span class="sd">    * **bn_epsilon** (float) --- epsilon for batch norm. Defaults to 1e-8.</span>
+<span class="sd">    * **reduction_factor** (int) --- number of frames to predict in a time.</span>
+<span class="sd">      Defaults to 1.</span>
+<span class="sd">    * **attention_layers** (int) --- number of attention blocks. Defaults to 4.</span>
+<span class="sd">    * **self_attention_conv_params** (dict) --- description of convolutional</span>
+<span class="sd">      layer inside attention blocks. Defaults to None.</span>
+<span class="sd">    * **attention_heads** (int) --- number of attention heads. Defaults to 1.</span>
+<span class="sd">    * **attention_cnn_dropout_prob** (float) --- dropout rate for convolutional</span>
+<span class="sd">      layers inside attention blocks. Defaults to 0.5.</span>
+<span class="sd">    * **window_size** (int) --- size of attention window for forcing</span>
+<span class="sd">      monotonic attention during the inference. Defaults to None.</span>
+<span class="sd">    * **back_step_size** (int) --- number of steps attention is allowed to</span>
+<span class="sd">      go back during the inference. Defaults to 0.</span>
+<span class="sd">    * **force_layers** (list) --- indices of layers where forcing of</span>
+<span class="sd">      monotonic attention should be enabled. Defaults to all layers.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="nb">super</span><span class="p">(</span><span class="n">CentaurDecoder</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">mode</span><span class="p">)</span>
+
+    <span class="n">data_layer_params</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">get_data_layer</span><span class="p">()</span><span class="o">.</span><span class="n">params</span>
+    <span class="n">n_feats</span> <span class="o">=</span> <span class="n">data_layer_params</span><span class="p">[</span><span class="s2">&quot;num_audio_features&quot;</span><span class="p">]</span>
+    <span class="n">use_mag</span> <span class="o">=</span> <span class="s2">&quot;both&quot;</span> <span class="ow">in</span> <span class="n">data_layer_params</span><span class="p">[</span><span class="s2">&quot;output_type&quot;</span><span class="p">]</span>
+
+    <span class="bp">self</span><span class="o">.</span><span class="n">training</span> <span class="o">=</span> <span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;train&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">prenet</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">linear_projection</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">attentions</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">output_normalization</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">conv_layers</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">mag_conv_layers</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">stop_token_projection_layer</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">mel_projection_layer</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">mag_projection_layer</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="bp">self</span><span class="o">.</span><span class="n">n_mel</span> <span class="o">=</span> <span class="n">n_feats</span><span class="p">[</span><span class="s2">&quot;mel&quot;</span><span class="p">]</span> <span class="k">if</span> <span class="n">use_mag</span> <span class="k">else</span> <span class="n">n_feats</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">n_mag</span> <span class="o">=</span> <span class="n">n_feats</span><span class="p">[</span><span class="s2">&quot;magnitude&quot;</span><span class="p">]</span> <span class="k">if</span> <span class="n">use_mag</span> <span class="k">else</span> <span class="kc">None</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">reduction_factor</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;reduction_factor&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span></div>
+
+  <span class="k">def</span> <span class="nf">_build_layers</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="n">regularizer</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;regularizer&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">inference_dropout</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;prenet_use_inference_dropout&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+
+    <span class="bp">self</span><span class="o">.</span><span class="n">prenet</span> <span class="o">=</span> <span class="n">Prenet</span><span class="p">(</span>
+        <span class="n">n_layers</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="p">[</span><span class="s2">&quot;prenet_layers&quot;</span><span class="p">],</span>
+        <span class="n">hidden_size</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="p">[</span><span class="s2">&quot;prenet_hidden_size&quot;</span><span class="p">],</span>
+        <span class="n">activation_fn</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;prenet_activation_fn&quot;</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">relu</span><span class="p">),</span>
+        <span class="n">dropout</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;prenet_dropout&quot;</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">),</span>
+        <span class="n">regularizer</span><span class="o">=</span><span class="n">regularizer</span><span class="p">,</span>
+        <span class="n">training</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">training</span> <span class="ow">or</span> <span class="n">inference_dropout</span><span class="p">,</span>
+        <span class="n">dtype</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="p">[</span><span class="s2">&quot;dtype&quot;</span><span class="p">]</span>
+    <span class="p">)</span>
+
+    <span class="n">cnn_dropout_prob</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;cnn_dropout_prob&quot;</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">)</span>
+    <span class="n">bn_momentum</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;bn_momentum&quot;</span><span class="p">,</span> <span class="mf">0.95</span><span class="p">)</span>
+    <span class="n">bn_epsilon</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;bn_epsilon&quot;</span><span class="p">,</span> <span class="o">-</span><span class="mf">1e8</span><span class="p">)</span>
+
+    <span class="bp">self</span><span class="o">.</span><span class="n">linear_projection</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">Dense</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s2">&quot;linear_projection&quot;</span><span class="p">,</span>
+        <span class="n">units</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="p">[</span><span class="s2">&quot;hidden_size&quot;</span><span class="p">],</span>
+        <span class="n">use_bias</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">kernel_regularizer</span><span class="o">=</span><span class="n">regularizer</span><span class="p">,</span>
+        <span class="n">dtype</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="p">[</span><span class="s2">&quot;dtype&quot;</span><span class="p">]</span>
+    <span class="p">)</span>
+
+    <span class="n">n_layers</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;attention_layers&quot;</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
+    <span class="n">n_heads</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;attention_heads&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">conv_params</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;self_attention_conv_params&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">force_layers</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;force_layers&quot;</span><span class="p">,</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_layers</span><span class="p">))</span>
+
+    <span class="k">for</span> <span class="n">index</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_layers</span><span class="p">):</span>
+      <span class="n">window_size</span> <span class="o">=</span> <span class="kc">None</span>
+
+      <span class="k">if</span> <span class="n">index</span> <span class="ow">in</span> <span class="n">force_layers</span><span class="p">:</span>
+        <span class="n">window_size</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;window_size&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+      <span class="n">attention</span> <span class="o">=</span> <span class="n">AttentionBlock</span><span class="p">(</span>
+          <span class="n">name</span><span class="o">=</span><span class="s2">&quot;attention_block_</span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">index</span><span class="p">,</span>
+          <span class="n">hidden_size</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="p">[</span><span class="s2">&quot;hidden_size&quot;</span><span class="p">],</span>
+          <span class="n">attention_dropout</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="p">[</span><span class="s2">&quot;attention_dropout&quot;</span><span class="p">],</span>
+          <span class="n">layer_postprocess_dropout</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="p">[</span><span class="s2">&quot;layer_postprocess_dropout&quot;</span><span class="p">],</span>
+          <span class="n">regularizer</span><span class="o">=</span><span class="n">regularizer</span><span class="p">,</span>
+          <span class="n">training</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">training</span><span class="p">,</span>
+          <span class="n">cnn_dropout_prob</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;attention_cnn_dropout_prob&quot;</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">),</span>
+          <span class="n">conv_params</span><span class="o">=</span><span class="n">conv_params</span><span class="p">,</span>
+          <span class="n">n_heads</span><span class="o">=</span><span class="n">n_heads</span><span class="p">,</span>
+          <span class="n">window_size</span><span class="o">=</span><span class="n">window_size</span><span class="p">,</span>
+          <span class="n">back_step_size</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;back_step_size&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+      <span class="p">)</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">attentions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">attention</span><span class="p">)</span>
+
+    <span class="bp">self</span><span class="o">.</span><span class="n">output_normalization</span> <span class="o">=</span> <span class="n">LayerNormalization</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="p">[</span><span class="s2">&quot;hidden_size&quot;</span><span class="p">])</span>
+
+    <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">params</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="p">[</span><span class="s2">&quot;conv_layers&quot;</span><span class="p">]):</span>
+      <span class="k">if</span> <span class="n">params</span><span class="p">[</span><span class="s2">&quot;num_channels&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+        <span class="n">params</span><span class="p">[</span><span class="s2">&quot;num_channels&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_mel</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">reduction_factor</span>
+
+      <span class="n">layer</span> <span class="o">=</span> <span class="n">ConvBlock</span><span class="o">.</span><span class="n">create</span><span class="p">(</span>
+          <span class="n">index</span><span class="o">=</span><span class="n">index</span><span class="p">,</span>
+          <span class="n">conv_params</span><span class="o">=</span><span class="n">params</span><span class="p">,</span>
+          <span class="n">regularizer</span><span class="o">=</span><span class="n">regularizer</span><span class="p">,</span>
+          <span class="n">bn_momentum</span><span class="o">=</span><span class="n">bn_momentum</span><span class="p">,</span>
+          <span class="n">bn_epsilon</span><span class="o">=</span><span class="n">bn_epsilon</span><span class="p">,</span>
+          <span class="n">cnn_dropout_prob</span><span class="o">=</span><span class="n">cnn_dropout_prob</span><span class="p">,</span>
+          <span class="n">training</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">training</span>
+      <span class="p">)</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">conv_layers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">layer</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">params</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="p">[</span><span class="s2">&quot;mag_conv_layers&quot;</span><span class="p">]):</span>
+      <span class="k">if</span> <span class="n">params</span><span class="p">[</span><span class="s2">&quot;num_channels&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+        <span class="n">params</span><span class="p">[</span><span class="s2">&quot;num_channels&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_mag</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">reduction_factor</span>
+
+      <span class="n">layer</span> <span class="o">=</span> <span class="n">ConvBlock</span><span class="o">.</span><span class="n">create</span><span class="p">(</span>
+          <span class="n">index</span><span class="o">=</span><span class="n">index</span><span class="p">,</span>
+          <span class="n">conv_params</span><span class="o">=</span><span class="n">params</span><span class="p">,</span>
+          <span class="n">regularizer</span><span class="o">=</span><span class="n">regularizer</span><span class="p">,</span>
+          <span class="n">bn_momentum</span><span class="o">=</span><span class="n">bn_momentum</span><span class="p">,</span>
+          <span class="n">bn_epsilon</span><span class="o">=</span><span class="n">bn_epsilon</span><span class="p">,</span>
+          <span class="n">cnn_dropout_prob</span><span class="o">=</span><span class="n">cnn_dropout_prob</span><span class="p">,</span>
+          <span class="n">training</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">training</span>
+      <span class="p">)</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">mag_conv_layers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">layer</span><span class="p">)</span>
+
+    <span class="bp">self</span><span class="o">.</span><span class="n">stop_token_projection_layer</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">Dense</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s2">&quot;stop_token_projection&quot;</span><span class="p">,</span>
+        <span class="n">units</span><span class="o">=</span><span class="mi">1</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">reduction_factor</span><span class="p">,</span>
+        <span class="n">use_bias</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">kernel_regularizer</span><span class="o">=</span><span class="n">regularizer</span>
+    <span class="p">)</span>
+
+    <span class="bp">self</span><span class="o">.</span><span class="n">mel_projection_layer</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">Dense</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s2">&quot;mel_projection&quot;</span><span class="p">,</span>
+        <span class="n">units</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">n_mel</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">reduction_factor</span><span class="p">,</span>
+        <span class="n">use_bias</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">kernel_regularizer</span><span class="o">=</span><span class="n">regularizer</span>
+    <span class="p">)</span>
+
+    <span class="bp">self</span><span class="o">.</span><span class="n">mag_projection_layer</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">Dense</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s2">&quot;mag_projection&quot;</span><span class="p">,</span>
+        <span class="n">units</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">n_mag</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">reduction_factor</span><span class="p">,</span>
+        <span class="n">use_bias</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">kernel_regularizer</span><span class="o">=</span><span class="n">regularizer</span>
+    <span class="p">)</span>
+
+  <span class="k">def</span> <span class="nf">_decode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_dict</span><span class="p">):</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_build_layers</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="s2">&quot;target_tensors&quot;</span> <span class="ow">in</span> <span class="n">input_dict</span><span class="p">:</span>
+      <span class="n">targets</span> <span class="o">=</span> <span class="n">input_dict</span><span class="p">[</span><span class="s2">&quot;target_tensors&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+      <span class="n">targets</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="n">encoder_outputs</span> <span class="o">=</span> <span class="n">input_dict</span><span class="p">[</span><span class="s2">&quot;encoder_output&quot;</span><span class="p">][</span><span class="s2">&quot;outputs&quot;</span><span class="p">]</span>
+    <span class="n">attention_bias</span> <span class="o">=</span> <span class="n">input_dict</span><span class="p">[</span><span class="s2">&quot;encoder_output&quot;</span><span class="p">][</span><span class="s2">&quot;inputs_attention_bias&quot;</span><span class="p">]</span>
+    <span class="n">spec_length</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;train&quot;</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;eval&quot;</span><span class="p">:</span>
+      <span class="n">spec_length</span> <span class="o">=</span> <span class="kc">None</span>
+
+      <span class="k">if</span> <span class="s2">&quot;target_tensors&quot;</span> <span class="ow">in</span> <span class="n">input_dict</span><span class="p">:</span>
+        <span class="n">spec_length</span> <span class="o">=</span> <span class="n">input_dict</span><span class="p">[</span><span class="s2">&quot;target_tensors&quot;</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">training</span><span class="p">:</span>
+      <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_train</span><span class="p">(</span><span class="n">targets</span><span class="p">,</span> <span class="n">encoder_outputs</span><span class="p">,</span> <span class="n">attention_bias</span><span class="p">,</span> <span class="n">spec_length</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_infer</span><span class="p">(</span><span class="n">encoder_outputs</span><span class="p">,</span> <span class="n">attention_bias</span><span class="p">,</span> <span class="n">spec_length</span><span class="p">)</span>
+
+  <span class="k">def</span> <span class="nf">_decode_pass</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                   <span class="n">decoder_inputs</span><span class="p">,</span>
+                   <span class="n">encoder_outputs</span><span class="p">,</span>
+                   <span class="n">enc_dec_attention_bias</span><span class="p">,</span>
+                   <span class="n">sequence_lengths</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                   <span class="n">alignment_positions</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="n">y</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">prenet</span><span class="p">(</span><span class="n">decoder_inputs</span><span class="p">)</span>
+    <span class="n">y</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">linear_projection</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+
+    <span class="k">with</span> <span class="n">tf</span><span class="o">.</span><span class="n">variable_scope</span><span class="p">(</span><span class="s2">&quot;decoder_pos_encoding&quot;</span><span class="p">):</span>
+      <span class="n">pos_encoding</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_positional_encoding</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;dtype&quot;</span><span class="p">])</span>
+      <span class="n">y</span> <span class="o">+=</span> <span class="n">pos_encoding</span>
+
+    <span class="k">with</span> <span class="n">tf</span><span class="o">.</span><span class="n">variable_scope</span><span class="p">(</span><span class="s2">&quot;encoder_pos_encoding&quot;</span><span class="p">):</span>
+      <span class="n">pos_encoding</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_positional_encoding</span><span class="p">(</span><span class="n">encoder_outputs</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;dtype&quot;</span><span class="p">])</span>
+      <span class="n">encoder_outputs</span> <span class="o">+=</span> <span class="n">pos_encoding</span>
+
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">attention</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">attentions</span><span class="p">):</span>
+      <span class="n">positions</span> <span class="o">=</span> <span class="kc">None</span>
+
+      <span class="k">if</span> <span class="n">alignment_positions</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">positions</span> <span class="o">=</span> <span class="n">alignment_positions</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:,</span> <span class="p">:]</span>
+
+      <span class="n">y</span> <span class="o">=</span> <span class="n">attention</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">encoder_outputs</span><span class="p">,</span> <span class="n">enc_dec_attention_bias</span><span class="p">,</span> <span class="n">positions</span><span class="o">=</span><span class="n">positions</span><span class="p">)</span>
+
+    <span class="n">y</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">output_normalization</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+
+    <span class="k">with</span> <span class="n">tf</span><span class="o">.</span><span class="n">variable_scope</span><span class="p">(</span><span class="s2">&quot;conv_layers&quot;</span><span class="p">):</span>
+      <span class="k">for</span> <span class="n">layer</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">conv_layers</span><span class="p">:</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="n">layer</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+
+    <span class="n">stop_token_logits</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">stop_token_projection_layer</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+    <span class="n">mel_spec</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mel_projection_layer</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+
+    <span class="k">with</span> <span class="n">tf</span><span class="o">.</span><span class="n">variable_scope</span><span class="p">(</span><span class="s2">&quot;mag_conv_layers&quot;</span><span class="p">):</span>
+      <span class="k">for</span> <span class="n">layer</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">mag_conv_layers</span><span class="p">:</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="n">layer</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+
+    <span class="n">mag_spec</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mag_projection_layer</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">sequence_lengths</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+      <span class="n">batch_size</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">y</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+      <span class="n">sequence_lengths</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="n">batch_size</span><span class="p">])</span>
+
+    <span class="k">return</span> <span class="p">{</span>
+        <span class="s2">&quot;spec&quot;</span><span class="p">:</span> <span class="n">mel_spec</span><span class="p">,</span>
+        <span class="s2">&quot;post_net_spec&quot;</span><span class="p">:</span> <span class="n">mel_spec</span><span class="p">,</span>
+        <span class="s2">&quot;alignments&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="s2">&quot;stop_token_logits&quot;</span><span class="p">:</span> <span class="n">stop_token_logits</span><span class="p">,</span>
+        <span class="s2">&quot;lengths&quot;</span><span class="p">:</span> <span class="n">sequence_lengths</span><span class="p">,</span>
+        <span class="s2">&quot;mag_spec&quot;</span><span class="p">:</span> <span class="n">mag_spec</span>
+    <span class="p">}</span>
+
+  <span class="k">def</span> <span class="nf">_train</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">targets</span><span class="p">,</span> <span class="n">encoder_outputs</span><span class="p">,</span> <span class="n">enc_dec_attention_bias</span><span class="p">,</span> <span class="n">sequence_lengths</span><span class="p">):</span>
+    <span class="c1"># Shift targets to the right, and remove the last element</span>
+    <span class="k">with</span> <span class="n">tf</span><span class="o">.</span><span class="n">name_scope</span><span class="p">(</span><span class="s2">&quot;shift_targets&quot;</span><span class="p">):</span>
+      <span class="n">n_features</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_mel</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_mag</span>
+      <span class="n">targets</span> <span class="o">=</span> <span class="n">targets</span><span class="p">[:,</span> <span class="p">:,</span> <span class="p">:</span><span class="n">n_features</span><span class="p">]</span>
+      <span class="n">targets</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_shrink</span><span class="p">(</span><span class="n">targets</span><span class="p">,</span> <span class="n">n_features</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">reduction_factor</span><span class="p">)</span>
+      <span class="n">decoder_inputs</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">pad</span><span class="p">(</span><span class="n">targets</span><span class="p">,</span> <span class="p">[[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]])[:,</span> <span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="p">:]</span>
+
+    <span class="n">outputs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_decode_pass</span><span class="p">(</span>
+        <span class="n">decoder_inputs</span><span class="o">=</span><span class="n">decoder_inputs</span><span class="p">,</span>
+        <span class="n">encoder_outputs</span><span class="o">=</span><span class="n">encoder_outputs</span><span class="p">,</span>
+        <span class="n">enc_dec_attention_bias</span><span class="o">=</span><span class="n">enc_dec_attention_bias</span><span class="p">,</span>
+        <span class="n">sequence_lengths</span><span class="o">=</span><span class="n">sequence_lengths</span>
+    <span class="p">)</span>
+
+    <span class="k">with</span> <span class="n">tf</span><span class="o">.</span><span class="n">variable_scope</span><span class="p">(</span><span class="s2">&quot;alignments&quot;</span><span class="p">):</span>
+      <span class="n">weights</span> <span class="o">=</span> <span class="p">[]</span>
+
+      <span class="k">for</span> <span class="n">index</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">attentions</span><span class="p">)):</span>
+        <span class="n">op</span> <span class="o">=</span> <span class="s2">&quot;ForwardPass/centaur_decoder/attention_block_</span><span class="si">%d</span><span class="s2">/attention/attention/attention_weights&quot;</span> <span class="o">%</span> <span class="n">index</span>
+        <span class="n">weights_operation</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">get_default_graph</span><span class="p">()</span><span class="o">.</span><span class="n">get_operation_by_name</span><span class="p">(</span><span class="n">op</span><span class="p">)</span>
+        <span class="n">weight</span> <span class="o">=</span> <span class="n">weights_operation</span><span class="o">.</span><span class="n">values</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">weights</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">weight</span><span class="p">)</span>
+
+      <span class="n">outputs</span><span class="p">[</span><span class="s2">&quot;alignments&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">tf</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="n">weights</span><span class="p">)]</span>
+
+    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_convert_outputs</span><span class="p">(</span>
+        <span class="n">outputs</span><span class="p">,</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reduction_factor</span><span class="p">,</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;batch_size_per_gpu&quot;</span><span class="p">]</span>
+    <span class="p">)</span>
+
+  <span class="k">def</span> <span class="nf">_infer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">encoder_outputs</span><span class="p">,</span> <span class="n">enc_dec_attention_bias</span><span class="p">,</span> <span class="n">sequence_lengths</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">sequence_lengths</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+      <span class="n">maximum_iterations</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="o">.</span><span class="n">get_data_layer</span><span class="p">()</span><span class="o">.</span><span class="n">_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;duration_max&quot;</span><span class="p">,</span> <span class="mi">1000</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+      <span class="n">maximum_iterations</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">reduce_max</span><span class="p">(</span><span class="n">sequence_lengths</span><span class="p">)</span>
+
+    <span class="n">maximum_iterations</span> <span class="o">//=</span> <span class="bp">self</span><span class="o">.</span><span class="n">reduction_factor</span>
+
+    <span class="n">state</span><span class="p">,</span> <span class="n">state_shape_invariants</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_inference_initial_state</span><span class="p">(</span>
+        <span class="n">encoder_outputs</span><span class="p">,</span>
+        <span class="n">enc_dec_attention_bias</span>
+    <span class="p">)</span>
+
+    <span class="n">state</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">while_loop</span><span class="p">(</span>
+        <span class="n">cond</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_inference_cond</span><span class="p">,</span>
+        <span class="n">body</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_inference_step</span><span class="p">,</span>
+        <span class="n">loop_vars</span><span class="o">=</span><span class="p">[</span><span class="n">state</span><span class="p">],</span>
+        <span class="n">shape_invariants</span><span class="o">=</span><span class="n">state_shape_invariants</span><span class="p">,</span>
+        <span class="n">back_prop</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">maximum_iterations</span><span class="o">=</span><span class="n">maximum_iterations</span><span class="p">,</span>
+        <span class="n">parallel_iterations</span><span class="o">=</span><span class="mi">1</span>
+    <span class="p">)</span>
+
+    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_convert_outputs</span><span class="p">(</span>
+        <span class="n">state</span><span class="p">[</span><span class="s2">&quot;outputs&quot;</span><span class="p">],</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reduction_factor</span><span class="p">,</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;batch_size_per_gpu&quot;</span><span class="p">]</span>
+    <span class="p">)</span>
+
+<div class="viewcode-block" id="CentaurDecoder._inference_initial_state"><a class="viewcode-back" href="../../api-docs/decoders.html#decoders.centaur_decoder.CentaurDecoder._inference_initial_state">[docs]</a>  <span class="k">def</span> <span class="nf">_inference_initial_state</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">encoder_outputs</span><span class="p">,</span> <span class="n">encoder_decoder_attention_bias</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Create initial state for inference.&quot;&quot;&quot;</span>
+
+    <span class="k">with</span> <span class="n">tf</span><span class="o">.</span><span class="n">variable_scope</span><span class="p">(</span><span class="s2">&quot;inference_initial_state&quot;</span><span class="p">):</span>
+      <span class="n">batch_size</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">encoder_outputs</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+      <span class="n">n_layers</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;attention_layers&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+      <span class="n">n_heads</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;attention_heads&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+      <span class="n">n_features</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_mel</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_mag</span>
+
+      <span class="n">state</span> <span class="o">=</span> <span class="p">{</span>
+          <span class="s2">&quot;iteration&quot;</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">constant</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span>
+          <span class="s2">&quot;inputs&quot;</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="n">batch_size</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">n_features</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">reduction_factor</span><span class="p">]),</span>
+          <span class="s2">&quot;finished&quot;</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="n">batch_size</span><span class="p">]),</span> <span class="n">tf</span><span class="o">.</span><span class="n">bool</span><span class="p">),</span>
+          <span class="s2">&quot;alignment_positions&quot;</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="n">n_layers</span><span class="p">,</span> <span class="n">batch_size</span><span class="p">,</span> <span class="n">n_heads</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">int32</span><span class="p">),</span>
+          <span class="s2">&quot;outputs&quot;</span><span class="p">:</span> <span class="p">{</span>
+              <span class="s2">&quot;spec&quot;</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="n">batch_size</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_mel</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">reduction_factor</span><span class="p">]),</span>
+              <span class="s2">&quot;post_net_spec&quot;</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="n">batch_size</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_mel</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">reduction_factor</span><span class="p">]),</span>
+              <span class="s2">&quot;alignments&quot;</span><span class="p">:</span> <span class="p">[</span>
+                  <span class="n">tf</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span>
+              <span class="p">],</span>
+              <span class="s2">&quot;stop_token_logits&quot;</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="n">batch_size</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">reduction_factor</span><span class="p">]),</span>
+              <span class="s2">&quot;lengths&quot;</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="n">batch_size</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">int32</span><span class="p">),</span>
+              <span class="s2">&quot;mag_spec&quot;</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="n">batch_size</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_mag</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">reduction_factor</span><span class="p">])</span>
+          <span class="p">},</span>
+          <span class="s2">&quot;encoder_outputs&quot;</span><span class="p">:</span> <span class="n">encoder_outputs</span><span class="p">,</span>
+          <span class="s2">&quot;encoder_decoder_attention_bias&quot;</span><span class="p">:</span> <span class="n">encoder_decoder_attention_bias</span>
+      <span class="p">}</span>
+
+      <span class="n">state_shape_invariants</span> <span class="o">=</span> <span class="p">{</span>
+          <span class="s2">&quot;iteration&quot;</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">TensorShape</span><span class="p">([]),</span>
+          <span class="s2">&quot;inputs&quot;</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">TensorShape</span><span class="p">([</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">n_features</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">reduction_factor</span><span class="p">]),</span>
+          <span class="s2">&quot;finished&quot;</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">TensorShape</span><span class="p">([</span><span class="kc">None</span><span class="p">]),</span>
+          <span class="s2">&quot;alignment_positions&quot;</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">TensorShape</span><span class="p">([</span><span class="n">n_layers</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">n_heads</span><span class="p">,</span> <span class="kc">None</span><span class="p">]),</span>
+          <span class="s2">&quot;outputs&quot;</span><span class="p">:</span> <span class="p">{</span>
+              <span class="s2">&quot;spec&quot;</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">TensorShape</span><span class="p">([</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_mel</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">reduction_factor</span><span class="p">]),</span>
+              <span class="s2">&quot;post_net_spec&quot;</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">TensorShape</span><span class="p">([</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_mel</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">reduction_factor</span><span class="p">]),</span>
+              <span class="s2">&quot;alignments&quot;</span><span class="p">:</span> <span class="p">[</span>
+                  <span class="n">tf</span><span class="o">.</span><span class="n">TensorShape</span><span class="p">([</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">]),</span>
+              <span class="p">],</span>
+              <span class="s2">&quot;stop_token_logits&quot;</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">TensorShape</span><span class="p">([</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="mi">1</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">reduction_factor</span><span class="p">]),</span>
+              <span class="s2">&quot;lengths&quot;</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">TensorShape</span><span class="p">([</span><span class="kc">None</span><span class="p">]),</span>
+              <span class="s2">&quot;mag_spec&quot;</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">TensorShape</span><span class="p">([</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">])</span>
+          <span class="p">},</span>
+          <span class="s2">&quot;encoder_outputs&quot;</span><span class="p">:</span> <span class="n">encoder_outputs</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span>
+          <span class="s2">&quot;encoder_decoder_attention_bias&quot;</span><span class="p">:</span> <span class="n">encoder_decoder_attention_bias</span><span class="o">.</span><span class="n">shape</span>
+      <span class="p">}</span>
+
+      <span class="k">return</span> <span class="n">state</span><span class="p">,</span> <span class="n">state_shape_invariants</span></div>
+
+<div class="viewcode-block" id="CentaurDecoder._inference_cond"><a class="viewcode-back" href="../../api-docs/decoders.html#decoders.centaur_decoder.CentaurDecoder._inference_cond">[docs]</a>  <span class="k">def</span> <span class="nf">_inference_cond</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Check if it&#39;s time to stop inference.&quot;&quot;&quot;</span>
+
+    <span class="k">with</span> <span class="n">tf</span><span class="o">.</span><span class="n">variable_scope</span><span class="p">(</span><span class="s2">&quot;inference_cond&quot;</span><span class="p">):</span>
+      <span class="n">all_finished</span> <span class="o">=</span> <span class="n">math_ops</span><span class="o">.</span><span class="n">reduce_all</span><span class="p">(</span><span class="n">state</span><span class="p">[</span><span class="s2">&quot;finished&quot;</span><span class="p">])</span>
+      <span class="k">return</span> <span class="n">tf</span><span class="o">.</span><span class="n">logical_not</span><span class="p">(</span><span class="n">all_finished</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="CentaurDecoder._inference_step"><a class="viewcode-back" href="../../api-docs/decoders.html#decoders.centaur_decoder.CentaurDecoder._inference_step">[docs]</a>  <span class="k">def</span> <span class="nf">_inference_step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Make one inference step.&quot;&quot;&quot;</span>
+
+    <span class="n">decoder_inputs</span> <span class="o">=</span> <span class="n">state</span><span class="p">[</span><span class="s2">&quot;inputs&quot;</span><span class="p">]</span>
+    <span class="n">encoder_outputs</span> <span class="o">=</span> <span class="n">state</span><span class="p">[</span><span class="s2">&quot;encoder_outputs&quot;</span><span class="p">]</span>
+    <span class="n">enc_dec_attention_bias</span> <span class="o">=</span> <span class="n">state</span><span class="p">[</span><span class="s2">&quot;encoder_decoder_attention_bias&quot;</span><span class="p">]</span>
+    <span class="n">alignment_positions</span> <span class="o">=</span> <span class="n">state</span><span class="p">[</span><span class="s2">&quot;alignment_positions&quot;</span><span class="p">]</span>
+
+    <span class="n">outputs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_decode_pass</span><span class="p">(</span>
+        <span class="n">decoder_inputs</span><span class="o">=</span><span class="n">decoder_inputs</span><span class="p">,</span>
+        <span class="n">encoder_outputs</span><span class="o">=</span><span class="n">encoder_outputs</span><span class="p">,</span>
+        <span class="n">enc_dec_attention_bias</span><span class="o">=</span><span class="n">enc_dec_attention_bias</span><span class="p">,</span>
+        <span class="n">alignment_positions</span><span class="o">=</span><span class="n">alignment_positions</span>
+    <span class="p">)</span>
+
+    <span class="k">with</span> <span class="n">tf</span><span class="o">.</span><span class="n">variable_scope</span><span class="p">(</span><span class="s2">&quot;inference_step&quot;</span><span class="p">):</span>
+      <span class="n">next_inputs_mel</span> <span class="o">=</span> <span class="n">outputs</span><span class="p">[</span><span class="s2">&quot;post_net_spec&quot;</span><span class="p">][:,</span> <span class="o">-</span><span class="mi">1</span><span class="p">:,</span> <span class="p">:]</span>
+      <span class="n">next_inputs_mel</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_expand</span><span class="p">(</span><span class="n">next_inputs_mel</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">reduction_factor</span><span class="p">)</span>
+      <span class="n">next_inputs_mag</span> <span class="o">=</span> <span class="n">outputs</span><span class="p">[</span><span class="s2">&quot;mag_spec&quot;</span><span class="p">][:,</span> <span class="o">-</span><span class="mi">1</span><span class="p">:,</span> <span class="p">:]</span>
+      <span class="n">next_inputs_mag</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_expand</span><span class="p">(</span><span class="n">next_inputs_mag</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">reduction_factor</span><span class="p">)</span>
+      <span class="n">next_inputs</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">next_inputs_mel</span><span class="p">,</span> <span class="n">next_inputs_mag</span><span class="p">],</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+
+      <span class="n">n_features</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_mel</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_mag</span>
+      <span class="n">next_inputs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_shrink</span><span class="p">(</span><span class="n">next_inputs</span><span class="p">,</span> <span class="n">n_features</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">reduction_factor</span><span class="p">)</span>
+
+      <span class="c1"># Set zero if sequence is finished</span>
+      <span class="n">next_inputs</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">where</span><span class="p">(</span>
+          <span class="n">state</span><span class="p">[</span><span class="s2">&quot;finished&quot;</span><span class="p">],</span>
+          <span class="n">tf</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">next_inputs</span><span class="p">),</span>
+          <span class="n">next_inputs</span>
+      <span class="p">)</span>
+      <span class="n">next_inputs</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">decoder_inputs</span><span class="p">,</span> <span class="n">next_inputs</span><span class="p">],</span> <span class="mi">1</span><span class="p">)</span>
+
+      <span class="c1"># Update lengths</span>
+      <span class="n">lengths</span> <span class="o">=</span> <span class="n">state</span><span class="p">[</span><span class="s2">&quot;outputs&quot;</span><span class="p">][</span><span class="s2">&quot;lengths&quot;</span><span class="p">]</span>
+      <span class="n">lengths</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">where</span><span class="p">(</span>
+          <span class="n">state</span><span class="p">[</span><span class="s2">&quot;finished&quot;</span><span class="p">],</span>
+          <span class="n">lengths</span><span class="p">,</span>
+          <span class="n">lengths</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">reduction_factor</span>
+      <span class="p">)</span>
+      <span class="n">outputs</span><span class="p">[</span><span class="s2">&quot;lengths&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">lengths</span>
+
+      <span class="c1"># Update spec, post_net_spec and mag_spec</span>
+      <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;spec&quot;</span><span class="p">,</span> <span class="s2">&quot;post_net_spec&quot;</span><span class="p">,</span> <span class="s2">&quot;mag_spec&quot;</span><span class="p">]:</span>
+        <span class="n">output</span> <span class="o">=</span> <span class="n">outputs</span><span class="p">[</span><span class="n">key</span><span class="p">][:,</span> <span class="o">-</span><span class="mi">1</span><span class="p">:,</span> <span class="p">:]</span>
+        <span class="n">output</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">state</span><span class="p">[</span><span class="s2">&quot;finished&quot;</span><span class="p">],</span> <span class="n">tf</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">output</span><span class="p">),</span> <span class="n">output</span><span class="p">)</span>
+        <span class="n">outputs</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">state</span><span class="p">[</span><span class="s2">&quot;outputs&quot;</span><span class="p">][</span><span class="n">key</span><span class="p">],</span> <span class="n">output</span><span class="p">],</span> <span class="mi">1</span><span class="p">)</span>
+
+      <span class="c1"># Update stop token logits</span>
+      <span class="n">stop_token_logits</span> <span class="o">=</span> <span class="n">outputs</span><span class="p">[</span><span class="s2">&quot;stop_token_logits&quot;</span><span class="p">][:,</span> <span class="o">-</span><span class="mi">1</span><span class="p">:,</span> <span class="p">:]</span>
+      <span class="n">stop_token_logits</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">where</span><span class="p">(</span>
+          <span class="n">state</span><span class="p">[</span><span class="s2">&quot;finished&quot;</span><span class="p">],</span>
+          <span class="n">tf</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">stop_token_logits</span><span class="p">),</span>
+          <span class="n">stop_token_logits</span>
+      <span class="p">)</span>
+      <span class="n">stop_prediction</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">sigmoid</span><span class="p">(</span><span class="n">stop_token_logits</span><span class="p">)</span>
+      <span class="n">stop_prediction</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">reduce_max</span><span class="p">(</span><span class="n">stop_prediction</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+
+      <span class="c1"># Uncomment next line if you want to use stop token predictions</span>
+      <span class="c1"># finished = tf.reshape(tf.cast(tf.round(stop_prediction), tf.bool), [-1])</span>
+      <span class="n">finished</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">stop_prediction</span><span class="p">)),</span> <span class="n">tf</span><span class="o">.</span><span class="n">bool</span><span class="p">)</span>
+      <span class="n">finished</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">finished</span><span class="p">,</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+
+      <span class="n">stop_token_logits</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span>
+          <span class="p">[</span><span class="n">state</span><span class="p">[</span><span class="s2">&quot;outputs&quot;</span><span class="p">][</span><span class="s2">&quot;stop_token_logits&quot;</span><span class="p">],</span> <span class="n">stop_token_logits</span><span class="p">],</span>
+          <span class="n">axis</span><span class="o">=</span><span class="mi">1</span>
+      <span class="p">)</span>
+      <span class="n">outputs</span><span class="p">[</span><span class="s2">&quot;stop_token_logits&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">stop_token_logits</span>
+
+      <span class="k">with</span> <span class="n">tf</span><span class="o">.</span><span class="n">variable_scope</span><span class="p">(</span><span class="s2">&quot;alignments&quot;</span><span class="p">):</span>
+        <span class="n">forward</span> <span class="o">=</span> <span class="s2">&quot;ForwardPass&quot;</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;infer&quot;</span> <span class="k">else</span> <span class="s2">&quot;ForwardPass_1&quot;</span>
+        <span class="n">weights</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">for</span> <span class="n">index</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">attentions</span><span class="p">)):</span>
+          <span class="n">op</span> <span class="o">=</span> <span class="n">forward</span> <span class="o">+</span> <span class="s2">&quot;/centaur_decoder/while/attention_block_</span><span class="si">%d</span><span class="s2">/attention/attention/attention_weights&quot;</span> <span class="o">%</span> <span class="n">index</span>
+          <span class="n">weights_operation</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">get_default_graph</span><span class="p">()</span><span class="o">.</span><span class="n">get_operation_by_name</span><span class="p">(</span><span class="n">op</span><span class="p">)</span>
+          <span class="n">weight</span> <span class="o">=</span> <span class="n">weights_operation</span><span class="o">.</span><span class="n">values</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+          <span class="n">weights</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">weight</span><span class="p">)</span>
+
+        <span class="n">weights</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="n">weights</span><span class="p">)</span>
+        <span class="n">outputs</span><span class="p">[</span><span class="s2">&quot;alignments&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">weights</span><span class="p">]</span>
+
+      <span class="n">alignment_positions</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span>
+          <span class="n">weights</span><span class="p">,</span>
+          <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span>
+          <span class="n">output_type</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">int32</span>
+      <span class="p">)[:,</span> <span class="p">:,</span> <span class="p">:,</span> <span class="o">-</span><span class="mi">1</span><span class="p">:]</span>
+      <span class="n">state</span><span class="p">[</span><span class="s2">&quot;alignment_positions&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span>
+          <span class="p">[</span><span class="n">state</span><span class="p">[</span><span class="s2">&quot;alignment_positions&quot;</span><span class="p">],</span> <span class="n">alignment_positions</span><span class="p">],</span>
+          <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span>
+      <span class="p">)</span>
+
+      <span class="n">state</span><span class="p">[</span><span class="s2">&quot;iteration&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">state</span><span class="p">[</span><span class="s2">&quot;iteration&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span>
+      <span class="n">state</span><span class="p">[</span><span class="s2">&quot;inputs&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">next_inputs</span>
+      <span class="n">state</span><span class="p">[</span><span class="s2">&quot;finished&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">finished</span>
+      <span class="n">state</span><span class="p">[</span><span class="s2">&quot;outputs&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">outputs</span>
+
+    <span class="k">return</span> <span class="n">state</span></div>
+
+<div class="viewcode-block" id="CentaurDecoder._shrink"><a class="viewcode-back" href="../../api-docs/decoders.html#decoders.centaur_decoder.CentaurDecoder._shrink">[docs]</a>  <span class="nd">@staticmethod</span>
+  <span class="k">def</span> <span class="nf">_shrink</span><span class="p">(</span><span class="n">values</span><span class="p">,</span> <span class="n">last_dim</span><span class="p">,</span> <span class="n">reduction_factor</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Shrink the given input by reduction_factor.&quot;&quot;&quot;</span>
+
+    <span class="n">shape</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">values</span><span class="p">)</span>
+    <span class="n">new_shape</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+        <span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">//</span> <span class="n">reduction_factor</span><span class="p">,</span>
+        <span class="n">last_dim</span> <span class="o">*</span> <span class="n">reduction_factor</span>
+    <span class="p">]</span>
+    <span class="n">values</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">values</span><span class="p">,</span> <span class="n">new_shape</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">values</span></div>
+
+<div class="viewcode-block" id="CentaurDecoder._expand"><a class="viewcode-back" href="../../api-docs/decoders.html#decoders.centaur_decoder.CentaurDecoder._expand">[docs]</a>  <span class="nd">@staticmethod</span>
+  <span class="k">def</span> <span class="nf">_expand</span><span class="p">(</span><span class="n">values</span><span class="p">,</span> <span class="n">reduction_factor</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Expand the given input by reduction_factor.&quot;&quot;&quot;</span>
+
+    <span class="n">shape</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">values</span><span class="p">)</span>
+    <span class="n">new_shape</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+        <span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">reduction_factor</span><span class="p">,</span>
+        <span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">//</span> <span class="n">reduction_factor</span>
+    <span class="p">]</span>
+    <span class="n">values</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">values</span><span class="p">,</span> <span class="n">new_shape</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">values</span></div>
+
+<div class="viewcode-block" id="CentaurDecoder._positional_encoding"><a class="viewcode-back" href="../../api-docs/decoders.html#decoders.centaur_decoder.CentaurDecoder._positional_encoding">[docs]</a>  <span class="nd">@staticmethod</span>
+  <span class="k">def</span> <span class="nf">_positional_encoding</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">dtype</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Add positional encoding to the given input.&quot;&quot;&quot;</span>
+
+    <span class="n">length</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">x</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">features_count</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">x</span><span class="p">)[</span><span class="mi">2</span><span class="p">]</span>
+    <span class="n">features_count</span> <span class="o">+=</span> <span class="n">features_count</span> <span class="o">%</span> <span class="mi">2</span>
+    <span class="n">pos_encoding</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">get_position_encoding</span><span class="p">(</span><span class="n">length</span><span class="p">,</span> <span class="n">features_count</span><span class="p">)</span>
+    <span class="n">position_encoding</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">pos_encoding</span><span class="p">,</span> <span class="n">dtype</span><span class="p">)</span>
+    <span class="n">position_encoding</span> <span class="o">=</span> <span class="n">position_encoding</span><span class="p">[:,</span> <span class="p">:</span><span class="n">features_count</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">position_encoding</span></div>
+
+<div class="viewcode-block" id="CentaurDecoder._convert_outputs"><a class="viewcode-back" href="../../api-docs/decoders.html#decoders.centaur_decoder.CentaurDecoder._convert_outputs">[docs]</a>  <span class="nd">@staticmethod</span>
+  <span class="k">def</span> <span class="nf">_convert_outputs</span><span class="p">(</span><span class="n">outputs</span><span class="p">,</span> <span class="n">reduction_factor</span><span class="p">,</span> <span class="n">batch_size</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Convert output of the decoder to appropriate format.&quot;&quot;&quot;</span>
+
+    <span class="k">with</span> <span class="n">tf</span><span class="o">.</span><span class="n">variable_scope</span><span class="p">(</span><span class="s2">&quot;output_converter&quot;</span><span class="p">):</span>
+      <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;spec&quot;</span><span class="p">,</span> <span class="s2">&quot;post_net_spec&quot;</span><span class="p">,</span> <span class="s2">&quot;stop_token_logits&quot;</span><span class="p">,</span> <span class="s2">&quot;mag_spec&quot;</span><span class="p">]:</span>
+        <span class="n">outputs</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">CentaurDecoder</span><span class="o">.</span><span class="n">_expand</span><span class="p">(</span><span class="n">outputs</span><span class="p">[</span><span class="n">key</span><span class="p">],</span> <span class="n">reduction_factor</span><span class="p">)</span>
+
+      <span class="n">alignments</span> <span class="o">=</span> <span class="p">[]</span>
+      <span class="k">for</span> <span class="n">sample</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">batch_size</span><span class="p">):</span>
+        <span class="n">alignments</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">outputs</span><span class="p">[</span><span class="s2">&quot;alignments&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">][:,</span> <span class="n">sample</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:,</span> <span class="p">:]])</span>
+
+      <span class="k">return</span> <span class="p">{</span>
+          <span class="s2">&quot;outputs&quot;</span><span class="p">:</span> <span class="p">[</span>
+              <span class="n">outputs</span><span class="p">[</span><span class="s2">&quot;spec&quot;</span><span class="p">],</span>
+              <span class="n">outputs</span><span class="p">[</span><span class="s2">&quot;post_net_spec&quot;</span><span class="p">],</span>
+              <span class="n">alignments</span><span class="p">,</span>
+              <span class="n">tf</span><span class="o">.</span><span class="n">sigmoid</span><span class="p">(</span><span class="n">outputs</span><span class="p">[</span><span class="s2">&quot;stop_token_logits&quot;</span><span class="p">]),</span>
+              <span class="n">outputs</span><span class="p">[</span><span class="s2">&quot;lengths&quot;</span><span class="p">],</span>
+              <span class="n">outputs</span><span class="p">[</span><span class="s2">&quot;mag_spec&quot;</span><span class="p">]</span>
+          <span class="p">],</span>
+          <span class="s2">&quot;stop_token_prediction&quot;</span><span class="p">:</span> <span class="n">outputs</span><span class="p">[</span><span class="s2">&quot;stop_token_logits&quot;</span><span class="p">]</span>
+      <span class="p">}</span></div></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, NVIDIA.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../',
+            VERSION:'0.2',
+            LANGUAGE:'None',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          
+          SphinxRtdTheme.Navigation.enableSticky();
+          
+      });
+  </script>  
+  <style>
+    /* Sidebar header (and topbar for mobile) */
+    .wy-side-nav-search, .wy-nav-top {
+      background: #64d81c;
+    }
+    .wy-side-nav-search > div.version {
+      color: #ffffff;
+    }
+    .wy-side-nav-search > img {
+      max-width: 150px;
+    }
+    .wy-side-nav-search > a {
+      font-size: 23px;
+    }
+  </style>
+
+
+</body>
+</html>

@@ -118,6 +118,7 @@
 <li class="toctree-l3"><a class="reference internal" href="parts.convs2s.html">convs2s</a></li>
 <li class="toctree-l3"><a class="reference internal" href="parts.cnns.html">cnns</a></li>
 <li class="toctree-l3"><a class="reference internal" href="parts.tacotron.html">tacotron</a></li>
+<li class="toctree-l3"><a class="reference internal" href="parts.centaur.html">centaur</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="utils.html">utils</a></li>
@@ -198,12 +199,12 @@
 <p>Implementation of multiheaded attention and self-attention layers.</p>
 <dl class="class">
 <dt id="parts.transformer.attention_layer.Attention">
-<em class="property">class </em><code class="descclassname">parts.transformer.attention_layer.</code><code class="descname">Attention</code><span class="sig-paren">(</span><em>hidden_size</em>, <em>num_heads</em>, <em>attention_dropout</em>, <em>train</em>, <em>mode='loung'</em>, <em>regularizer=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/transformer/attention_layer.html#Attention"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.transformer.attention_layer.Attention" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">parts.transformer.attention_layer.</code><code class="descname">Attention</code><span class="sig-paren">(</span><em>hidden_size</em>, <em>num_heads</em>, <em>attention_dropout</em>, <em>train</em>, <em>mode='loung'</em>, <em>regularizer=None</em>, <em>window_size=None</em>, <em>back_step_size=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/transformer/attention_layer.html#Attention"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.transformer.attention_layer.Attention" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tensorflow.python.layers.base.Layer</span></code></p>
 <p>Multi-headed attention layer.</p>
 <dl class="method">
 <dt id="parts.transformer.attention_layer.Attention.call">
-<code class="descname">call</code><span class="sig-paren">(</span><em>x</em>, <em>y</em>, <em>bias</em>, <em>cache=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/transformer/attention_layer.html#Attention.call"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.transformer.attention_layer.Attention.call" title="Permalink to this definition">¶</a></dt>
+<code class="descname">call</code><span class="sig-paren">(</span><em>x</em>, <em>y</em>, <em>bias</em>, <em>cache=None</em>, <em>positions=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/transformer/attention_layer.html#Attention.call"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.transformer.attention_layer.Attention.call" title="Permalink to this definition">¶</a></dt>
 <dd><p>Apply attention mechanism to x and y.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -223,6 +224,7 @@ of previous attentions. The dictionary must have the items:</p>
 </div></blockquote>
 <p>where i is the current decoded length.</p>
 </li>
+<li><strong>positions</strong> – decoder-encoder alignment for previous steps [batch_size, n_heads, length_x]</li>
 </ul>
 </td>
 </tr>
@@ -271,7 +273,7 @@ values during the matrix multiplication.</p>
 
 <dl class="class">
 <dt id="parts.transformer.attention_layer.SelfAttention">
-<em class="property">class </em><code class="descclassname">parts.transformer.attention_layer.</code><code class="descname">SelfAttention</code><span class="sig-paren">(</span><em>hidden_size</em>, <em>num_heads</em>, <em>attention_dropout</em>, <em>train</em>, <em>mode='loung'</em>, <em>regularizer=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/transformer/attention_layer.html#SelfAttention"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.transformer.attention_layer.SelfAttention" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">parts.transformer.attention_layer.</code><code class="descname">SelfAttention</code><span class="sig-paren">(</span><em>hidden_size</em>, <em>num_heads</em>, <em>attention_dropout</em>, <em>train</em>, <em>mode='loung'</em>, <em>regularizer=None</em>, <em>window_size=None</em>, <em>back_step_size=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/transformer/attention_layer.html#SelfAttention"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.transformer.attention_layer.SelfAttention" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#parts.transformer.attention_layer.Attention" title="parts.transformer.attention_layer.Attention"><code class="xref py py-class docutils literal notranslate"><span class="pre">parts.transformer.attention_layer.Attention</span></code></a></p>
 <p>Multiheaded self-attention layer.</p>
 <dl class="method">
@@ -296,6 +298,7 @@ of previous attentions. The dictionary must have the items:</p>
 </div></blockquote>
 <p>where i is the current decoded length.</p>
 </li>
+<li><strong>positions</strong> – decoder-encoder alignment for previous steps [batch_size, n_heads, length_x]</li>
 </ul>
 </td>
 </tr>

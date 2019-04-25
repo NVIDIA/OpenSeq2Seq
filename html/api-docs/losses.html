@@ -107,7 +107,7 @@
 <li class="toctree-l3"><a class="reference internal" href="#module-losses.ctc_loss">ctc_loss</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#module-losses.sequence_loss">sequence_loss</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#module-losses.cross_entropy_loss">cross_entropy_loss</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#module-losses.tacotron_loss">tacotron_loss</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-losses.text2speech_loss">text2speech_loss</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#module-losses.wavenet_loss">wavenet_loss</a></li>
 </ul>
 </li>
@@ -753,43 +753,47 @@ class <code class="xref py py-meth docutils literal notranslate"><span class="pr
 </dd></dl>
 
 </div>
-<div class="section" id="module-losses.tacotron_loss">
-<span id="tacotron-loss"></span><h2>tacotron_loss<a class="headerlink" href="#module-losses.tacotron_loss" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="module-losses.text2speech_loss">
+<span id="text2speech-loss"></span><h2>text2speech_loss<a class="headerlink" href="#module-losses.text2speech_loss" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
-<dt id="losses.tacotron_loss.TacotronLoss">
-<em class="property">class </em><code class="descclassname">losses.tacotron_loss.</code><code class="descname">TacotronLoss</code><span class="sig-paren">(</span><em>params</em>, <em>model</em>, <em>name='tacotron_loss'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/losses/tacotron_loss.html#TacotronLoss"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#losses.tacotron_loss.TacotronLoss" title="Permalink to this definition">¶</a></dt>
+<dt id="losses.text2speech_loss.Text2SpeechLoss">
+<em class="property">class </em><code class="descclassname">losses.text2speech_loss.</code><code class="descname">Text2SpeechLoss</code><span class="sig-paren">(</span><em>params</em>, <em>model</em>, <em>name='text2speech_loss'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/losses/text2speech_loss.html#Text2SpeechLoss"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#losses.text2speech_loss.Text2SpeechLoss" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#losses.loss.Loss" title="losses.loss.Loss"><code class="xref py py-class docutils literal notranslate"><span class="pre">losses.loss.Loss</span></code></a></p>
+<p>Default text-to-speech loss.</p>
 <dl class="method">
-<dt id="losses.tacotron_loss.TacotronLoss._compute_loss">
-<code class="descname">_compute_loss</code><span class="sig-paren">(</span><em>input_dict</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/losses/tacotron_loss.html#TacotronLoss._compute_loss"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#losses.tacotron_loss.TacotronLoss._compute_loss" title="Permalink to this definition">¶</a></dt>
-<dd><p>Computes loss according to the tacotron 2 paper.</p>
+<dt id="losses.text2speech_loss.Text2SpeechLoss._compute_loss">
+<code class="descname">_compute_loss</code><span class="sig-paren">(</span><em>input_dict</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/losses/text2speech_loss.html#Text2SpeechLoss._compute_loss"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#losses.text2speech_loss.Text2SpeechLoss._compute_loss" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes loss for text-to-speech model.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>input_dict</strong> (<em>dict</em>) – <p>inputs to compute loss. Contains:</p>
-<ul>
-<li>”decoder_output”: dicionary containing:<blockquote>
-<div>”outputs”: array containing [<blockquote>
-<div><ul class="simple">
-<li>decoder_predictions: spectrogram predicted by the decoder
-rnn of shape [batch, time, feats]</li>
-<li>post_net_predictions: spectrogram after adding the residual
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>input_dict</strong> (<em>dict</em>) – <ul>
+<li><dl class="first docutils">
+<dt>“decoder_output”: dictionary containing:</dt>
+<dd><dl class="first docutils">
+<dt>”outputs”: array containing:</dt>
+<dd><ul class="first last simple">
+<li>mel: mel-spectrogram predicted by the decoder [batch, time, n_mel]</li>
+<li>post_net_mel: spectrogram after adding the residual
 corrections from the post net of shape [batch, time, feats]</li>
-<li>stop_token_predictions: stop_token predictions of shape
-[batch, time, 1]</li>
+<li>mag: mag-spectrogram predicted by the decoder [batch, time, n_mag]</li>
 </ul>
-</div></blockquote>
-<p>]</p>
-</div></blockquote>
+</dd>
+</dl>
+<p class="last">”stop_token_predictions”: stop_token predictions of shape [batch, time, 1]</p>
+</dd>
+</dl>
 </li>
-<li>”target_tensors”: array containing [<blockquote>
-<div><ul class="simple">
+<li><dl class="first docutils">
+<dt>”target_tensors”: array containing:</dt>
+<dd><ul class="first last simple">
 <li>spec: the true spectrogram of shape [batch, time, feats]</li>
 <li>stop_token: the stop_token of shape [batch, time]</li>
+<li>spec_length: the length of specs [batch]</li>
 </ul>
-</div></blockquote>
-<p>]</p>
+</dd>
+</dl>
 </li>
 </ul>
 </td>
@@ -800,9 +804,9 @@ corrections from the post net of shape [batch, time, feats]</li>
 </table>
 </dd></dl>
 
-<dl class="method">
-<dt id="losses.tacotron_loss.TacotronLoss.get_optional_params">
-<code class="descname">get_optional_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/losses/tacotron_loss.html#TacotronLoss.get_optional_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#losses.tacotron_loss.TacotronLoss.get_optional_params" title="Permalink to this definition">¶</a></dt>
+<dl class="staticmethod">
+<dt id="losses.text2speech_loss.Text2SpeechLoss.get_optional_params">
+<em class="property">static </em><code class="descname">get_optional_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/losses/text2speech_loss.html#Text2SpeechLoss.get_optional_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#losses.text2speech_loss.Text2SpeechLoss.get_optional_params" title="Permalink to this definition">¶</a></dt>
 <dd><p>Static method with description of optional parameters.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />

@@ -182,6 +182,8 @@
 <li class="toctree-l2"><a class="reference internal" href="models.html#module-models.speech2text">speech2text</a></li>
 <li class="toctree-l2"><a class="reference internal" href="models.html#module-models.text2text">text2text</a></li>
 <li class="toctree-l2"><a class="reference internal" href="models.html#module-models.text2speech">text2speech</a></li>
+<li class="toctree-l2"><a class="reference internal" href="models.html#module-models.text2speech_centaur">text2speech_centaur</a></li>
+<li class="toctree-l2"><a class="reference internal" href="models.html#module-models.text2speech_tacotron">text2speech_tacotron</a></li>
 <li class="toctree-l2"><a class="reference internal" href="models.html#module-models.text2speech_wavenet">text2speech_wavenet</a></li>
 <li class="toctree-l2"><a class="reference internal" href="models.html#module-models.image2label">image2label</a></li>
 </ul>
@@ -226,6 +228,7 @@
 <li class="toctree-l2"><a class="reference internal" href="encoders.html#module-encoders.cnn_encoder">cnn_encoder</a></li>
 <li class="toctree-l2"><a class="reference internal" href="encoders.html#module-encoders.tacotron2_encoder">tacotron2_encoder</a></li>
 <li class="toctree-l2"><a class="reference internal" href="encoders.html#module-encoders.wavenet_encoder">wavenet_encoder</a></li>
+<li class="toctree-l2"><a class="reference internal" href="encoders.html#module-encoders.centaur_encoder">centaur_encoder</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="decoders.html">decoders</a><ul>
@@ -235,6 +238,7 @@
 <li class="toctree-l2"><a class="reference internal" href="decoders.html#module-decoders.transformer_decoder">transformer_decoder</a></li>
 <li class="toctree-l2"><a class="reference internal" href="decoders.html#module-decoders.convs2s_decoder">convs2s_decoder</a></li>
 <li class="toctree-l2"><a class="reference internal" href="decoders.html#module-decoders.tacotron2_decoder">tacotron2_decoder</a></li>
+<li class="toctree-l2"><a class="reference internal" href="decoders.html#module-decoders.centaur_decoder">centaur_decoder</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="losses.html">losses</a><ul>
@@ -242,7 +246,7 @@
 <li class="toctree-l2"><a class="reference internal" href="losses.html#module-losses.ctc_loss">ctc_loss</a></li>
 <li class="toctree-l2"><a class="reference internal" href="losses.html#module-losses.sequence_loss">sequence_loss</a></li>
 <li class="toctree-l2"><a class="reference internal" href="losses.html#module-losses.cross_entropy_loss">cross_entropy_loss</a></li>
-<li class="toctree-l2"><a class="reference internal" href="losses.html#module-losses.tacotron_loss">tacotron_loss</a></li>
+<li class="toctree-l2"><a class="reference internal" href="losses.html#module-losses.text2speech_loss">text2speech_loss</a></li>
 <li class="toctree-l2"><a class="reference internal" href="losses.html#module-losses.wavenet_loss">wavenet_loss</a></li>
 </ul>
 </li>
@@ -287,6 +291,13 @@
 <li class="toctree-l2"><a class="reference internal" href="parts.tacotron.html">tacotron</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="parts.tacotron.html#module-parts.tacotron.tacotron_decoder">tacotron_decoder</a></li>
 <li class="toctree-l3"><a class="reference internal" href="parts.tacotron.html#module-parts.tacotron.tacotron_helper">tacotron_helper</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="parts.centaur.html">centaur</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="parts.centaur.html#module-parts.centaur.attention">attention</a></li>
+<li class="toctree-l3"><a class="reference internal" href="parts.centaur.html#module-parts.centaur.batch_norm">batch_norm</a></li>
+<li class="toctree-l3"><a class="reference internal" href="parts.centaur.html#module-parts.centaur.conv_block">conv_block</a></li>
+<li class="toctree-l3"><a class="reference internal" href="parts.centaur.html#module-parts.centaur.prenet">prenet</a></li>
 </ul>
 </li>
 </ul>

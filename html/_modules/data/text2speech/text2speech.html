@@ -178,7 +178,8 @@
                           <span class="n">inverse_mel</span><span class="p">,</span> <span class="n">normalize</span><span class="p">,</span> <span class="n">denormalize</span>
 
 <div class="viewcode-block" id="Text2SpeechDataLayer"><a class="viewcode-back" href="../../../api-docs/data.text2speech.html#data.text2speech.text2speech.Text2SpeechDataLayer">[docs]</a><span class="k">class</span> <span class="nc">Text2SpeechDataLayer</span><span class="p">(</span><span class="n">DataLayer</span><span class="p">):</span>
-  <span class="sd">&quot;&quot;&quot;Text-to-speech data layer class</span>
+  <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">  Text-to-speech data layer class</span>
 <span class="sd">  &quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="Text2SpeechDataLayer.get_required_params"><a class="viewcode-back" href="../../../api-docs/data.text2speech.html#data.text2speech.text2speech.Text2SpeechDataLayer.get_required_params">[docs]</a>  <span class="nd">@staticmethod</span>
@@ -212,6 +213,12 @@
             <span class="s1">&#39;mel_type&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;slaney&#39;</span><span class="p">,</span> <span class="s1">&#39;htk&#39;</span><span class="p">],</span>
             <span class="s2">&quot;exp_mag&quot;</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
             <span class="s1">&#39;style_input&#39;</span><span class="p">:</span> <span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;wav&#39;</span><span class="p">],</span>
+            <span class="s1">&#39;n_samples_train&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+            <span class="s1">&#39;n_samples_eval&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+            <span class="s1">&#39;n_fft&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+            <span class="s1">&#39;fmax&#39;</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+            <span class="s1">&#39;max_normalization&#39;</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
+            <span class="s1">&#39;use_cache&#39;</span><span class="p">:</span> <span class="nb">bool</span>
         <span class="p">}</span>
     <span class="p">)</span></div>
 
@@ -258,13 +265,20 @@
 <span class="sd">      All signals less than this will be cut from the training set. Defaults to</span>
 <span class="sd">      0.</span>
 <span class="sd">    * **duration_max** (int) --- Maximum duration in steps for speech signal.</span>
-<span class="sd">      All signals greater than this will be cut from the training set. Defaults </span>
+<span class="sd">      All signals greater than this will be cut from the training set. Defaults</span>
 <span class="sd">      to 4000.</span>
 <span class="sd">    * **mel_type** (str) --- One of [&#39;slaney&#39;, &#39;htk&#39;]. Decides which algorithm to</span>
 <span class="sd">      use to compute mel specs.</span>
 <span class="sd">      Defaults to htk.</span>
 <span class="sd">    * **style_input** (str) --- Can be either None or &quot;wav&quot;. Must be set to &quot;wav&quot;</span>
 <span class="sd">      for GST. Defaults to None.</span>
+<span class="sd">    * **n_samples_train** (int) --- number of the shortest examples to use for training.</span>
+<span class="sd">    * **n_samples_eval** (int) --- number of the shortest examples to use for evaluation.</span>
+<span class="sd">    * **n_fft** (int) --- FFT window size.</span>
+<span class="sd">    * **fmax** (float) --- highest frequency to use.</span>
+<span class="sd">    * **max_normalization** (bool) --- whether to divide the final audio signal</span>
+<span class="sd">      by its&#39; absolute maximum.</span>
+<span class="sd">    * **use_cache** (bool) --- whether to use cache.</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="nb">super</span><span class="p">(</span><span class="n">Text2SpeechDataLayer</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
@@ -274,13 +288,16 @@
         <span class="n">worker_id</span>
     <span class="p">)</span>
 
+    <span class="bp">self</span><span class="o">.</span><span class="n">use_cache</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;use_cache&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_cache</span> <span class="o">=</span> <span class="p">{}</span>
+
     <span class="n">names</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;wav_filename&#39;</span><span class="p">,</span> <span class="s1">&#39;raw_transcript&#39;</span><span class="p">,</span> <span class="s1">&#39;transcript&#39;</span><span class="p">]</span>
     <span class="n">sep</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="se">\x7c</span><span class="s1">&#39;</span>
     <span class="n">header</span> <span class="o">=</span> <span class="kc">None</span>
 
     <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;dataset&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;LJ&quot;</span><span class="p">:</span>
       <span class="bp">self</span><span class="o">.</span><span class="n">_sampling_rate</span> <span class="o">=</span> <span class="mi">22050</span>
-      <span class="bp">self</span><span class="o">.</span><span class="n">_n_fft</span> <span class="o">=</span> <span class="mi">1024</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">_n_fft</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;n_fft&quot;</span><span class="p">,</span> <span class="mi">1024</span><span class="p">)</span>
     <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;dataset&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;MAILABS&quot;</span><span class="p">:</span>
       <span class="bp">self</span><span class="o">.</span><span class="n">_sampling_rate</span> <span class="o">=</span> <span class="mi">16000</span>
       <span class="bp">self</span><span class="o">.</span><span class="n">_n_fft</span> <span class="o">=</span> <span class="mi">800</span>
@@ -297,6 +314,8 @@
     <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;char2idx&#39;</span><span class="p">][</span><span class="s1">&#39;&lt;/s&gt;&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">2</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;idx2char&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="n">i</span><span class="p">:</span> <span class="n">w</span> <span class="k">for</span> <span class="n">w</span><span class="p">,</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;char2idx&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;src_vocab_size&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;char2idx&#39;</span><span class="p">])</span>
+
+    <span class="bp">self</span><span class="o">.</span><span class="n">max_normalization</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;max_normalization&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
 
     <span class="n">n_feats</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;num_audio_features&#39;</span><span class="p">]</span>
     <span class="k">if</span> <span class="s2">&quot;both&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;output_type&quot;</span><span class="p">]:</span>
@@ -364,7 +383,8 @@
           <span class="n">n_fft</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_n_fft</span><span class="p">,</span>
           <span class="n">n_mels</span><span class="o">=</span><span class="n">n_mels</span><span class="p">,</span>
           <span class="n">htk</span><span class="o">=</span><span class="n">htk</span><span class="p">,</span>
-          <span class="n">norm</span><span class="o">=</span><span class="n">norm</span>
+          <span class="n">norm</span><span class="o">=</span><span class="n">norm</span><span class="p">,</span>
+          <span class="n">fmax</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;fmax&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
       <span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
       <span class="bp">self</span><span class="o">.</span><span class="n">_mel_basis</span> <span class="o">=</span> <span class="kc">None</span>
@@ -387,6 +407,22 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_files</span> <span class="o">=</span> <span class="n">files</span>
       <span class="k">else</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_files</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_files</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">files</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;mode&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;train&#39;</span> <span class="ow">and</span> <span class="s1">&#39;n_samples_train&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">:</span>
+      <span class="n">indices</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_files</span><span class="p">[</span><span class="s1">&#39;transcript&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">len</span><span class="p">()</span><span class="o">.</span><span class="n">sort_values</span><span class="p">()</span><span class="o">.</span><span class="n">index</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">_files</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_files</span><span class="o">.</span><span class="n">reindex</span><span class="p">(</span><span class="n">indices</span><span class="p">)</span>
+
+      <span class="n">n_samples</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;n_samples_train&#39;</span><span class="p">)</span>
+      <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Using just the </span><span class="si">{}</span><span class="s1"> shortest samples&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">n_samples</span><span class="p">))</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">_files</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_files</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:</span><span class="n">n_samples</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;mode&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;eval&#39;</span><span class="p">:</span>
+      <span class="n">indices</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_files</span><span class="p">[</span><span class="s1">&#39;transcript&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">len</span><span class="p">()</span><span class="o">.</span><span class="n">sort_values</span><span class="p">()</span><span class="o">.</span><span class="n">index</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">_files</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_files</span><span class="o">.</span><span class="n">reindex</span><span class="p">(</span><span class="n">indices</span><span class="p">)</span>
+
+      <span class="k">if</span> <span class="s1">&#39;n_samples_eval&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">:</span>
+        <span class="n">n_samples</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;n_samples_eval&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_files</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_files</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:</span><span class="n">n_samples</span><span class="p">]</span>
 
     <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;mode&#39;</span><span class="p">]</span> <span class="o">!=</span> <span class="s1">&#39;infer&#39;</span>
         <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;style_input&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;wav&quot;</span><span class="p">):</span>
@@ -420,6 +456,7 @@
 <div class="viewcode-block" id="Text2SpeechDataLayer.build_graph"><a class="viewcode-back" href="../../../api-docs/data.text2speech.html#data.text2speech.text2speech.Text2SpeechDataLayer.build_graph">[docs]</a>  <span class="k">def</span> <span class="nf">build_graph</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
     <span class="k">with</span> <span class="n">tf</span><span class="o">.</span><span class="n">device</span><span class="p">(</span><span class="s1">&#39;/cpu:0&#39;</span><span class="p">):</span>
       <span class="sd">&quot;&quot;&quot;Builds data reading graph.&quot;&quot;&quot;</span>
+
       <span class="bp">self</span><span class="o">.</span><span class="n">_dataset</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">Dataset</span><span class="o">.</span><span class="n">from_tensor_slices</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_files</span><span class="p">)</span>
       <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;shuffle&#39;</span><span class="p">]:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_dataset</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dataset</span><span class="o">.</span><span class="n">shuffle</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_size</span><span class="p">)</span>
@@ -587,19 +624,25 @@
     <span class="k">else</span><span class="p">:</span>
       <span class="n">features_type</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;output_type&#39;</span><span class="p">]</span>
 
-    <span class="n">spectrogram</span> <span class="o">=</span> <span class="n">get_speech_features_from_file</span><span class="p">(</span>
-        <span class="n">file_path</span><span class="p">,</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;num_audio_features&#39;</span><span class="p">],</span>
-        <span class="n">features_type</span><span class="o">=</span><span class="n">features_type</span><span class="p">,</span>
-        <span class="n">n_fft</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_n_fft</span><span class="p">,</span>
-        <span class="n">mag_power</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;mag_power&#39;</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span>
-        <span class="n">feature_normalize</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;feature_normalize&quot;</span><span class="p">],</span>
-        <span class="n">mean</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;feature_normalize_mean&quot;</span><span class="p">,</span> <span class="mf">0.</span><span class="p">),</span>
-        <span class="n">std</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;feature_normalize_std&quot;</span><span class="p">,</span> <span class="mf">1.</span><span class="p">),</span>
-        <span class="n">trim</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;trim&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">),</span>
-        <span class="n">data_min</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;data_min&quot;</span><span class="p">,</span> <span class="mf">1e-5</span><span class="p">),</span>
-        <span class="n">mel_basis</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_mel_basis</span>
-    <span class="p">)</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">use_cache</span> <span class="ow">and</span> <span class="n">audio_filename</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cache</span><span class="p">:</span>
+      <span class="n">spectrogram</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cache</span><span class="p">[</span><span class="n">audio_filename</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+      <span class="n">spectrogram</span> <span class="o">=</span> <span class="n">get_speech_features_from_file</span><span class="p">(</span>
+          <span class="n">file_path</span><span class="p">,</span>
+          <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;num_audio_features&#39;</span><span class="p">],</span>
+          <span class="n">features_type</span><span class="o">=</span><span class="n">features_type</span><span class="p">,</span>
+          <span class="n">n_fft</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_n_fft</span><span class="p">,</span>
+          <span class="n">mag_power</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;mag_power&#39;</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span>
+          <span class="n">feature_normalize</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;feature_normalize&quot;</span><span class="p">],</span>
+          <span class="n">mean</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;feature_normalize_mean&quot;</span><span class="p">,</span> <span class="mf">0.</span><span class="p">),</span>
+          <span class="n">std</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;feature_normalize_std&quot;</span><span class="p">,</span> <span class="mf">1.</span><span class="p">),</span>
+          <span class="n">trim</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;trim&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">),</span>
+          <span class="n">data_min</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;data_min&quot;</span><span class="p">,</span> <span class="mf">1e-5</span><span class="p">),</span>
+          <span class="n">mel_basis</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_mel_basis</span>
+      <span class="p">)</span>
+
+      <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">use_cache</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_cache</span><span class="p">[</span><span class="n">audio_filename</span><span class="p">]</span> <span class="o">=</span> <span class="n">spectrogram</span>
 
     <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_both</span><span class="p">:</span>
       <span class="n">mel_spectrogram</span><span class="p">,</span> <span class="n">spectrogram</span> <span class="o">=</span> <span class="n">spectrogram</span>
