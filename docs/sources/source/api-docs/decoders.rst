@@ -53,3 +53,11 @@ tacotron2\_decoder
     :members:
     :undoc-members:
     :show-inheritance:
+
+centaur\_decoder
+--------------------------------
+
+.. automodule:: decoders.centaur_decoder
+    :members:
+    :undoc-members:
+    :show-inheritance:

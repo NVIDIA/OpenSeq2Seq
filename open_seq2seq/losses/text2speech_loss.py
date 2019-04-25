@@ -37,21 +37,19 @@ class Text2SpeechLoss(Loss):
     Computes loss for text-to-speech model.
 
     Args:
-      input_dict (dict): inputs to compute loss. Contains:
-        * "decoder_output": dicionary containing:
-            "outputs": array containing [
+      input_dict (dict):
+        * "decoder_output": dictionary containing:
+            "outputs": array containing:
                 * mel: mel-spectrogram predicted by the decoder [batch, time, n_mel]
                 * post_net_mel: spectrogram after adding the residual
                   corrections from the post net of shape [batch, time, feats]
                 * mag: mag-spectrogram predicted by the decoder [batch, time, n_mag]
-            ]
             "stop_token_predictions": stop_token predictions of shape [batch, time, 1]
 
-        * "target_tensors": array containing [
+        * "target_tensors": array containing:
             * spec: the true spectrogram of shape [batch, time, feats]
             * stop_token: the stop_token of shape [batch, time]
             * spec_length: the length of specs [batch]
-          ]
 
     Returns:
       Singleton loss tensor

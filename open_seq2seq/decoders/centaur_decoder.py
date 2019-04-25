@@ -12,7 +12,7 @@ from .decoder import Decoder
 
 class CentaurDecoder(Decoder):
   """
-  Centaur decoder that consists of modified transformer blocks
+  Centaur decoder that consists of attention blocks
   followed by convolutional layers.
   """
 
@@ -59,17 +59,25 @@ class CentaurDecoder(Decoder):
     * **prenet_hidden_size** (int) --- number of units in each pre-net layer.
     * **hidden_size** (int) --- dimensionality of hidden embeddings.
     * **conv_layers** (list) --- list with the description of convolutional
-      layers. For example:
+      layers. For example::
         "conv_layers": [
           {
-            "kernel_size": [5],
-            "stride": [1],
-            "num_channels": decoder_hidden_size,
-            "padding": "VALID",
-            "is_causal": True,
-            "activation_fn": tf.nn.relu
+            "kernel_size": [5], "stride": [1],
+            "num_channels": 512, "padding": "VALID", "is_causal": True
+          },
+          {
+            "kernel_size": [5], "stride": [1],
+            "num_channels": 512, "padding": "VALID", "is_causal": True
+          },
+          {
+            "kernel_size": [5], "stride": [1],
+            "num_channels": 512, "padding": "VALID", "is_causal": True
+          },
+          {
+            "kernel_size": [5], "stride": [1],
+            "num_channels": 512, "padding": "VALID", "is_causal": True
           }
-        ] * 4
+        ]
     * **mag_conv_layers** (list) --- list with the description of convolutional
       layers to reconstruct magnitude.
     * **attention_dropout** (float) --- dropout rate for attention layers.
