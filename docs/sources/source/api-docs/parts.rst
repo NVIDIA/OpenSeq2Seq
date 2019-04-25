@@ -13,3 +13,4 @@ parts
     parts.convs2s
     parts.cnns
     parts.tacotron
+    parts.centaur
