@@ -17,3 +17,4 @@ from .las_encoder import ListenAttendSpellEncoder
 from .convs2s_encoder import ConvS2SEncoder
 from .lm_encoders import LMEncoder
 from .wavenet_encoder import WavenetEncoder
+from .centaur_encoder import CentaurEncoder
