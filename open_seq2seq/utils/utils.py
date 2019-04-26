@@ -504,6 +504,8 @@ def get_base_config(args):
                       help='run TensorFlow in debug mode on specified port')
   parser.add_argument('--enable_logs', dest='enable_logs', action='store_true',
                       help='whether to log output, git info, cmd args, etc.')
+  parser.add_argument('--use_xla_jit', dest='use_xla_jit', action='store_true',
+                      help='whether to use XLA_JIT to compile and run the model.')
   args, unknown = parser.parse_known_args(args)
 
   if args.mode not in [
@@ -522,6 +524,8 @@ def get_base_config(args):
   if base_config is None:
     raise ValueError('base_config dictionary has to be '
                      'defined in the config file')
+  base_config['use_xla_jit'] = args.use_xla_jit
+
   base_model = config_module.get('base_model', None)
   if base_model is None:
     raise ValueError('base_config class has to be defined in the config file')
