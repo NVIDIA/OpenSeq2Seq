@@ -54,8 +54,8 @@ class Speech2TextDataLayer(DataLayer):
         'precompute_mel_basis': bool,
         'sample_freq': int,
         'gain': float,
-        'features_mean': np.array,
-        'features_std_dev': np.array,
+        'features_mean': np.ndarray,
+        'features_std_dev': np.ndarray,
     })
 
   def __init__(self, params, model, num_workers, worker_id):
@@ -108,6 +108,7 @@ class Speech2TextDataLayer(DataLayer):
     """
     super(Speech2TextDataLayer, self).__init__(params, model,
                                                num_workers, worker_id)
+ 
     self.params['autoregressive'] = self.params.get('autoregressive', False)
     self.autoregressive = self.params['autoregressive']
     self.params['bpe'] = self.params.get('bpe', False)
