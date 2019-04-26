@@ -53,6 +53,9 @@ class Speech2TextDataLayer(DataLayer):
         'num_fft': int,
         'precompute_mel_basis': bool,
         'sample_freq': int,
+        'gain': float,
+        'features_mean': np.array,
+        'features_std_dev': np.array,
     })
 
   def __init__(self, params, model, num_workers, worker_id):

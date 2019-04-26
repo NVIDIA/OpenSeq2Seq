@@ -323,7 +323,7 @@ def get_speech_features_librosa(signal, sample_freq, num_features,
                                 mel_basis=None,
                                 gain=None,
                                 mean=None,
-                                std_dev):
+                                std_dev=None):
   """Function to convert raw audio signal to numpy array of features.
   Backend: librosa
   Args:
