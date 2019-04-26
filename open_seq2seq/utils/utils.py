@@ -526,7 +526,6 @@ def get_base_config(args):
                      'defined in the config file')
   base_config['use_xla_jit'] = args.use_xla_jit or base_config.get('use_xla_jit', False)
 
-
   base_model = config_module.get('base_model', None)
   if base_model is None:
     raise ValueError('base_config class has to be defined in the config file')
