@@ -104,6 +104,9 @@ class Model:
         'trt_minimum_segment_size': int,
         'trt_is_dynamic_op': bool,
         'trt_maximum_cached_engines': int,
+
+        # Parameters for XLA
+        'use_xla_jit' : bool,
     }
 
   def __init__(self, params, mode="train", hvd=None):
