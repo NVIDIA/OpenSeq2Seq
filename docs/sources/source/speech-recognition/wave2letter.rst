@@ -40,18 +40,18 @@ We achieved a WER of 6.58 (the WER in the paper is 6.7) on the librispeech test-
      - WER %, Beam Search: 2048
    * - dev-clean
      - 6.67%
-     - 4.77%
+     - 4.75%
    * - test-clean
      - 6.58%
-     - 4.92%
+     - 4.94%
    * - dev-other
-     - 18.68%
-     - 13.88%
+     - 18.67%
+     - 13.87%
    * - test-other
      - 19.61%
-     - 15.01%
+     - 15.06%
 
-We used Open SLR language model while decoding with beam search using a beam width of 2048.
+We used Open SLR language model while decoding with beam search using a beam width of 2048, alpha of 2.5, beta of 0.
 
 The checkpoint for the model trained using the configuration `w2l_plus_large_mp <https://github.com/NVIDIA/OpenSeq2Seq/blob/18.09/example_configs/speech2text/w2lplus_large_8gpus_mp.py>`_ can be found at `Checkpoint <https://drive.google.com/file/d/10EYe040qVW6cfygSZz6HwGQDylahQNSa/view?usp=sharing>`_.
 

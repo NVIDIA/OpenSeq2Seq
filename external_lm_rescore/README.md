@@ -11,7 +11,7 @@ python run.py --mode=infer --config="MODEL_CONFIG" --logdir="MODEL_CHECKPOINT_DI
 
 3) Run beam search decoder (with specific ALPHA, BETA and BEAM_WIDTH hyperparameters) and dump beams:
 ```
-python decode.py --logits=model_output.pickle --labels="CSV_FILE" --lm="LM_BINARY"  --vocab="ALPHABET_FILE" --alpha=ALPHA --beta=BETA --beam_width=BEAM_WIDTH --dump_all_beams_to=BEAMS.txt
+python scripts/decode.py --logits=model_output.pickle --labels="CSV_FILE" --lm="LM_BINARY"  --vocab="ALPHABET_FILE" --alpha=ALPHA --beta=BETA --beam_width=BEAM_WIDTH --dump_all_beams_to=BEAMS.txt
 ```
 
-4) Download checkpoints for pre-trained Transformer-XL LM: [LibriSpeech](https://drive.google.com/a/nvidia.com/file/d/15--z08YNePr8Fgx4cnY4zR37QPZ3ZfMf/view?usp=sharing) and [WSJ](https://drive.google.com/a/nvidia.com/file/d/13D4Hwr_fOd85tkzLxDchEsodlOWdyBhY/view?usp=sharing).  Then have a look at [`run_lm_exp.sh`]() for example on how to run re-scoring.
+4) Download checkpoints for pre-trained Transformer-XL LM: [LibriSpeech](https://drive.google.com/a/nvidia.com/file/d/15--z08YNePr8Fgx4cnY4zR37QPZ3ZfMf/view?usp=sharing) and [WSJ](https://drive.google.com/a/nvidia.com/file/d/13D4Hwr_fOd85tkzLxDchEsodlOWdyBhY/view?usp=sharing).  Then have a look at [`run_lm_exp.sh`](https://github.com/NVIDIA/OpenSeq2Seq/blob/master/external_lm_rescore/run_lm_exp.sh) for example on how to run re-scoring.
