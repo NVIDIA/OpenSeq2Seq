@@ -30,7 +30,7 @@ Training
 
 Our current best WER is a 54 layer model trained using speed perturbation and using dense residual connections.
 The first row are results using just the acoustic model via greedy decoding.
-Jasper can be augmented with language models. We first use a 6-gram language model to guide beam size for the results in the second row.
+Jasper can be augmented with language models. We first use a 6-gram language model to guide beam search for the results in the second row.
 We used a beam width of 2048. Alpha = 2.7 and beta = -0.4 were used for the clean subsets, and alpha = 2.8 and beta = 1.2 were used for the other subsets.
 Lastly, we can rescore the top candidates using a neural language model to obtain sub 3% WER on test-clean.
 
