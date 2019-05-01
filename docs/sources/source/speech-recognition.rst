@@ -98,10 +98,7 @@ In order to get greedy Word Error Rate (WER) metric on validation dataset, pleas
 
  python run.py --config_file=example_configs/speech2text/ds2_small_1gpu.py --mode=eval
 
-
-If you would like to use beam search decoder with language model re-scoring, please use parameter ``decoder_params/use_language_model=True``::
-
- python run.py --config_file=example_configs/speech2text/ds2_small_1gpu.py --mode=eval --decoder_params/use_language_model=True
+If you would like to use beam search decoder with language model re-scoring, please see `link <https://github.com/NVIDIA/OpenSeq2Seq/tree/master/external_lm_rescore>`_
 
 
 *************
