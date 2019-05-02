@@ -121,9 +121,9 @@ base_params = {
       "activation_fn": tf.nn.relu
     },
 
-    # "window_size": 3,
-    # "back_step_size": 0,
-    # "force_layers": [0],
+    "window_size": 4,
+    "back_step_size": 0,
+    "force_layers": [1, 3],
 
     "hidden_size": decoder_hidden_size,
     "reduction_factor": reduction_factor,
