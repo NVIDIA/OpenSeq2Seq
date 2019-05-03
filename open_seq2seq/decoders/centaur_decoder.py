@@ -479,15 +479,14 @@ class CentaurDecoder(Decoder):
       stop_token_logits = outputs["stop_token_logits"][:, -1:, :]
       stop_token_logits = tf.where(
           state["finished"],
-          tf.zeros_like(stop_token_logits),
+          tf.zeros_like(stop_token_logits) + 1e9,
           stop_token_logits
       )
       stop_prediction = tf.sigmoid(stop_token_logits)
       stop_prediction = tf.reduce_max(stop_prediction, axis=-1)
 
       # Uncomment next line if you want to use stop token predictions
-      # finished = tf.reshape(tf.cast(tf.round(stop_prediction), tf.bool), [-1])
-      finished = tf.cast(tf.round(tf.zeros_like(stop_prediction)), tf.bool)
+      finished = tf.reshape(tf.cast(tf.round(stop_prediction), tf.bool), [-1])
       finished = tf.reshape(finished, [-1])
 
       stop_token_logits = tf.concat(

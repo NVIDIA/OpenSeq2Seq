@@ -32,7 +32,7 @@ Currently we support following models:
    * - :doc:`Centaur </speech-synthesis/centaur>`
      - `centaur_float.py <https://github.com/NVIDIA/OpenSeq2Seq/blob/master/example_configs/text2speech/centaur_float.py>`_
      - :doc:`here </speech-synthesis/centaur-samples>`
-     - N/A
+     - `link <https://drive.google.com/file/d/16AtErdasutbp8KsghUy1kORGmB7NQhtD/view>`_
 
 The model specification and training parameters can be found in the corresponding config file.
 
