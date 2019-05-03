@@ -28,18 +28,24 @@ We use Connectionist Temporal Classification (CTC) loss to train the model. The 
 Training
 ~~~~~~~~
 
-Our current best WER is a 54 layer model trained using speed perturbation and using dense residual connections. We achieved a WER of 3.64% on the librispeech test-clean dataset using greedy decoding:
+Our current best WER is a 54 layer model trained using speed perturbation and using dense residual connections.
+The first row are results using just the acoustic model via greedy decoding.
+Jasper can be augmented with language models. We first use a 6-gram language model to guide beam search for the results in the second row.
+We used a beam width of 2048. Alpha = 2.7 and beta = -0.4 were used for the clean subsets, and alpha = 2.8 and beta = 1.2 were used for the other subsets.
+Lastly, we can rescore the top candidates using a neural language model to obtain sub 3% WER on test-clean.
 
-+----------------------------+-----------------------------------------------------------------------+
-| Model                      | LibriSpeech Dataset                                                   |
-+                            +-----------------+-----------------+-----------------+-----------------+
-|                            | Dev-Clean       |       Dev-Other |      Test-Clean |      Test-Other |
-+                            +--------+--------+--------+--------+--------+--------+--------+--------+
-|                            | Greedy |  Beam  | Greedy |  Beam  | Greedy |  Beam  | Greedy |  Beam  |
-+============================+========+========+========+========+========+========+========+========+
-| Jasper DR 10x5             | 3.64   | TBA    | 11.89  | TBA    | 3.86   | TBA    | 11.95  | TBA    |
-+----------------------------+--------+--------+--------+--------+--------+--------+--------+--------+
 
++--------------------------------+-------------------------------------------------+
+| Model                          | LibriSpeech Dataset                             |
++                                +-----------+-----------+------------+------------+
+|                                | Dev-Clean | Dev-Other | Test-Clean | Test-Other |
++================================+===========+===========+============+============+
+| Jasper DR 10x5                 | 3.64      | 11.89     | 3.86       | 11.95      |
++--------------------------------+-----------+-----------+------------+------------+
+| Jasper DR 10x5 + 6-gram        | 2.88      | 9.53      | 3.27       | 9.68       |
++--------------------------------+-----------+-----------+------------+------------+
+| Jasper DR 10x5 + 6-gram + T XL | 2.67      | 8.62      | 2.93       | 8.79       |
++--------------------------------+-----------+-----------+------------+------------+
 
 The models were trained for 400 epochs on 8 GPUs. We use:
 
@@ -48,7 +54,11 @@ The models were trained for 400 epochs on 8 GPUs. We use:
 * Layer-wise Adative Rate Control (LARC) with eta = 0.001
 * weight-decay = 0.001
 * dropout (varible per layer: 0.2-0.4)
-* 2-fold speed perturbation of +/- 10%
+* 3-fold speed perturbation of [0.9, 1.0, 1.1]
+
+Tips and Tricks
+~~~~~~~~~~~~~~~
+We have found that the model achieves better WER with longer training but even with a small number of epochs, the model can achieve a good WER. For those with less computational power, we have found that training for 50 epochs will yield sub 5 WER on dev-clean with greedy decoding.
 
 Synthetic Data
 ~~~~~~~~~~~~~~

@@ -130,7 +130,7 @@ class Tacotron2Decoder(Decoder):
   def __init__(self, params, model, name='tacotron_2_decoder', mode='train'):
     """Tacotron-2 like decoder constructor. A lot of optional configurations are
     currently for testing. Not all configurations are supported. Use of thed
-    efault config is reccommended.
+    efault config is recommended.
 
     See parent class for arguments description.
 

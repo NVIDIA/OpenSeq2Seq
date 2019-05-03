@@ -359,7 +359,6 @@ class Speech2TextDataLayer(DataLayer):
     pad_to = self.params.get("pad_to", 8)
     if pad_to > 0 and self.params.get('backend') == 'librosa':
       max_len += (pad_to - max_len % pad_to) % pad_to
- 
     for i, audio in enumerate(audio_arr):
       audio = np.pad(
           audio, ((0, max_len-len(audio)), (0, 0)),

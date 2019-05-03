@@ -27,8 +27,12 @@ Currently we support following models:
      - `link <https://drive.google.com/open?id=1IdWnUIwV9NMe-1JSvcv4Ti4HZ8wPEvQr>`_
    * - :doc:`WaveNet </speech-synthesis/wavenet>`
      - `wavenet_float.py <https://github.com/NVIDIA/OpenSeq2Seq/blob/master/example_configs/text2speech/wavenet_float.py>`_
-     - n/a
-     - n/a
+     - N/A
+     - N/A
+   * - :doc:`Centaur </speech-synthesis/centaur>`
+     - `centaur_float.py <https://github.com/NVIDIA/OpenSeq2Seq/blob/master/example_configs/text2speech/centaur_float.py>`_
+     - :doc:`here </speech-synthesis/centaur-samples>`
+     - N/A
 
 The model specification and training parameters can be found in the corresponding config file.
 
@@ -39,6 +43,7 @@ The model specification and training parameters can be found in the correspondin
    speech-synthesis/tacotron-2
    speech-synthesis/tacotron-2-gst
    speech-synthesis/wavenet
+   speech-synthesis/centaur
 
 ################
 Getting started 

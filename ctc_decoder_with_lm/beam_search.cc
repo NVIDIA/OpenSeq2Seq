@@ -28,7 +28,7 @@ limitations under the License.
 #include "tensorflow/core/framework/op.h"
 #include "tensorflow/core/framework/op_kernel.h"
 #include "tensorflow/core/framework/shape_inference.h"
-#include "tensorflow/core/kernels/bounds_check.h"
+#include "tensorflow/core/framework/bounds_check.h"
 
 
 namespace tensorflow {

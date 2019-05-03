@@ -36,6 +36,10 @@ def train(train_model, eval_model=None, debug_port=None, custom_hooks=None):
     # pylint: disable=no-member
     sess_config.gpu_options.visible_device_list = str(hvd.local_rank())
 
+  if train_model.params.get('use_xla_jit', False):
+    sess_config.graph_options.optimizer_options.global_jit_level = (
+        tf.OptimizerOptions.ON_1)
+
   # defining necessary hooks
   hooks = [tf.train.StopAtStepHook(last_step=train_model.last_step)]
   if custom_hooks:

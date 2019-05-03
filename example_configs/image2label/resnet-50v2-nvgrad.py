@@ -9,8 +9,7 @@ from open_seq2seq.optimizers.novograd  import NovoGrad
 
 import tensorflow as tf
 
-data_root = ""
-# data_root = "/raid/Imagenet/tf-imagenet/"
+data_root =""
 base_model = Image2Label
 
 base_params = {
@@ -18,7 +17,7 @@ base_params = {
   "use_horovod": True, # False, #
   "num_gpus": 1,
   "batch_size_per_gpu": 128,
-
+  "iter_size": 1,
   "num_epochs": 100,
 
   "dtype": "mixed",
@@ -36,13 +35,13 @@ base_params = {
     "beta1": 0.95,
     "beta2": 0.98,
     "epsilon": 1e-08,
-    "weight_decay": 0.001,
+    "weight_decay": 0.004,
     "grad_averaging": False
   },
 
   "lr_policy": poly_decay,
   "lr_policy_params": {
-    "learning_rate": 0.02,
+    "learning_rate": 0.03,
     "power": 2,
   },
 

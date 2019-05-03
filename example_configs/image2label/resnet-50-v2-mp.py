@@ -4,19 +4,19 @@ from open_seq2seq.encoders import ResNetEncoder
 from open_seq2seq.decoders import FullyConnectedDecoder
 from open_seq2seq.losses import CrossEntropyLoss
 from open_seq2seq.data import ImagenetDataLayer
-from open_seq2seq.optimizers.lr_policies import piecewise_constant
+from open_seq2seq.optimizers.lr_policies import piecewise_constant, poly_decay
 import tensorflow as tf
 
-
+data_root = ""
 base_model = Image2Label
 
 base_params = {
   "random_seed": 0,
-  "use_horovod": False,
+  "use_horovod": True,
   "num_epochs": 100,
 
-  "num_gpus": 8,
-  "batch_size_per_gpu": 32,
+  "num_gpus": 1,
+  "batch_size_per_gpu": 128,
   "dtype": "mixed",
   "loss_scaling": "Backoff",
 
@@ -25,17 +25,16 @@ base_params = {
   "print_samples_steps": 2000,
   "eval_steps": 5000,
   "save_checkpoint_steps": 5000,
-  "logdir": "experiments/resnet50-imagenet",
+  "logdir": "logs/rn50",
 
   "optimizer": "Momentum",
   "optimizer_params": {
     "momentum": 0.90,
   },
-  "lr_policy": piecewise_constant,
+  "lr_policy": poly_decay,
   "lr_policy_params": {
-    "learning_rate": 0.1,
-    "boundaries": [30, 60, 80, 90],
-    "decay_rates": [0.1, 0.01, 0.001, 1e-4],
+    "learning_rate": 0.4,  # 8 GPU-s ,
+    "power": 2,
   },
 
   "initializer": tf.variance_scaling_initializer,
@@ -58,7 +57,7 @@ base_params = {
   "loss": CrossEntropyLoss,
   "data_layer": ImagenetDataLayer,
   "data_layer_params": {
-    "data_dir": "data/tf-imagenet",
+    "data_dir": data_root+"data", # "data",
     "image_size": 224,
     "num_classes": 1000,
   },

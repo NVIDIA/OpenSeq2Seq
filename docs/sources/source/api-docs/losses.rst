@@ -38,10 +38,10 @@ cross\_entropy\_loss
     :undoc-members:
     :show-inheritance:
 
-tacotron\_loss
+text2speech\_loss
 ----------------------------------
 
-.. automodule:: losses.tacotron_loss
+.. automodule:: losses.text2speech_loss
     :members:
     :undoc-members:
     :show-inheritance:

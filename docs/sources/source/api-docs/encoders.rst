@@ -94,3 +94,11 @@ wavenet\_encoder
     :members:
     :undoc-members:
     :show-inheritance:
+
+centaur\_encoder
+--------------------------------
+
+.. automodule:: encoders.centaur_encoder
+    :members:
+    :undoc-members:
+    :show-inheritance:
