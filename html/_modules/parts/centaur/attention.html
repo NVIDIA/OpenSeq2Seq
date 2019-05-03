@@ -229,12 +229,10 @@
         <span class="n">back_step_size</span><span class="o">=</span><span class="n">back_step_size</span><span class="p">,</span>
     <span class="p">)</span>
 
-    <span class="n">feed_forward</span> <span class="o">=</span> <span class="n">FeedFowardNetwork</span><span class="p">(</span>
-        <span class="n">hidden_size</span><span class="o">=</span><span class="n">hidden_size</span><span class="p">,</span>
-        <span class="n">filter_size</span><span class="o">=</span><span class="mi">4</span> <span class="o">*</span> <span class="n">hidden_size</span><span class="p">,</span>
-        <span class="n">relu_dropout</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
-        <span class="n">regularizer</span><span class="o">=</span><span class="n">regularizer</span><span class="p">,</span>
-        <span class="n">train</span><span class="o">=</span><span class="n">training</span>
+    <span class="n">feed_forward</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">Dense</span><span class="p">(</span>
+        <span class="n">units</span><span class="o">=</span><span class="n">hidden_size</span><span class="p">,</span>
+        <span class="n">use_bias</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">kernel_regularizer</span><span class="o">=</span><span class="n">regularizer</span>
     <span class="p">)</span>
 
     <span class="n">wrapper_params</span> <span class="o">=</span> <span class="p">{</span>

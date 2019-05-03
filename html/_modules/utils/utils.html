@@ -665,6 +665,8 @@
                       <span class="n">help</span><span class="o">=</span><span class="s1">&#39;run TensorFlow in debug mode on specified port&#39;</span><span class="p">)</span>
   <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;--enable_logs&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;enable_logs&#39;</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store_true&#39;</span><span class="p">,</span>
                       <span class="n">help</span><span class="o">=</span><span class="s1">&#39;whether to log output, git info, cmd args, etc.&#39;</span><span class="p">)</span>
+  <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;--use_xla_jit&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;use_xla_jit&#39;</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store_true&#39;</span><span class="p">,</span>
+                      <span class="n">help</span><span class="o">=</span><span class="s1">&#39;whether to use XLA_JIT to compile and run the model.&#39;</span><span class="p">)</span>
   <span class="n">args</span><span class="p">,</span> <span class="n">unknown</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse_known_args</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
 
   <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">mode</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span>
@@ -683,6 +685,8 @@
   <span class="k">if</span> <span class="n">base_config</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
     <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;base_config dictionary has to be &#39;</span>
                      <span class="s1">&#39;defined in the config file&#39;</span><span class="p">)</span>
+  <span class="n">base_config</span><span class="p">[</span><span class="s1">&#39;use_xla_jit&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">args</span><span class="o">.</span><span class="n">use_xla_jit</span> <span class="ow">or</span> <span class="n">base_config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;use_xla_jit&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+
   <span class="n">base_model</span> <span class="o">=</span> <span class="n">config_module</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;base_model&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
   <span class="k">if</span> <span class="n">base_model</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
     <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;base_config class has to be defined in the config file&#39;</span><span class="p">)</span>

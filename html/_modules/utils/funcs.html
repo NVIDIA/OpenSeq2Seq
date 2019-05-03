@@ -197,6 +197,10 @@
     <span class="c1"># pylint: disable=no-member</span>
     <span class="n">sess_config</span><span class="o">.</span><span class="n">gpu_options</span><span class="o">.</span><span class="n">visible_device_list</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">hvd</span><span class="o">.</span><span class="n">local_rank</span><span class="p">())</span>
 
+  <span class="k">if</span> <span class="n">train_model</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;use_xla_jit&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>
+    <span class="n">sess_config</span><span class="o">.</span><span class="n">graph_options</span><span class="o">.</span><span class="n">optimizer_options</span><span class="o">.</span><span class="n">global_jit_level</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">tf</span><span class="o">.</span><span class="n">OptimizerOptions</span><span class="o">.</span><span class="n">ON_1</span><span class="p">)</span>
+
   <span class="c1"># defining necessary hooks</span>
   <span class="n">hooks</span> <span class="o">=</span> <span class="p">[</span><span class="n">tf</span><span class="o">.</span><span class="n">train</span><span class="o">.</span><span class="n">StopAtStepHook</span><span class="p">(</span><span class="n">last_step</span><span class="o">=</span><span class="n">train_model</span><span class="o">.</span><span class="n">last_step</span><span class="p">)]</span>
   <span class="k">if</span> <span class="n">custom_hooks</span><span class="p">:</span>

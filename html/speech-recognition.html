@@ -264,10 +264,7 @@ Also, you might want to disable evaluation during training by using <code class=
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="n">run</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">config_file</span><span class="o">=</span><span class="n">example_configs</span><span class="o">/</span><span class="n">speech2text</span><span class="o">/</span><span class="n">ds2_small_1gpu</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">mode</span><span class="o">=</span><span class="nb">eval</span>
 </pre></div>
 </div>
-<p>If you would like to use beam search decoder with language model re-scoring, please use parameter <code class="docutils literal notranslate"><span class="pre">decoder_params/use_language_model=True</span></code>:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="n">run</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">config_file</span><span class="o">=</span><span class="n">example_configs</span><span class="o">/</span><span class="n">speech2text</span><span class="o">/</span><span class="n">ds2_small_1gpu</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">mode</span><span class="o">=</span><span class="nb">eval</span> <span class="o">--</span><span class="n">decoder_params</span><span class="o">/</span><span class="n">use_language_model</span><span class="o">=</span><span class="kc">True</span>
-</pre></div>
-</div>
+<p>If you would like to use beam search decoder with language model re-scoring, please see <a class="reference external" href="https://github.com/NVIDIA/OpenSeq2Seq/tree/master/external_lm_rescore">link</a></p>
 </div>
 <div class="section" id="inference">
 <h3>Inference<a class="headerlink" href="#inference" title="Permalink to this headline">¶</a></h3>

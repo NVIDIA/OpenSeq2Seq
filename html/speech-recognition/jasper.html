@@ -94,6 +94,7 @@
 <li class="toctree-l3 current"><a class="current reference internal" href="#">Jasper</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#model">Model</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#training">Training</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#tips-and-tricks">Tips and Tricks</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#synthetic-data">Synthetic Data</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#mixed-precision">Mixed Precision</a></li>
 </ul>
@@ -200,48 +201,47 @@
 </div>
 <div class="section" id="training">
 <h2>Training<a class="headerlink" href="#training" title="Permalink to this headline">¶</a></h2>
-<p>Our current best WER is a 54 layer model trained using speed perturbation and using dense residual connections. We achieved a WER of 3.64% on the librispeech test-clean dataset using greedy decoding:</p>
+<p>Our current best WER is a 54 layer model trained using speed perturbation and using dense residual connections.
+The first row are results using just the acoustic model via greedy decoding.
+Jasper can be augmented with language models. We first use a 6-gram language model to guide beam search for the results in the second row.
+We used a beam width of 2048. Alpha = 2.7 and beta = -0.4 were used for the clean subsets, and alpha = 2.8 and beta = 1.2 were used for the other subsets.
+Lastly, we can rescore the top candidates using a neural language model to obtain sub 3% WER on test-clean.</p>
 <table border="1" class="docutils">
 <colgroup>
-<col width="30%" />
-<col width="9%" />
-<col width="9%" />
-<col width="9%" />
-<col width="9%" />
-<col width="9%" />
-<col width="9%" />
-<col width="9%" />
-<col width="9%" />
+<col width="41%" />
+<col width="14%" />
+<col width="14%" />
+<col width="15%" />
+<col width="15%" />
 </colgroup>
 <thead valign="bottom">
-<tr class="row-odd"><th class="head" rowspan="3">Model</th>
-<th class="head" colspan="8">LibriSpeech Dataset</th>
+<tr class="row-odd"><th class="head" rowspan="2">Model</th>
+<th class="head" colspan="4">LibriSpeech Dataset</th>
 </tr>
-<tr class="row-even"><th class="head" colspan="2">Dev-Clean</th>
-<th class="head" colspan="2">Dev-Other</th>
-<th class="head" colspan="2">Test-Clean</th>
-<th class="head" colspan="2">Test-Other</th>
-</tr>
-<tr class="row-odd"><th class="head">Greedy</th>
-<th class="head">Beam</th>
-<th class="head">Greedy</th>
-<th class="head">Beam</th>
-<th class="head">Greedy</th>
-<th class="head">Beam</th>
-<th class="head">Greedy</th>
-<th class="head">Beam</th>
+<tr class="row-even"><th class="head">Dev-Clean</th>
+<th class="head">Dev-Other</th>
+<th class="head">Test-Clean</th>
+<th class="head">Test-Other</th>
 </tr>
 </thead>
 <tbody valign="top">
-<tr class="row-even"><td>Jasper DR 10x5</td>
+<tr class="row-odd"><td>Jasper DR 10x5</td>
 <td>3.64</td>
-<td>TBA</td>
 <td>11.89</td>
-<td>TBA</td>
 <td>3.86</td>
-<td>TBA</td>
 <td>11.95</td>
-<td>TBA</td>
+</tr>
+<tr class="row-even"><td>Jasper DR 10x5 + 6-gram</td>
+<td>2.88</td>
+<td>9.53</td>
+<td>3.27</td>
+<td>9.68</td>
+</tr>
+<tr class="row-odd"><td>Jasper DR 10x5 + 6-gram + T XL</td>
+<td>2.67</td>
+<td>8.62</td>
+<td>2.93</td>
+<td>8.79</td>
 </tr>
 </tbody>
 </table>
@@ -252,8 +252,12 @@
 <li>Layer-wise Adative Rate Control (LARC) with eta = 0.001</li>
 <li>weight-decay = 0.001</li>
 <li>dropout (varible per layer: 0.2-0.4)</li>
-<li>2-fold speed perturbation of +/- 10%</li>
+<li>3-fold speed perturbation of [0.9, 1.0, 1.1]</li>
 </ul>
+</div>
+<div class="section" id="tips-and-tricks">
+<h2>Tips and Tricks<a class="headerlink" href="#tips-and-tricks" title="Permalink to this headline">¶</a></h2>
+<p>We have found that the model achieves better WER with longer training but even with a small number of epochs, the model can achieve a good WER. For those with less computational power, we have found that training for 50 epochs will yield sub 5 WER on dev-clean with greedy decoding.</p>
 </div>
 <div class="section" id="synthetic-data">
 <h2>Synthetic Data<a class="headerlink" href="#synthetic-data" title="Permalink to this headline">¶</a></h2>

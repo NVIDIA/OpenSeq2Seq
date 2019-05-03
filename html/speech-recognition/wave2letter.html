@@ -217,23 +217,23 @@ Both striding and dilation improved the WER from 7.17% to 6.67%.</p>
 <tbody valign="top">
 <tr class="row-even"><td>dev-clean</td>
 <td>6.67%</td>
-<td>4.77%</td>
+<td>4.75%</td>
 </tr>
 <tr class="row-odd"><td>test-clean</td>
 <td>6.58%</td>
-<td>4.92%</td>
+<td>4.94%</td>
 </tr>
 <tr class="row-even"><td>dev-other</td>
-<td>18.68%</td>
-<td>13.88%</td>
+<td>18.67%</td>
+<td>13.87%</td>
 </tr>
 <tr class="row-odd"><td>test-other</td>
 <td>19.61%</td>
-<td>15.01%</td>
+<td>15.06%</td>
 </tr>
 </tbody>
 </table>
-<p>We used Open SLR language model while decoding with beam search using a beam width of 2048.</p>
+<p>We used Open SLR language model while decoding with beam search using a beam width of 2048, alpha of 2.5, beta of 0.</p>
 <p>The checkpoint for the model trained using the configuration <a class="reference external" href="https://github.com/NVIDIA/OpenSeq2Seq/blob/18.09/example_configs/speech2text/w2lplus_large_8gpus_mp.py">w2l_plus_large_mp</a> can be found at <a class="reference external" href="https://drive.google.com/file/d/10EYe040qVW6cfygSZz6HwGQDylahQNSa/view?usp=sharing">Checkpoint</a>.</p>
 <p>Our best model was trained for 200 epochs on 8 GPUs. We use:</p>
 <ul class="simple">
