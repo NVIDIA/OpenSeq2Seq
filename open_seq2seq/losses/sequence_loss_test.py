@@ -57,7 +57,7 @@ class CrossEntropyWithSmoothingEqualsBasicSequenceLossTest(tf.test.TestCase):
               }
               loss1 = sess.run(l1, feed_dict=feed_dict)
               loss2 = sess.run(l2, feed_dict=feed_dict)
-              self.assertEqual(loss1, loss2)
+              self.assertAlmostEqual(loss1, loss2, 4)
               print("Loss: {}".format(loss1))
 
 
