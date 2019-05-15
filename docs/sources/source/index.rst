@@ -6,17 +6,19 @@
 
    Introduction <self>
    installation
-   machine-translation
-   speech-recognition
-   speech-commands
-   speech-synthesis
-   language-model
-   sentiment-analysis
+   using-existing-models
    distr-training
    mixed-precision
    optimizers
-   in-depth-tutorials
+   speech-recognition
+   speech-commands
+   speech-synthesis
+   machine-translation
+   language-model
+   sentiment-analysis
+   image-classification
    interactive-infer-demos
+   adding-new-models
    api-docs/modules
 
 
@@ -31,6 +33,7 @@ OpenSeq2Seq is a TensorFlow-based toolkit for sequence-to-sequence models:
  * :ref:`speech synthesis <speech_synthesis>` (Tacotron2, WaveNet...)
  * :ref:`language model <language_model>` (LSTM, ...)
  * :ref:`sentiment analysis <sentiment_analysis>` (SST, IMDB, ...)
+ * :ref:`image classification <image_classification>` (ResNet-50)
 
 **Main features**:
 

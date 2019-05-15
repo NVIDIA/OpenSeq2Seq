@@ -14,10 +14,10 @@ Currently we support following models:
    :header-rows: 1
 
    * - Model description
-     - SacreBLEU
+     - SacreBLEU(cased)
      - Config file
      - Checkpoint
-   * - :doc:`Transformer </machine-translation/transformer>`
+   * - :doc:`Transformer-big </machine-translation/transformer>`
      - 28.0
      - `transformer-nvgrad.py <https://github.com/NVIDIA/OpenSeq2Seq/blob/master/example_configs/text2text/en-de/transformer-nvgrad.py>`_
      - `link <https://drive.google.com/a/nvidia.com/file/d/1cvR_eCpOMbHdT32dsCveKiCUPvPh4bHC/view?usp=sharing>`_
@@ -34,7 +34,7 @@ Currently we support following models:
      - `en-de-gnmt-like-4GPUs.py <https://github.com/NVIDIA/OpenSeq2Seq/blob/master/example_configs/text2text/en-de/en-de-gnmt-like-4GPUs.py>`_
      - TBD
 
-The model specification and training parameters can be found in the corresponding config file. We measure BLEU scores using SacreBLEU.
+The model and training parameters can be found in the corresponding config file. We measure BLEU scores using SacreBLEU on detokenized output (cased).
 
 
 .. toctree::
@@ -60,7 +60,6 @@ Get data
 Download (this will take some time)::
 
  scripts/get_en_de.sh
-
 
 
 This script will download English-German training data from WMT, clean it, and tokenize using `Google's Sentencepiece library <https://github.com/google/sentencepiece>`_
@@ -102,5 +101,33 @@ We measure BLEU scores using SacreBLEU package: (`A Call for Clarity in Reportin
 Run SacreBleu on detokenized data::
 
   cat result.txt | sacrebleu -t wmt14 -l en-de > result.txt.BLEU
+
+************************
+Using pretrained models
+************************
+
+All models have been trained with specific version of tokenizer. So first step would be copy tokenizer from checkpoont directory::
+
+  copy tokenizer
+
+To translate your English text ``source_txt`` to German you should 
+
+1.tokenize source::
+
+  tokenize source_txt tokenized_input
+
+2.translate::
+  
+  translate tokenized_input tokenized_output
+
+
+3.detokenize tokenized_output::
+
+  detokenize tokenized_output detok_output
+
+
+
+ 
+ 
 
 

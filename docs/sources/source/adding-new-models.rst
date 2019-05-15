@@ -1,4 +1,4 @@
-.. _extending:
+.. _adding_new_models:
 
 Adding new models
 =================

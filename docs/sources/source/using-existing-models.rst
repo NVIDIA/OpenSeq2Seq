@@ -1,4 +1,6 @@
-Using existing models
+.. _using_models:
+
+Using Existing Models
 =====================
 
 In this tutorial we will describe everything you can do with OpenSeq2Seq without
@@ -7,8 +9,9 @@ the implemented models (for training, evaluation or inference), what parameters
 can be specified in the config file/command line and what are the different
 kinds of output that OpenSeq2Seq generates for you.
 
+#################
 How to run models
------------------
+#################
 
 The main script to run all models is ``run.py``. Since it is a fairly simple
 Python script, you can probably understand
@@ -77,8 +80,9 @@ The other parameters of the ``run.py`` script are the following:
 
 .. _config-params:
 
+#################
 Config parameters
------------------
+#################
 
 The experiment parameters are completely defined in one Python configuration
 file. This file must define ``base_params`` dictionary and ``base_model`` class.
@@ -122,7 +126,4 @@ additionally defines a set of DeepSpeech-2 specific parameters).
     ``--lr_policy_params/learning_rate`` in your ``run.py`` execution.
 
 
-What is being logged
---------------------
 
-This section is going to be completed soon.
