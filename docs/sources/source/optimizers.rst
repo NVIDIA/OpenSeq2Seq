@@ -62,19 +62,19 @@ The moment :math:`v^l_t` is used to re-scale gradients :math:`g^l_t` before calc
 
 .. math::
 
-    m^l_t = \beta_1 \cdot m^l_{t-1} + \lambda_t \cdot \frac{g^l_t}{\sqrt{v^l_t+\epsilon}}
+    m^l_t = \beta_1 \cdot m^l_{t-1} +  \frac{g^l_t}{\sqrt{v^l_t} +\epsilon}
 
 
-where  :math:`\lambda_t` is the current global learning rate. If L2-regularization is used, a weight decay term :math:`d \cdot w_{t-1}` is added to the re-scaled gradient (as in AdamW, Loshchilov 2017): 
+where  :math:`\lambda_t` is the current global learning rate. If L2-regularization is used, a weight decay term :math:`d \cdot w^l_{t-1}` is added to the re-scaled gradient (as in AdamW, Loshchilov 2017): 
 
 .. math::
 
-    m^l_t = \beta_1 \cdot m^l_{t-1} + \alpha_t \cdot (\frac{g^l_t}{\sqrt{v^l_t + \epsilon}} + d \cdot w_{t-1})
+    m^l_t = \beta_1 \cdot m^l_{t-1} +  (\frac{g^l_t}{\sqrt{v^l_t} + \epsilon} + d \cdot w^l_{t-1})
 
 Finally, new weights are computed using 
 
 .. math::
-    w_t = w_{t-1} + m_t 
+    w_t = w_{t-1} - \alpha_t \cdot m_t 
 
 
 To use Novograd you should tun off the standard regularization and add the following lines to model configuration::
