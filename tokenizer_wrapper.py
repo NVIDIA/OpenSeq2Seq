@@ -8,6 +8,10 @@ from __future__ import unicode_literals
 import argparse
 import sentencepiece as spm
 
+import os
+import sys
+import codecs
+
 
 vocab_size = 32768
 
@@ -65,6 +69,36 @@ def tokenize(args):
         ofile2.write(encoded_tgt + "\n")
         ind += 1
 
+def encode(args):
+  print("========> Encoding...")
+  model_prefix1 = args.model_prefix
+  input_file1 = args.text_input
+  tokenized_output1 = args.tokenized_output
+  sp1 = spm.SentencePieceProcessor()
+  sp1.Load(model_prefix1+".model")
+  ind = 0
+  with open(input_file1, 'r') as file1:
+    with open(tokenized_output1, 'w') as ofile1:
+      while True: # YaY!
+        _src_raw = file1.readline()
+        if not _src_raw:
+          break
+        src_raw = _src_raw.strip()
+        try:
+          encoded_src_list = sp1.EncodeAsPieces(src_raw)
+        except:
+          continue
+        
+        if sys.version_info < (3, 0):
+          encoded_src = ' '.join([w for w in encoded_src_list])
+        else:
+          encoded_src = ' '.join([w.decode("utf-8") for w in encoded_src_list])
+
+        ofile1.write(encoded_src + "\n")
+        ind += 1
+  print("========> ...Done")
+
+
 def detokenize(args):
   print("========> Detokenizing")
   model_prefix = args.model_prefix
@@ -76,7 +110,11 @@ def detokenize(args):
     with open(input_file, 'r') as inpt:
       for line in inpt:
         decoded_line = sp.DecodePieces(line.split(" "))
-        otpt.write(decoded_line)
+        if sys.version_info < (3, 0):
+          otpt.write(decoded_line)
+        else:
+          otpt.write(decoded_line.decode("utf-8"))
+
 
 def main():
   parser = argparse.ArgumentParser(description='Input Parameters')
@@ -88,6 +126,8 @@ def main():
                       help="Path to src text when tokenizing")
   parser.add_argument("--text_input2",
                       help="Path to tgt text when tokenizing")
+  parser.add_argument("--tokenized_output",
+                      help="Path to tokenized src text results")
   parser.add_argument("--tokenized_output1",
                       help="Path to tokenized src text results")
   parser.add_argument("--tokenized_output2",
@@ -101,7 +141,7 @@ def main():
   parser.add_argument('--vocab_size', type=int, default=vocab_size,
                       help='Vocabulary size')
   parser.add_argument('--mode', required=True,
-                      help='train, tokenize or detokenize')
+                      help='train, tokenize, encode, or detokenize')
   args, unknown = parser.parse_known_args()
   if args.mode == "train":
     train_tokenizer_model(args)
@@ -109,9 +149,10 @@ def main():
     tokenize(args)
   elif args.mode == "detokenize":
     detokenize(args)
+  elif args.mode == "encode":
+    encode(args)
   else:
     raise ValueError('Unknown mode: {0}', args.mode)
-
 
 if __name__ == '__main__':
   main()
