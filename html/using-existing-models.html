@@ -8,12 +8,12 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Using existing models &mdash; OpenSeq2Seq 0.2 documentation</title>
+  <title>Using Existing Models &mdash; OpenSeq2Seq 0.2 documentation</title>
   
 
   
   
-    <link rel="shortcut icon" href="../_static/favicon.ico"/>
+    <link rel="shortcut icon" href="_static/favicon.ico"/>
   
   
   
@@ -27,17 +27,17 @@
   
 
   
-    <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/theme_override.css" type="text/css" />
-  <link rel="stylesheet" href="../_static/theme_override.css" type="text/css" />
-    <link rel="index" title="Index" href="../genindex.html" />
-    <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Internal structure" href="internal-structure.html" />
-    <link rel="prev" title="In-depth Tutorials" href="../in-depth-tutorials.html" /> 
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/theme_override.css" type="text/css" />
+  <link rel="stylesheet" href="_static/theme_override.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Multi-GPU and Distributed Training" href="distr-training.html" />
+    <link rel="prev" title="Installation Instructions" href="installation.html" /> 
 
   
-  <script src="../_static/js/modernizr.min.js"></script>
+  <script src="_static/js/modernizr.min.js"></script>
 
 </head>
 
@@ -53,12 +53,12 @@
           
 
           
-            <a href="../index.html" class="icon icon-home"> OpenSeq2Seq
+            <a href="index.html" class="icon icon-home"> OpenSeq2Seq
           
 
           
             
-            <img src="../_static/logo.png" class="logo" alt="Logo"/>
+            <img src="_static/logo.png" class="logo" alt="Logo"/>
           
           </a>
 
@@ -66,7 +66,7 @@
 
           
 <div role="search">
-  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
@@ -84,30 +84,26 @@
             
             
               <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="../index.html">Introduction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation Instructions</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../machine-translation.html">Machine Translation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../speech-recognition.html">Speech Recognition</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../speech-commands.html">Speech Commands</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../speech-synthesis.html">Speech Synthesis</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../language-model.html">Language Model</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../sentiment-analysis.html">Sentiment Analysis</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../distr-training.html">Multi-GPU and Distributed Training</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../mixed-precision.html">Mixed Precision Training</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../optimizers.html">Optimizers</a></li>
-<li class="toctree-l1 current"><a class="reference internal" href="../in-depth-tutorials.html">In-depth Tutorials</a><ul class="current">
-<li class="toctree-l2 current"><a class="current reference internal" href="#">Using existing models</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#how-to-run-models">How to run models</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#config-parameters">Config parameters</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#what-is-being-logged">What is being logged</a></li>
+<li class="toctree-l1"><a class="reference internal" href="index.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation Instructions</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Using Existing Models</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#how-to-run-models">How to run models</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#config-parameters">Config parameters</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="internal-structure.html">Internal structure</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../extending.html">Adding new models</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="../interactive-infer-demos.html">Interactive Infer Mode</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../api-docs/modules.html">API documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="distr-training.html">Multi-GPU and Distributed Training</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mixed-precision.html">Mixed Precision Training</a></li>
+<li class="toctree-l1"><a class="reference internal" href="optimizers.html">Optimizers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="speech-recognition.html">Speech Recognition</a></li>
+<li class="toctree-l1"><a class="reference internal" href="speech-commands.html">Speech Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="speech-synthesis.html">Speech Synthesis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="machine-translation.html">Machine Translation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="language-model.html">Language Model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sentiment-analysis.html">Sentiment Analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="image-classification.html">Image Classification</a></li>
+<li class="toctree-l1"><a class="reference internal" href="interactive-infer-demos.html">Interactive Infer Mode</a></li>
+<li class="toctree-l1"><a class="reference internal" href="adding-new-models.html">Adding new models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api-docs/modules.html">API documentation</a></li>
 </ul>
 
             
@@ -122,7 +118,7 @@
       <nav class="wy-nav-top" aria-label="top navigation">
         
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="../index.html">OpenSeq2Seq</a>
+          <a href="index.html">OpenSeq2Seq</a>
         
       </nav>
 
@@ -151,17 +147,15 @@
 
   <ul class="wy-breadcrumbs">
     
-      <li><a href="../index.html">Docs</a> &raquo;</li>
+      <li><a href="index.html">Docs</a> &raquo;</li>
         
-          <li><a href="../in-depth-tutorials.html">In-depth Tutorials</a> &raquo;</li>
-        
-      <li>Using existing models</li>
+      <li>Using Existing Models</li>
     
     
       <li class="wy-breadcrumbs-aside">
         
             
-            <a href="../_sources/in-depth-tutorials/using-existing-models.rst.txt" rel="nofollow"> View page source</a>
+            <a href="_sources/using-existing-models.rst.txt" rel="nofollow"> View page source</a>
           
         
       </li>
@@ -175,7 +169,7 @@
            <div itemprop="articleBody">
             
   <div class="section" id="using-existing-models">
-<h1>Using existing models<a class="headerlink" href="#using-existing-models" title="Permalink to this headline">¶</a></h1>
+<span id="using-models"></span><h1>Using Existing Models<a class="headerlink" href="#using-existing-models" title="Permalink to this headline">¶</a></h1>
 <p>In this tutorial we will describe everything you can do with OpenSeq2Seq without
 writing any new code. We will cover the following topics: how to run one of
 the implemented models (for training, evaluation or inference), what parameters
@@ -246,10 +240,10 @@ folder (which is a config parameter).</li>
 <p>The experiment parameters are completely defined in one Python configuration
 file. This file must define <code class="docutils literal notranslate"><span class="pre">base_params</span></code> dictionary and <code class="docutils literal notranslate"><span class="pre">base_model</span></code> class.
 <code class="docutils literal notranslate"><span class="pre">base_model</span></code> should be any class derived from
-<a class="reference internal" href="../api-docs/models.html#models.model.Model" title="models.model.Model"><code class="xref py py-class docutils literal notranslate"><span class="pre">Model</span></code></a>. Currently it can be
-<a class="reference internal" href="../api-docs/models.html#models.speech2text.Speech2Text" title="models.speech2text.Speech2Text"><code class="xref py py-class docutils literal notranslate"><span class="pre">Speech2Text</span></code></a>,
-<a class="reference internal" href="../api-docs/models.html#models.text2text.Text2Text" title="models.text2text.Text2Text"><code class="xref py py-class docutils literal notranslate"><span class="pre">Text2Text</span></code></a> or
-<a class="reference internal" href="../api-docs/models.html#models.image2label.Image2Label" title="models.image2label.Image2Label"><code class="xref py py-class docutils literal notranslate"><span class="pre">Image2Label</span></code></a>.
+<a class="reference internal" href="api-docs/models.html#models.model.Model" title="models.model.Model"><code class="xref py py-class docutils literal notranslate"><span class="pre">Model</span></code></a>. Currently it can be
+<a class="reference internal" href="api-docs/models.html#models.speech2text.Speech2Text" title="models.speech2text.Speech2Text"><code class="xref py py-class docutils literal notranslate"><span class="pre">Speech2Text</span></code></a>,
+<a class="reference internal" href="api-docs/models.html#models.text2text.Text2Text" title="models.text2text.Text2Text"><code class="xref py py-class docutils literal notranslate"><span class="pre">Text2Text</span></code></a> or
+<a class="reference internal" href="api-docs/models.html#models.image2label.Image2Label" title="models.image2label.Image2Label"><code class="xref py py-class docutils literal notranslate"><span class="pre">Image2Label</span></code></a>.
 Note that this parameter is not a string, but an actual Python class, so you
 will need to add corresponding imports in the configuration file. In addition
 to <code class="docutils literal notranslate"><span class="pre">base_params</span></code> and <code class="docutils literal notranslate"><span class="pre">base_model</span></code> you can define
@@ -258,22 +252,22 @@ overwrite corresponding parts of <code class="docutils literal notranslate"><spa
 is used. For examples of configuration files look in the <code class="docutils literal notranslate"><span class="pre">example_configs</span></code>
 directory. The complete list of all possible configuration parameters is
 defined in the documentation in various places. A good place to look first is
-the <a class="reference internal" href="../api-docs/models.html#models.model.Model.__init__" title="models.model.Model.__init__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">Model.__init__()</span></code></a> method
+the <a class="reference internal" href="api-docs/models.html#models.model.Model.__init__" title="models.model.Model.__init__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">Model.__init__()</span></code></a> method
 (config parameters section), which defines most of the <em>first level</em> parameters:</p>
 <dl class="method">
 <dt>
-<code class="descclassname">Model.</code><code class="descname">__init__</code><span class="sig-paren">(</span><em>params</em>, <em>mode='train'</em>, <em>hvd=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/models/model.html#Model.__init__"><span class="viewcode-link">[source]</span></a></dt>
+<code class="descclassname">Model.</code><code class="descname">__init__</code><span class="sig-paren">(</span><em>params</em>, <em>mode='train'</em>, <em>hvd=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/models/model.html#Model.__init__"><span class="viewcode-link">[source]</span></a></dt>
 <dd><p>Model constructor.
 The TensorFlow graph should not be created here, but rather in the
-<a class="reference internal" href="../api-docs/models.html#models.model.Model.compile" title="models.model.Model.compile"><code class="xref py py-meth docutils literal notranslate"><span class="pre">self.compile()</span></code></a> method.</p>
+<a class="reference internal" href="api-docs/models.html#models.model.Model.compile" title="models.model.Model.compile"><code class="xref py py-meth docutils literal notranslate"><span class="pre">self.compile()</span></code></a> method.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>params</strong> (<em>dict</em>) – parameters describing the model.
-All supported parameters are listed in <a class="reference internal" href="../api-docs/models.html#models.model.Model.get_required_params" title="models.model.Model.get_required_params"><code class="xref py py-meth docutils literal notranslate"><span class="pre">get_required_params()</span></code></a>,
-<a class="reference internal" href="../api-docs/models.html#models.model.Model.get_optional_params" title="models.model.Model.get_optional_params"><code class="xref py py-meth docutils literal notranslate"><span class="pre">get_optional_params()</span></code></a> functions.</li>
+All supported parameters are listed in <a class="reference internal" href="api-docs/models.html#models.model.Model.get_required_params" title="models.model.Model.get_required_params"><code class="xref py py-meth docutils literal notranslate"><span class="pre">get_required_params()</span></code></a>,
+<a class="reference internal" href="api-docs/models.html#models.model.Model.get_optional_params" title="models.model.Model.get_optional_params"><code class="xref py py-meth docutils literal notranslate"><span class="pre">get_optional_params()</span></code></a> functions.</li>
 <li><strong>mode</strong> (<em>string</em><em>, </em><em>optional</em>) – “train”, “eval” or “infer”.
 If mode is “train” all parts of the graph will be built
 (model, loss, optimizer).
@@ -338,7 +332,7 @@ This parameter is only checked if <code class="docutils literal notranslate"><sp
 <li><strong>logdir</strong> (string) — path to the log directory where all checkpoints
 and summaries will be saved.</li>
 <li><strong>data_layer</strong> (any class derived from
-<a class="reference internal" href="../api-docs/data.html#data.data_layer.DataLayer" title="data.data_layer.DataLayer"><code class="xref py py-class docutils literal notranslate"><span class="pre">DataLayer</span></code></a>) — data layer class
+<a class="reference internal" href="api-docs/data.html#data.data_layer.DataLayer" title="data.data_layer.DataLayer"><code class="xref py py-class docutils literal notranslate"><span class="pre">DataLayer</span></code></a>) — data layer class
 to use.</li>
 <li><strong>data_layer_params</strong> (dict) — dictionary with data layer
 configuration.
@@ -361,9 +355,9 @@ Setting it to None disables freezing of variables.</li>
 regularizer <code class="docutils literal notranslate"><span class="pre">__init__</span></code> method.</li>
 <li><strong>dtype</strong> — model dtype. Could be either <code class="docutils literal notranslate"><span class="pre">tf.float16</span></code>,
 <code class="docutils literal notranslate"><span class="pre">tf.float32</span></code> or “mixed”. For details see
-<a class="reference internal" href="../mixed-precision.html#mixed-precision"><span class="std std-ref">mixed precision training</span></a> section in docs.</li>
+<a class="reference internal" href="mixed-precision.html#mixed-precision"><span class="std std-ref">mixed precision training</span></a> section in docs.</li>
 <li><strong>lr_policy</strong> — any valid learning rate policy function. For examples,
-see <a class="reference internal" href="../api-docs/optimizers.html#module-optimizers.lr_policies" title="optimizers.lr_policies"><code class="xref any py py-mod docutils literal notranslate"><span class="pre">optimizers.lr_policies</span></code></a> module.</li>
+see <a class="reference internal" href="api-docs/optimizers.html#module-optimizers.lr_policies" title="optimizers.lr_policies"><code class="xref any py py-mod docutils literal notranslate"><span class="pre">optimizers.lr_policies</span></code></a> module.</li>
 <li><strong>lr_policy_params</strong> (dict) — dictionary containing lr_policy
 parameters.</li>
 <li><strong>max_grad_norm</strong> (float) — maximum value of gradient norm. Clipping
@@ -373,7 +367,7 @@ for each variable independently).</li>
 scaling is applied. If string, the corresponding automatic
 loss scaling algorithm is used. Must be one of ‘Backoff’
 of ‘LogMax’ (case insensitive). Only used when dtype=”mixed”. For details
-see <a class="reference internal" href="../mixed-precision.html#mixed-precision"><span class="std std-ref">mixed precision training</span></a> section in docs.</li>
+see <a class="reference internal" href="mixed-precision.html#mixed-precision"><span class="std std-ref">mixed precision training</span></a> section in docs.</li>
 <li><strong>loss_scaling_params</strong> (dict) — dictionary containing loss scaling
 parameters.</li>
 <li><strong>summaries</strong> (list) — which summaries to log. Could contain
@@ -400,14 +394,14 @@ denominator for numerical stability.</li>
 <p>Note that some of the parameters are also config dictionaries for corresponding
 classes. To see list of their configuration options, you should proceed to the
 corresponding class docs. For example, to see all supported data layer parameters,
-look into the docs for <a class="reference internal" href="../api-docs/data.html#data.data_layer.DataLayer" title="data.data_layer.DataLayer"><code class="xref py py-class docutils literal notranslate"><span class="pre">data.data_layer.DataLayer</span></code></a>. Sometimes, derived classes
+look into the docs for <a class="reference internal" href="api-docs/data.html#data.data_layer.DataLayer" title="data.data_layer.DataLayer"><code class="xref py py-class docutils literal notranslate"><span class="pre">data.data_layer.DataLayer</span></code></a>. Sometimes, derived classes
 might define their additional parameters, in that case you should be looking
 into both, parent class and its child. For example, look into
-<a class="reference internal" href="../api-docs/models.html#models.encoder_decoder.EncoderDecoderModel" title="models.encoder_decoder.EncoderDecoderModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">models.encoder_decoder.EncoderDecoderModel</span></code></a>, which defines parameters
+<a class="reference internal" href="api-docs/models.html#models.encoder_decoder.EncoderDecoderModel" title="models.encoder_decoder.EncoderDecoderModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">models.encoder_decoder.EncoderDecoderModel</span></code></a>, which defines parameters
 specific for models that can be expressed as encoder-decoder-loss blocks.
 You can also have a look at
-<a class="reference internal" href="../api-docs/encoders.html#encoders.encoder.Encoder" title="encoders.encoder.Encoder"><code class="xref py py-class docutils literal notranslate"><span class="pre">encoders.encoder.Encoder</span></code></a> (which defines some parameters shared across
-all encoders) and <a class="reference internal" href="../api-docs/encoders.html#encoders.ds2_encoder.DeepSpeech2Encoder" title="encoders.ds2_encoder.DeepSpeech2Encoder"><code class="xref py py-class docutils literal notranslate"><span class="pre">encoders.ds2_encoder.DeepSpeech2Encoder</span></code></a> (which
+<a class="reference internal" href="api-docs/encoders.html#encoders.encoder.Encoder" title="encoders.encoder.Encoder"><code class="xref py py-class docutils literal notranslate"><span class="pre">encoders.encoder.Encoder</span></code></a> (which defines some parameters shared across
+all encoders) and <a class="reference internal" href="api-docs/encoders.html#encoders.ds2_encoder.DeepSpeech2Encoder" title="encoders.ds2_encoder.DeepSpeech2Encoder"><code class="xref py py-class docutils literal notranslate"><span class="pre">encoders.ds2_encoder.DeepSpeech2Encoder</span></code></a> (which
 additionally defines a set of DeepSpeech-2 specific parameters).</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
@@ -417,10 +411,6 @@ dictionaries, separate the dictionary and parameter name with “/”.
 For example, try to specify <code class="docutils literal notranslate"><span class="pre">--logdir</span></code> argument or
 <code class="docutils literal notranslate"><span class="pre">--lr_policy_params/learning_rate</span></code> in your <code class="docutils literal notranslate"><span class="pre">run.py</span></code> execution.</p>
 </div>
-</div>
-<div class="section" id="what-is-being-logged">
-<h2>What is being logged<a class="headerlink" href="#what-is-being-logged" title="Permalink to this headline">¶</a></h2>
-<p>This section is going to be completed soon.</p>
 </div>
 </div>
 
@@ -432,10 +422,10 @@ For example, try to specify <code class="docutils literal notranslate"><span cla
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="internal-structure.html" class="btn btn-neutral float-right" title="Internal structure" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="distr-training.html" class="btn btn-neutral float-right" title="Multi-GPU and Distributed Training" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="../in-depth-tutorials.html" class="btn btn-neutral" title="In-depth Tutorials" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="installation.html" class="btn btn-neutral" title="Installation Instructions" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
@@ -465,7 +455,7 @@ For example, try to specify <code class="docutils literal notranslate"><span cla
 
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
-            URL_ROOT:'../',
+            URL_ROOT:'./',
             VERSION:'0.2',
             LANGUAGE:'None',
             COLLAPSE_INDEX:false,
@@ -474,16 +464,16 @@ For example, try to specify <code class="docutils literal notranslate"><span cla
             SOURCELINK_SUFFIX: '.txt'
         };
     </script>
-      <script type="text/javascript" src="../_static/jquery.js"></script>
-      <script type="text/javascript" src="../_static/underscore.js"></script>
-      <script type="text/javascript" src="../_static/doctools.js"></script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
       <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 
   
 
   
   
-    <script type="text/javascript" src="../_static/js/theme.js"></script>
+    <script type="text/javascript" src="_static/js/theme.js"></script>
   
 
   <script type="text/javascript">

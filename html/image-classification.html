@@ -1,0 +1,375 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Image Classification &mdash; OpenSeq2Seq 0.2 documentation</title>
+  
+
+  
+  
+    <link rel="shortcut icon" href="_static/favicon.ico"/>
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/theme_override.css" type="text/css" />
+  <link rel="stylesheet" href="_static/theme_override.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Interactive Infer Mode" href="interactive-infer-demos.html" />
+    <link rel="prev" title="Sentiment Analysis" href="sentiment-analysis.html" /> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="index.html" class="icon icon-home"> OpenSeq2Seq
+          
+
+          
+            
+            <img src="_static/logo.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="index.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation Instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="using-existing-models.html">Using Existing Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="distr-training.html">Multi-GPU and Distributed Training</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mixed-precision.html">Mixed Precision Training</a></li>
+<li class="toctree-l1"><a class="reference internal" href="optimizers.html">Optimizers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="speech-recognition.html">Speech Recognition</a></li>
+<li class="toctree-l1"><a class="reference internal" href="speech-commands.html">Speech Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="speech-synthesis.html">Speech Synthesis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="machine-translation.html">Machine Translation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="language-model.html">Language Model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sentiment-analysis.html">Sentiment Analysis</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Image Classification</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#model">Model</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#get-data">Get data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#training">Training</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#multi-gpu-training">Multi-GPU training</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#training-with-mixed-precicion">Training with Mixed Precicion</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#checkpoints">Checkpoints</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="interactive-infer-demos.html">Interactive Infer Mode</a></li>
+<li class="toctree-l1"><a class="reference internal" href="adding-new-models.html">Adding new models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api-docs/modules.html">API documentation</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">OpenSeq2Seq</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>Image Classification</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/image-classification.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="image-classification">
+<span id="id1"></span><h1>Image Classification<a class="headerlink" href="#image-classification" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="model">
+<h2>Model<a class="headerlink" href="#model" title="Permalink to this headline">¶</a></h2>
+<p>Our ResNet-50 v2 model is a mixed precison replica of <a class="reference external" href="https://github.com/tensorflow/models/tree/master/official/resnet">TensorFlow ResNet-50</a> , which corresponds to the model defined in the paper <a class="reference external" href="https://arxiv.org/abs/1603.05027">Identity Mappings in Deep Residual Networks</a> by Kaiming He, Xiangyu Zhang, Shaoqing Ren, and Jian Sun, Jul 2016.</p>
+<p>This model was trained with different optimizers to state-of-the art accuracy for ResNet-50 model.
+Our best model reached top-1=77.63%, top-5=93.73 accuracy for Imagenet classification task.</p>
+</div>
+<div class="section" id="get-data">
+<h2>Get data<a class="headerlink" href="#get-data" title="Permalink to this headline">¶</a></h2>
+<p>You will need to download the ImageNet dataset and convert it to TFRecord format as described in
+<a href="#id2"><span class="problematic" id="id3">`TensorFlow ResNet &lt;https://github.com/tensorflow/models/tree/master/official/resnet`_</span></a></p>
+</div>
+<div class="section" id="training">
+<h2>Training<a class="headerlink" href="#training" title="Permalink to this headline">¶</a></h2>
+<p>Let’s train a model using SGD with momentum. To train model with 1 GPU with float precision:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="n">run</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">config_file</span><span class="o">=</span><span class="n">example_configs</span><span class="o">/</span><span class="n">image2label</span><span class="o">/</span><span class="n">resnet</span><span class="o">-</span><span class="mi">50</span><span class="o">-</span><span class="n">v2</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">mode</span><span class="o">=</span><span class="n">train_eval</span>
+</pre></div>
+</div>
+<p>If your GPU does not have enough memory, you can reduce the <code class="docutils literal notranslate"><span class="pre">batch_size_per_gpu</span></code>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="n">run</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">config_file</span><span class="o">=</span><span class="n">example_configs</span><span class="o">/</span><span class="n">image2label</span><span class="o">/</span><span class="n">resnet</span><span class="o">-</span><span class="mi">50</span><span class="o">-</span><span class="n">v2</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">mode</span><span class="o">=</span><span class="n">train_eval</span> <span class="o">--</span><span class="n">batch_size_per_gpu</span><span class="o">=</span><span class="mi">32</span>
+</pre></div>
+</div>
+<div class="section" id="multi-gpu-training">
+<h3>Multi-GPU training<a class="headerlink" href="#multi-gpu-training" title="Permalink to this headline">¶</a></h3>
+<p>If you have 2 GPUs, then you can use “native” Tensorflow multi-GPU training by setting <code class="docutils literal notranslate"><span class="pre">num_gpus</span></code>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="n">run</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">config_file</span><span class="o">=</span><span class="n">example_configs</span><span class="o">/</span><span class="n">image2label</span><span class="o">/</span><span class="n">resnet</span><span class="o">-</span><span class="mi">50</span><span class="o">-</span><span class="n">v2</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">mode</span><span class="o">=</span><span class="n">train_eval</span> <span class="o">--</span><span class="n">use_horovod</span><span class="o">=</span><span class="kc">False</span> <span class="o">--</span><span class="n">num_gpus</span><span class="o">=</span><span class="mi">2</span>
+</pre></div>
+</div>
+<p>or you can use Horovod (<code class="docutils literal notranslate"><span class="pre">-np</span></code> flag defines number of GPUs):</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">mpirun</span> <span class="o">--</span><span class="n">allow</span><span class="o">-</span><span class="n">run</span><span class="o">-</span><span class="k">as</span><span class="o">-</span><span class="n">root</span> <span class="o">--</span><span class="n">mca</span> <span class="n">orte_base_help_aggregate</span> <span class="mi">0</span> <span class="o">-</span><span class="n">mca</span> <span class="n">btl</span> <span class="o">^</span><span class="n">openib</span> <span class="o">-</span><span class="n">np</span> <span class="mi">2</span> <span class="o">-</span><span class="n">H</span> <span class="n">localhost</span><span class="p">:</span><span class="mi">8</span> <span class="o">-</span><span class="n">bind</span><span class="o">-</span><span class="n">to</span> <span class="n">none</span> <span class="o">--</span><span class="nb">map</span><span class="o">-</span><span class="n">by</span> <span class="n">slot</span> <span class="o">-</span><span class="n">x</span> <span class="n">LD_LIBRARY_PATH</span> <span class="n">python</span> <span class="n">run</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">config_file</span><span class="o">=</span><span class="n">example_configs</span><span class="o">/</span><span class="n">image2label</span><span class="o">/</span><span class="n">resnet</span><span class="o">-</span><span class="mi">50</span><span class="o">-</span><span class="n">v2</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">mode</span><span class="o">=</span><span class="n">train_eval</span> <span class="o">--</span><span class="n">use_horovod</span><span class="o">=</span><span class="kc">True</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="training-with-mixed-precicion">
+<h3>Training with Mixed Precicion<a class="headerlink" href="#training-with-mixed-precicion" title="Permalink to this headline">¶</a></h3>
+<p>If you have Volta or Turing GPU which supports float16, you can speed-up training by using mixed precision:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="n">run</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">config_file</span><span class="o">=</span><span class="n">example_configs</span><span class="o">/</span><span class="n">image2label</span><span class="o">/</span><span class="n">resnet</span><span class="o">-</span><span class="mi">50</span><span class="o">-</span><span class="n">v2</span><span class="o">-</span><span class="n">mp</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">mode</span><span class="o">=</span><span class="n">train_eval</span> <span class="o">--</span><span class="n">use_horovod</span><span class="o">=</span><span class="kc">False</span> <span class="o">--</span><span class="n">num_gpus</span><span class="o">=</span><span class="mi">2</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="checkpoints">
+<h2>Checkpoints<a class="headerlink" href="#checkpoints" title="Permalink to this headline">¶</a></h2>
+<p>We have trained ResNet-50 with 3 optimizers:</p>
+<blockquote>
+<div><ul class="simple">
+<li><a class="reference external" href="https://github.com/NVIDIA/OpenSeq2Seq/blob/master/example_configs/image2label/resnet-50-v2-mp.py">SGD with momentum</a></li>
+<li><a class="reference external" href="https://github.com/NVIDIA/OpenSeq2Seq/blob/master/example_configs/image2label/resnet-50v2-adamw.py">AdamW</a></li>
+<li><a class="reference external" href="https://github.com/NVIDIA/OpenSeq2Seq/blob/master/example_configs/image2label/resnet-50v2-nvgrad.py">NovoGrad</a></li>
+</ul>
+</div></blockquote>
+<table border="1" class="colwidths-given docutils">
+<colgroup>
+<col width="22%" />
+<col width="11%" />
+<col width="11%" />
+<col width="11%" />
+<col width="22%" />
+<col width="11%" />
+<col width="11%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Optimizer</th>
+<th class="head">Training epochs</th>
+<th class="head">top-1, %</th>
+<th class="head">top-5, %</th>
+<th class="head">Config file</th>
+<th class="head">Checkpoint</th>
+<th class="head">log</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>SGD with momentum</td>
+<td>100</td>
+<td>76.38</td>
+<td>93.08</td>
+<td><a class="reference external" href="https://github.com/NVIDIA/OpenSeq2Seq/blob/master/example_configs/image2label/resnet-50-v2-mp.py">sgd_100</a></td>
+<td>checkpoint</td>
+<td>log</td>
+</tr>
+<tr class="row-odd"><td>AdamW</td>
+<td>100</td>
+<td>76.36</td>
+<td>93.01</td>
+<td><a class="reference external" href="https://github.com/NVIDIA/OpenSeq2Seq/blob/master/example_configs/image2label/resnet-50v2-adamw.py">adamw_100</a></td>
+<td>checkpoint</td>
+<td>log</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="optimizers.html"><span class="doc">NovoGrad</span></a></td>
+<td>100</td>
+<td>77.00</td>
+<td>93.37</td>
+<td><a class="reference external" href="https://github.com/NVIDIA/OpenSeq2Seq/blob/master/example_configs/image2label/resnet-50v2-nvgrad.py">nvgrad_100</a></td>
+<td>checkpoint</td>
+<td>log</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="optimizers.html"><span class="doc">NovoGrad</span></a></td>
+<td>300</td>
+<td>77.63</td>
+<td>93.73</td>
+<td><a class="reference external" href="https://github.com/NVIDIA/OpenSeq2Seq/blob/master/example_configs/image2label/resnet-50v2-nvgrad.py">nvgrad_300</a></td>
+<td>checkpoint</td>
+<td>log</td>
+</tr>
+</tbody>
+</table>
+<p>Detailed training parameters are in corresponding configuration file.</p>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="interactive-infer-demos.html" class="btn btn-neutral float-right" title="Interactive Infer Mode" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="sentiment-analysis.html" class="btn btn-neutral" title="Sentiment Analysis" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, NVIDIA.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'0.2',
+            LANGUAGE:'None',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          
+          SphinxRtdTheme.Navigation.enableSticky();
+          
+      });
+  </script>  
+  <style>
+    /* Sidebar header (and topbar for mobile) */
+    .wy-side-nav-search, .wy-nav-top {
+      background: #64d81c;
+    }
+    .wy-side-nav-search > div.version {
+      color: #ffffff;
+    }
+    .wy-side-nav-search > img {
+      max-width: 150px;
+    }
+    .wy-side-nav-search > a {
+      font-size: 23px;
+    }
+  </style>
+
+
+</body>
+</html>

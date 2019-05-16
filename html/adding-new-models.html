@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>In-depth Tutorials &mdash; OpenSeq2Seq 0.2 documentation</title>
+  <title>Adding new models &mdash; OpenSeq2Seq 0.2 documentation</title>
   
 
   
@@ -33,8 +33,8 @@
   <link rel="stylesheet" href="_static/theme_override.css" type="text/css" />
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Using existing models" href="in-depth-tutorials/using-existing-models.html" />
-    <link rel="prev" title="Optimizers" href="optimizers.html" /> 
+    <link rel="next" title="Adding new data layer" href="extending/adding-new-data-layer.html" />
+    <link rel="prev" title="Interactive Infer Mode" href="interactive-infer-demos.html" /> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -86,22 +86,25 @@
               <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="index.html">Introduction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="installation.html">Installation Instructions</a></li>
-<li class="toctree-l1"><a class="reference internal" href="machine-translation.html">Machine Translation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="speech-recognition.html">Speech Recognition</a></li>
-<li class="toctree-l1"><a class="reference internal" href="speech-commands.html">Speech Commands</a></li>
-<li class="toctree-l1"><a class="reference internal" href="speech-synthesis.html">Speech Synthesis</a></li>
-<li class="toctree-l1"><a class="reference internal" href="language-model.html">Language Model</a></li>
-<li class="toctree-l1"><a class="reference internal" href="sentiment-analysis.html">Sentiment Analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="using-existing-models.html">Using Existing Models</a></li>
 <li class="toctree-l1"><a class="reference internal" href="distr-training.html">Multi-GPU and Distributed Training</a></li>
 <li class="toctree-l1"><a class="reference internal" href="mixed-precision.html">Mixed Precision Training</a></li>
 <li class="toctree-l1"><a class="reference internal" href="optimizers.html">Optimizers</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">In-depth Tutorials</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="in-depth-tutorials/using-existing-models.html">Using existing models</a></li>
-<li class="toctree-l2"><a class="reference internal" href="in-depth-tutorials/internal-structure.html">Internal structure</a></li>
-<li class="toctree-l2"><a class="reference internal" href="extending.html">Adding new models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="speech-recognition.html">Speech Recognition</a></li>
+<li class="toctree-l1"><a class="reference internal" href="speech-commands.html">Speech Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="speech-synthesis.html">Speech Synthesis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="machine-translation.html">Machine Translation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="language-model.html">Language Model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sentiment-analysis.html">Sentiment Analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="image-classification.html">Image Classification</a></li>
+<li class="toctree-l1"><a class="reference internal" href="interactive-infer-demos.html">Interactive Infer Mode</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Adding new models</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="extending/adding-new-data-layer.html">Adding new data layer</a></li>
+<li class="toctree-l2"><a class="reference internal" href="extending/adding-new-encoder.html">Adding new encoder</a></li>
+<li class="toctree-l2"><a class="reference internal" href="extending/adding-new-decoder.html">Adding new decoder</a></li>
+<li class="toctree-l2"><a class="reference internal" href="extending/adding-new-loss.html">Adding new loss</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="interactive-infer-demos.html">Interactive Infer Mode</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api-docs/modules.html">API documentation</a></li>
 </ul>
 
@@ -148,13 +151,13 @@
     
       <li><a href="index.html">Docs</a> &raquo;</li>
         
-      <li>In-depth Tutorials</li>
+      <li>Adding new models</li>
     
     
       <li class="wy-breadcrumbs-aside">
         
             
-            <a href="_sources/in-depth-tutorials.rst.txt" rel="nofollow"> View page source</a>
+            <a href="_sources/adding-new-models.rst.txt" rel="nofollow"> View page source</a>
           
         
       </li>
@@ -167,24 +170,14 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="in-depth-tutorials">
-<span id="in-depth"></span><h1>In-depth Tutorials<a class="headerlink" href="#in-depth-tutorials" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="adding-new-models">
+<span id="id1"></span><h1>Adding new models<a class="headerlink" href="#adding-new-models" title="Permalink to this headline">¶</a></h1>
 <div class="toctree-wrapper compound">
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="in-depth-tutorials/using-existing-models.html">Using existing models</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="in-depth-tutorials/using-existing-models.html#how-to-run-models">How to run models</a></li>
-<li class="toctree-l2"><a class="reference internal" href="in-depth-tutorials/using-existing-models.html#config-parameters">Config parameters</a></li>
-<li class="toctree-l2"><a class="reference internal" href="in-depth-tutorials/using-existing-models.html#what-is-being-logged">What is being logged</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="in-depth-tutorials/internal-structure.html">Internal structure</a></li>
-<li class="toctree-l1"><a class="reference internal" href="extending.html">Adding new models</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="extending/adding-new-data-layer.html">Adding new data layer</a></li>
-<li class="toctree-l2"><a class="reference internal" href="extending/adding-new-encoder.html">Adding new encoder</a></li>
-<li class="toctree-l2"><a class="reference internal" href="extending/adding-new-decoder.html">Adding new decoder</a></li>
-<li class="toctree-l2"><a class="reference internal" href="extending/adding-new-loss.html">Adding new loss</a></li>
-</ul>
-</li>
+<li class="toctree-l1"><a class="reference internal" href="extending/adding-new-data-layer.html">Adding new data layer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="extending/adding-new-encoder.html">Adding new encoder</a></li>
+<li class="toctree-l1"><a class="reference internal" href="extending/adding-new-decoder.html">Adding new decoder</a></li>
+<li class="toctree-l1"><a class="reference internal" href="extending/adding-new-loss.html">Adding new loss</a></li>
 </ul>
 </div>
 </div>
@@ -197,10 +190,10 @@
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="in-depth-tutorials/using-existing-models.html" class="btn btn-neutral float-right" title="Using existing models" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="extending/adding-new-data-layer.html" class="btn btn-neutral float-right" title="Adding new data layer" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="optimizers.html" class="btn btn-neutral" title="Optimizers" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="interactive-infer-demos.html" class="btn btn-neutral" title="Interactive Infer Mode" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
