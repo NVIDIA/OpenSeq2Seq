@@ -8,6 +8,10 @@ from __future__ import unicode_literals
 import argparse
 import sentencepiece as spm
 
+import os
+import sys
+import codecs
+
 
 vocab_size = 32768
 
@@ -84,7 +88,12 @@ def encode(args):
           encoded_src_list = sp1.EncodeAsPieces(src_raw)
         except:
           continue
-        encoded_src = ' '.join([w for w in encoded_src_list])
+        
+        if sys.version_info < (3, 0):
+          encoded_src = ' '.join([w for w in encoded_src_list])
+        else:
+          encoded_src = ' '.join([w.decode("utf-8") for w in encoded_src_list])
+
         ofile1.write(encoded_src + "\n")
         ind += 1
   print("========> ...Done")
@@ -101,7 +110,11 @@ def detokenize(args):
     with open(input_file, 'r') as inpt:
       for line in inpt:
         decoded_line = sp.DecodePieces(line.split(" "))
-        otpt.write(decoded_line)
+        if sys.version_info < (3, 0):
+          otpt.write(decoded_line)
+        else:
+          otpt.write(decoded_line.decode("utf-8"))
+
 
 def main():
   parser = argparse.ArgumentParser(description='Input Parameters')

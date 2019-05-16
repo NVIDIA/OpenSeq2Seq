@@ -108,41 +108,49 @@ Run SacreBleu on detokenized data::
 Using pretrained models
 ************************
 
-All models have been trained with specific version of tokenizer. So first step would be copy `m_common.model <https://drive.google.com/open?id=1HfBaF_Uk8aGiPWeMIaBRpE5KmC8ryIpk>`_ and `m_common.vocab <https://drive.google.com/open?id=11C4-f2jr2hExIs0QT9sKwUrJedLDml6O>`_.
+All models have been trained with specific version of tokenizer. So first step would be copy `m_common.model <https://drive.google.com/open?id=1HfBaF_Uk8aGiPWeMIaBRpE5KmC8ryIpk>`_ and `m_common.vocab <https://drive.google.com/open?id=11C4-f2jr2hExIs0QT9sKwUrJedLDml6O>`_ to current folder. 
 
 To translate your English text ``source_txt`` to German you should 
 
-1.tokenize source::
+1.tokenize ``source.txt`` into ``source.tok``::
 
-  python tokenizer_wrapper.py --mode=encode --model_prefix=m_common --tokenized_output=source.tok --text_input=source.txt
+  python tokenizer_wrapper.py --mode=encode --model_prefix=m_common  --text_input=source.txt --tokenized_output=source.tok --vocab_size=32768
 
-2. add source_tok.txt to model config file::
+2. modify model ``config.py``::
 
 
+	base_params = {
+	  "use_horovod": False,
+	  "num_gpus": 1, 
+          ...
+	  "logdir": "checkpoint/model",
+	}
+	...
 	infer_params = {
-	  "batch_size_per_gpu": 1,
+	  "batch_size_per_gpu": 256,
 	  "data_layer": ParallelTextDataLayer,
 	  "data_layer_params": {
 	    "src_vocab_file": "m_common.vocab",
 	    "tgt_vocab_file": "m_common.vocab",
-	    "source_file":    "wmt14-en-de.src.BPE_common.32K.tok",
-	    "target_file": data_root+"wmt14-en-de.src.BPE_common.32K.tok",
-	    "delimiter": " ",
-	    "shuffle": False,
-	    "repeat": False,
-	    "max_length": 256,
+	    "source_file": "source.tok",
+	    "target_file": "source.tok", # this line will be ignored
+	    "delimiter":   " ",
+	    "shuffle":     False,
+	    "repeat":      False,
+	    "max_length":  1024,
 	  },
 	}
-
-
-2.translate::
+        ...
+   
+2.translate ``source.tok`` into ``output.tok``::
   
-  python run.py --config_file=example_configs/text2text/en-de/transformer-nvgrad.py --mode=infer --logdir=checkpoint/model  --infer_output_file=/results/raw.txt --num_gpus=1
+  python run.py --config_file=config.py --mode=infer --logdir=checkpoint/model  --infer_output_file=output.tok --num_gpus=1
+
+3.detokenize ``output.tok``::
+
+  python tokenizer_wrapper.py --mode=detokenize --model_prefix=m_common --text_input=output.tok --decoded_output=output.txt 
 
 
-3.detokenize tokenized_output::
-
-  detokenize tokenized_output detok_output
 
 
 
