@@ -37,6 +37,8 @@ https://nvidia.github.io/OpenSeq2Seq/
 ## Acknowledgments
 Speech-to-text workflow uses some parts of [Mozilla DeepSpeech](https://github.com/Mozilla/DeepSpeech) project.
 
+Beam search decoder with language model re-scoring implementation (in `decoders`) is based on [Baidu DeepSpeech](https://github.com/PaddlePaddle/DeepSpeech).
+
 Text-to-text workflow uses some functions from [Tensor2Tensor](https://github.com/tensorflow/tensor2tensor) and [Neural Machine Translation (seq2seq) Tutorial](https://github.com/tensorflow/nmt).
 
 ## Disclaimer
