@@ -23,6 +23,27 @@ class Scorer(swig_decoders.Scorer):
         swig_decoders.Scorer.__init__(self, alpha, beta, model_path, vocabulary)
 
 
+class BeamDecoder(swig_decoders.BeamDecoder):
+    """Wrapper for BeamDecoder.
+    """
+    def __init__(self, vocabulary, beam_size, 
+                 cutoff_prob=1.0,
+                 cutoff_top_n=40,
+                 ext_scorer=None):
+        swig_decoders.BeamDecoder.__init__(self, vocabulary, beam_size, 
+                                           cutoff_prob,
+                                           cutoff_top_n,
+                                           ext_scorer)
+
+    def decode(self, probs_seq):
+        beam_results = swig_decoders.BeamDecoder.decode(
+            self,
+            probs_seq.tolist()
+        )
+        beam_results = [(res[0], res[1]) for res in beam_results]
+        return beam_results
+
+
 def ctc_greedy_decoder(probs_seq, vocabulary):
     """Wrapper for ctc best path decoder in swig.
 

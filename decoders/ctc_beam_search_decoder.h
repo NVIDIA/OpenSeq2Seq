@@ -31,6 +31,39 @@ std::vector<std::pair<double, std::string>> ctc_beam_search_decoder(
     size_t cutoff_top_n = 40,
     Scorer *ext_scorer = nullptr);
 
+
+class BeamDecoder {
+public:
+  BeamDecoder(const std::vector<std::string> &vocabulary,
+         size_t beam_size,
+         double cutoff_prob = 1.0,
+         size_t cutoff_top_n = 40,
+         Scorer *ext_scorer = nullptr);
+  ~BeamDecoder();
+
+  // decode a frame
+  std::vector<std::pair<double, std::string>> decode(const std::vector<std::vector<double>> &probs_seq);
+
+  // reset state
+  void reset();
+
+private:
+  Scorer *ext_scorer;
+  size_t beam_size;
+  double cutoff_prob;
+  size_t cutoff_top_n;
+
+  // state
+  std::vector<std::string> vocabulary;
+  size_t blank_id;
+  int space_id;
+
+  PathTrie *root;
+  std::vector<PathTrie *> prefixes;
+};
+
+
+
 /* CTC Beam Search Decoder for batch data
 
  * Parameters:

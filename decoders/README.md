@@ -20,9 +20,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 
-Modified files:
-	decoder_utils.cpp
-        setup.py
-        setup.sh
-        ctc_decoders.py
+Changes:
+	modified:   decoder_utils.cpp
+        modified:   setup.py
+        modified:   setup.sh
+	modified:   ctc_beam_search_decoder.cpp
+        modified:   ctc_beam_search_decoder.h
+         renamed:   swig_decoders.py -> ctc_decoders.py
+        modified:   ctc_decoders.py
 
