@@ -5,6 +5,7 @@ Git commit: https://github.com/PaddlePaddle/DeepSpeech/commit/a76fc692123e97e5f1
 
 
 Copyright 2019 Baidu, Inc.
+Copyright 2019 NVIDIA Corporation
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -17,3 +18,11 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
+
+
+Modified files:
+	decoder_utils.cpp
+        setup.py
+        setup.sh
+        ctc_decoders.py
+

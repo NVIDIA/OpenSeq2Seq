@@ -60,7 +60,7 @@ std::vector<std::pair<double, std::string>> get_beam_search_result(
     for (size_t j = 0; j < output.size(); j++) {
       output_str += vocabulary[output[j]];
     }
-    std::pair<double, std::string> output_pair(-space_prefixes[i]->approx_ctc,
+    std::pair<double, std::string> output_pair(space_prefixes[i]->score,
                                                output_str);
     output_vecs.emplace_back(output_pair);
   }
