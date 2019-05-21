@@ -110,7 +110,7 @@ def detokenize(args):
     with open(input_file, 'r') as inpt:
       for line in inpt:
         decoded_line = sp.DecodePieces(line.split(" "))
-        if sys.version_info < (3, 0):
+        if sys.version_info >= (3, 0):
           otpt.write(decoded_line)
         else:
           otpt.write(decoded_line.decode("utf-8"))
