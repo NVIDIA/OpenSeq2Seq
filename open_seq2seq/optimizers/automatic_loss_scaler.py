@@ -62,7 +62,7 @@ class BackoffScaler(object):
         },
     )
     self.scale_min = params.get('scale_min', 1.0)
-    self.scale_max = params.get('scale_max', 2.**24)
+    self.scale_max = params.get('scale_max', 2.**14)
     self.step_factor = params.get('step_factor', 2.0)
     self.step_window = params.get('step_window', 2000)
 
@@ -127,7 +127,7 @@ class LogMaxScaler(object):
         },
     )
     self.scale_min = params.get('scale_min', 1.0)
-    self.scale_max = params.get('scale_max', 2.**24)
+    self.scale_max = params.get('scale_max', 2.**14)
     self.log_max = params.get('log_max', 16.)
     self.beta1 = params.get('beta1', 0.99)
     self.beta2 = params.get('beta2', 0.999)
