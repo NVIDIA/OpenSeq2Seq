@@ -177,6 +177,17 @@ class Speech2TextDataLayer(DataLayer):
       )
     self.params['mel_basis'] = mel_basis
 
+    if 'n_freq_mask' in self.params.get('augmentation', {}):
+      width_freq_mask = self.params['augmentation'].get('width_freq_mask', 10)
+      if width_freq_mask > self.params['num_audio_features']
+        raise ValueError(
+            "'width_freq_mask'={} should be smaller ".format(width_freq_mask)+
+            "than 'num_audio_features'={}".format(
+               self.params['num_audio_features']
+            )
+        )
+
+
     if 'time_stretch_ratio' in self.params.get('augmentation', {}):
       print("WARNING: Please update time_stretch_ratio to speed_perturbation_ratio")
       self.params['augmentation']['speed_perturbation_ratio'] = self.params['augmentation']['time_stretch_ratio']
