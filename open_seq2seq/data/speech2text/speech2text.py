@@ -179,7 +179,7 @@ class Speech2TextDataLayer(DataLayer):
 
     if 'n_freq_mask' in self.params.get('augmentation', {}):
       width_freq_mask = self.params['augmentation'].get('width_freq_mask', 10)
-      if width_freq_mask > self.params['num_audio_features']
+      if width_freq_mask > self.params['num_audio_features']:
         raise ValueError(
             "'width_freq_mask'={} should be smaller ".format(width_freq_mask)+
             "than 'num_audio_features'={}".format(
