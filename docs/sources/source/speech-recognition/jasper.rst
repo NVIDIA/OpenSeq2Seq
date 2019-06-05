@@ -28,10 +28,10 @@ We use Connectionist Temporal Classification (CTC) loss to train the model. The 
 Training
 ~~~~~~~~
 
-Our current best WER is a 54 layer model trained using speed perturbation and using dense residual connections.
+Our current best WER is a 54 layer model with dense residual connections. It was trained on the original LibriSpeech dataset augmented with 3-fold speed perturbation and time/frequency masks (similar to `SpecAugment <https://arxiv.org/abs/1904.08779>`_). 
 The first row are results using just the acoustic model via greedy decoding.
 Jasper can be augmented with language models. We first use a 6-gram language model to guide beam search for the results in the second row.
-We used a beam width of 2048. Alpha = 2.7 and beta = -0.4 were used for the clean subsets, and alpha = 2.8 and beta = 1.2 were used for the other subsets.
+We used a beam width of 2048. Alpha = 2.0 and beta = -0.2 were used for the clean and the other subsets.
 Lastly, we can rescore the top candidates using a neural language model to obtain sub 3% WER on test-clean.
 
 
@@ -40,11 +40,11 @@ Lastly, we can rescore the top candidates using a neural language model to obtai
 +                                +-----------+-----------+------------+------------+
 |                                | Dev-Clean | Dev-Other | Test-Clean | Test-Other |
 +================================+===========+===========+============+============+
-| Jasper DR 10x5                 | 3.64      | 11.89     | 3.86       | 11.95      |
+| Jasper DR 10x5                 | 3.61      | 11.36     | 3.77       | 11.08      |
 +--------------------------------+-----------+-----------+------------+------------+
-| Jasper DR 10x5 + 6-gram        | 2.88      | 9.53      | 3.27       | 9.68       |
+| Jasper DR 10x5 + 6-gram        | 2.78      | 9.01      | 3.19       | 9.03       |
 +--------------------------------+-----------+-----------+------------+------------+
-| Jasper DR 10x5 + 6-gram + T XL | 2.67      | 8.62      | 2.93       | 8.79       |
+| Jasper DR 10x5 + 6-gram + T XL | 2.58      | 8.10      | 2.86       | 8.17       |
 +--------------------------------+-----------+-----------+------------+------------+
 
 The models were trained for 400 epochs on 8 GPUs. We use:
@@ -55,6 +55,8 @@ The models were trained for 400 epochs on 8 GPUs. We use:
 * weight-decay = 0.001
 * dropout (varible per layer: 0.2-0.4)
 * 3-fold speed perturbation of [0.9, 1.0, 1.1]
+* 2 frequency masks with width up to 6 mel scale bins
+* 2 time masks with width up to 6 timesteps (60 ms)
 
 Tips and Tricks
 ~~~~~~~~~~~~~~~

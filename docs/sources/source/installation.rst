@@ -11,7 +11,7 @@ The recommended way to install OpenSeq2Seq is to use NVIDIA TensorFlow Docker co
 1. Install CUDA 10 from https://developer.nvidia.com/cuda-downloads
 2. Install Docker ( see https://docs.docker.com/install/linux/docker-ce/ubuntu/#prerequisites )
 
-   use version compatible with nvidia-docker, e.g.::
+   use version compatible with `nvidia-docker <https://github.com/NVIDIA/nvidia-docker>`_, e.g.::
 
     sudo apt-get install docker-ce=5:18.09.1~3-0~ubuntu-xenial
 
@@ -34,11 +34,11 @@ The recommended way to install OpenSeq2Seq is to use NVIDIA TensorFlow Docker co
 
     see https://docs.nvidia.com/deeplearning/dgx/tensorflow-user-guide/index.html::
 
-    docker pull nvcr.io/nvidia/tensorflow:19.01-py3
+    docker pull nvcr.io/nvidia/tensorflow:19.05-py3
 
 7. Run contrainer::
 
-    nvidia-docker run --shm-size=1g --ulimit memlock=-1 --ulimit stack=67108864 -it --rm nvcr.io/nvidia/tensorflow:18.12-py3
+    nvidia-docker run --shm-size=1g --ulimit memlock=-1 --ulimit stack=67108864 -it --rm nvcr.io/nvidia/tensorflow:19.05-py3
 
 8. Pull OpenSeq2Seq from GitHub inside the container::
 
