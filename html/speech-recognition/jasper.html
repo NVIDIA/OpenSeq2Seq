@@ -104,6 +104,7 @@
 </li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="../speech-recognition.html#introduction">Introduction</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../speech-recognition.html#getting-started">Getting started</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../speech-recognition.html#synthetic-data">Synthetic data</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../speech-recognition.html#tools">Tools</a></li>
@@ -203,10 +204,10 @@
 </div>
 <div class="section" id="training">
 <h2>Training<a class="headerlink" href="#training" title="Permalink to this headline">¶</a></h2>
-<p>Our current best WER is a 54 layer model trained using speed perturbation and using dense residual connections.
+<p>Our current best WER is a 54 layer model with dense residual connections. It was trained on the original LibriSpeech dataset augmented with 3-fold speed perturbation and time/frequency masks (similar to <a class="reference external" href="https://arxiv.org/abs/1904.08779">SpecAugment</a>).
 The first row are results using just the acoustic model via greedy decoding.
 Jasper can be augmented with language models. We first use a 6-gram language model to guide beam search for the results in the second row.
-We used a beam width of 2048. Alpha = 2.7 and beta = -0.4 were used for the clean subsets, and alpha = 2.8 and beta = 1.2 were used for the other subsets.
+We used a beam width of 2048. Alpha = 2.0 and beta = -0.2 were used for the clean and the other subsets.
 Lastly, we can rescore the top candidates using a neural language model to obtain sub 3% WER on test-clean.</p>
 <table border="1" class="docutils">
 <colgroup>
@@ -228,22 +229,22 @@ Lastly, we can rescore the top candidates using a neural language model to obtai
 </thead>
 <tbody valign="top">
 <tr class="row-odd"><td>Jasper DR 10x5</td>
-<td>3.64</td>
-<td>11.89</td>
-<td>3.86</td>
-<td>11.95</td>
+<td>3.61</td>
+<td>11.36</td>
+<td>3.77</td>
+<td>11.08</td>
 </tr>
 <tr class="row-even"><td>Jasper DR 10x5 + 6-gram</td>
-<td>2.88</td>
-<td>9.53</td>
-<td>3.27</td>
-<td>9.68</td>
+<td>2.78</td>
+<td>9.01</td>
+<td>3.19</td>
+<td>9.03</td>
 </tr>
 <tr class="row-odd"><td>Jasper DR 10x5 + 6-gram + T XL</td>
-<td>2.67</td>
-<td>8.62</td>
-<td>2.93</td>
-<td>8.79</td>
+<td>2.58</td>
+<td>8.10</td>
+<td>2.86</td>
+<td>8.17</td>
 </tr>
 </tbody>
 </table>
@@ -255,6 +256,8 @@ Lastly, we can rescore the top candidates using a neural language model to obtai
 <li>weight-decay = 0.001</li>
 <li>dropout (varible per layer: 0.2-0.4)</li>
 <li>3-fold speed perturbation of [0.9, 1.0, 1.1]</li>
+<li>2 frequency masks with width up to 6 mel scale bins</li>
+<li>2 time masks with width up to 6 timesteps (60 ms)</li>
 </ul>
 </div>
 <div class="section" id="tips-and-tricks">

@@ -340,6 +340,17 @@
       <span class="p">)</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;mel_basis&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">mel_basis</span>
 
+    <span class="k">if</span> <span class="s1">&#39;n_freq_mask&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;augmentation&#39;</span><span class="p">,</span> <span class="p">{}):</span>
+      <span class="n">width_freq_mask</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;augmentation&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;width_freq_mask&#39;</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
+      <span class="k">if</span> <span class="n">width_freq_mask</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;num_audio_features&#39;</span><span class="p">]:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="s2">&quot;&#39;width_freq_mask&#39;=</span><span class="si">{}</span><span class="s2"> should be smaller &quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">width_freq_mask</span><span class="p">)</span><span class="o">+</span>
+            <span class="s2">&quot;than &#39;num_audio_features&#39;=</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+               <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;num_audio_features&#39;</span><span class="p">]</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+
+
     <span class="k">if</span> <span class="s1">&#39;time_stretch_ratio&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;augmentation&#39;</span><span class="p">,</span> <span class="p">{}):</span>
       <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;WARNING: Please update time_stretch_ratio to speed_perturbation_ratio&quot;</span><span class="p">)</span>
       <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;augmentation&#39;</span><span class="p">][</span><span class="s1">&#39;speed_perturbation_ratio&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;augmentation&#39;</span><span class="p">][</span><span class="s1">&#39;time_stretch_ratio&#39;</span><span class="p">]</span></div>

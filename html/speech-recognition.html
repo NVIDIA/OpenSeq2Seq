@@ -97,14 +97,11 @@
 <li class="toctree-l3"><a class="reference internal" href="speech-recognition/jasper.html">Jasper</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="#getting-started">Getting started</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#get-data">Get data</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#training">Training</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#evaluation">Evaluation</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#inference">Inference</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#multi-gpu-training">Multi-GPU training</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#introduction">Introduction</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#decoders">Decoders</a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="#getting-started">Getting started</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#synthetic-data">Synthetic data</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="speech-recognition/synthetic_dataset.html">Creation of Synthetic Data</a></li>
 <li class="toctree-l3"><a class="reference internal" href="speech-recognition/synthetic_dataset.html#training-with-synthetic-data">Training With Synthetic Data</a></li>
@@ -206,24 +203,24 @@
 </tr>
 </thead>
 <tbody valign="top">
-<tr class="row-even"><td><a class="reference internal" href="speech-recognition/deepspeech2.html"><span class="doc">DeepSpeech2</span></a></td>
-<td>6.71</td>
-<td><a class="reference external" href="https://github.com/NVIDIA/OpenSeq2Seq/blob/master/example_configs/speech2text/ds2_large_8gpus_mp.py">ds2_large_mp</a></td>
-<td><a class="reference external" href="https://drive.google.com/open?id=1EDvL9wMCO2vVE-ynBvpwkFTultbzLNQX">link</a></td>
+<tr class="row-even"><td><a class="reference internal" href="speech-recognition/jasper.html"><span class="doc">Jasper DR 10x5</span></a></td>
+<td>3.61</td>
+<td><a class="reference external" href="https://github.com/NVIDIA/OpenSeq2Seq/blob/master/example_configs/speech2text/jasper10x5_LibriSpeech_nvgrad_masks.py">jasper10x5_LibriSpeech_nvgrad_masks</a></td>
+<td><a class="reference external" href="https://drive.google.com/open?id=12CQvNrTvf0cjTsKjbaWWvdaZb7RxWI6X">link</a></td>
 </tr>
 <tr class="row-odd"><td><a class="reference internal" href="speech-recognition/wave2letter.html"><span class="doc">Wave2Letter+</span></a></td>
 <td>6.67</td>
 <td><a class="reference external" href="https://github.com/NVIDIA/OpenSeq2Seq/blob/master/example_configs/speech2text/w2lplus_large_8gpus_mp.py">w2l_plus_large_mp</a></td>
 <td><a class="reference external" href="https://drive.google.com/file/d/10EYe040qVW6cfygSZz6HwGQDylahQNSa/view?usp=sharing">link</a></td>
 </tr>
-<tr class="row-even"><td><a class="reference internal" href="speech-recognition/jasper.html"><span class="doc">Jasper DR 10x5</span></a></td>
-<td>3.64</td>
-<td><a class="reference external" href="https://github.com/NVIDIA/OpenSeq2Seq/blob/master/example_configs/speech2text/jasper10x5_LibriSpeech_nvgrad.py">jasper10x5_LibriSpeech_nvgrad</a></td>
-<td><a class="reference external" href="https://drive.google.com/a/nvidia.com/file/d/1gzGT8HoVNKY1i5HNQTKaSoCu7JHV4siR/view?usp=sharing">link</a></td>
+<tr class="row-even"><td><a class="reference internal" href="speech-recognition/deepspeech2.html"><span class="doc">DeepSpeech2</span></a></td>
+<td>6.71</td>
+<td><a class="reference external" href="https://github.com/NVIDIA/OpenSeq2Seq/blob/master/example_configs/speech2text/ds2_large_8gpus_mp.py">ds2_large_mp</a></td>
+<td><a class="reference external" href="https://drive.google.com/open?id=1EDvL9wMCO2vVE-ynBvpwkFTultbzLNQX">link</a></td>
 </tr>
 </tbody>
 </table>
-<p>WER is the word error rate obtained on a dev-clean subset of LibriSpeech using
+<p>WER is the <a class="reference external" href="https://en.wikipedia.org/wiki/Word_error_rate">word error rate</a> obtained on a dev-clean subset of LibriSpeech using
 greedy decoder (<code class="docutils literal notranslate"><span class="pre">decoder_params/use_language_model</span> <span class="pre">=</span> <span class="pre">False</span></code>).
 For the evaluation we used <code class="docutils literal notranslate"><span class="pre">batch_size_per_gpu</span> <span class="pre">=</span> <span class="pre">1</span></code>
 to eliminate the effect of <a class="reference external" href="https://github.com/NVIDIA/OpenSeq2Seq/issues/69">cuDNN padding issue</a>.</p>
@@ -232,14 +229,73 @@ have a look at the <a class="reference external" href="https://github.com/NVIDIA
 <div class="toctree-wrapper compound">
 </div>
 </div>
+<div class="section" id="introduction">
+<h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
+<p>Automatic speech recognition (ASR) systems can be built using a number of approaches depending on input data type, intermediate representation, model’s type and output post-processing.
+OpenSeq2Seq is currently focused on end-to-end CTC-based models (like original DeepSpeech model). These models are called end-to-end because they take speech samples and transcripts without any additional information. CTC allows finding an alignment between audio and text. CTC ASR models can be summarized in the following scheme:</p>
+<img alt="CTC ASR models" class="align-center" src="_images/ctc_asr.png" />
+<p>Training pipeline consists of the following blocks:</p>
+<ol class="arabic simple">
+<li>audio preprocessing (feature extraction): signal normalization, windowing, (log) spectrogram (or mel scale spectrogram, or MFCC)</li>
+<li>neural acoustic model (which predicts a probability distribution <em>P_t(c)</em> over vocabulary characters <em>c</em> per each time step <em>t</em> given input features per each timestep)</li>
+<li>CTC loss function</li>
+</ol>
+<p>Inference pipeline is different for block #3:</p>
+<ol class="arabic simple" start="3">
+<li>decoder (which transforms a probability distribution into actual transcript)</li>
+</ol>
+<p>We support different options for these steps.
+The recommended pipeline is the following (in order to get the best accuracy, the lowest WER):</p>
+<ol class="arabic simple">
+<li>Mel scale log spectrograms for audio features (using <cite>librosa</cite> backend)</li>
+<li>Jasper as a neural acoustic model</li>
+<li>Baidu’s CTC beam search decoder with N-gram language model rescoring</li>
+</ol>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p>OpenSeq2Seq has two audio feature extraction backends:</p>
+<ol class="arabic simple">
+<li><cite>python_speech_features</cite> (<cite>psf</cite>, it is a default backend for backward compatibility)</li>
+<li><cite>librosa</cite></li>
+</ol>
+<p class="last">We recommend to use <cite>librosa</cite> backend for its numerous important features (e.g., windowing, more accurate mel scale aggregation).
+To enable <cite>librosa</cite>, please make sure that there is a line <code class="docutils literal notranslate"><span class="pre">&quot;backend&quot;:</span> <span class="pre">&quot;librosa&quot;</span></code> in <code class="docutils literal notranslate"><span class="pre">&quot;data_layer_params&quot;</span></code>.</p>
+</div>
+<div class="section" id="decoders">
+<h3>Decoders<a class="headerlink" href="#decoders" title="Permalink to this headline">¶</a></h3>
+<p>In order to get words out of a trained model one needs to use a decoder. Decoder converts a probability distribution over characters into text. There are two types of decoders that are usually employed with CTC-based models: greedy decoder and beam search decoder with language model re-scoring.</p>
+<p>A greedy decoder outputs the most probable character at each time step. It is very fast and it can produce transcripts that are very close to the original pronunciation. But it may introduce many small misspelling errors. Due to the nature of WER metric, even one character error makes a whole word incorrect.</p>
+<p>A beam search decoder with language model re-scoring allows checking many possible decodings (beams) at once with assigning a higher score for more probable N-grams according to a given language model. The language model helps to correct misspelling errors. The downside is that it is significantly slower than a greedy decoder.</p>
+<p>There are two implementations of beam search decoder in OpenSeq2Seq:</p>
+<ol class="arabic">
+<li><p class="first">native TensorFlow operation (<code class="docutils literal notranslate"><span class="pre">./ctc_decoder_with_lm/</span></code>). It is rather a deprecated decoder due to its slowness (it works in a single CPU thread only). We keep it for backward compatibility. You have to build it (or use pre-built version in NVIDIA TensorFlow container). In order to enable it, you’ll need to define its parameters <code class="docutils literal notranslate"><span class="pre">&quot;beam_width&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;alpha&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;beta&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;decoder_library_path&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;lm_path&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;trie_path&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;alphabet_config_path&quot;</span></code> and add <code class="docutils literal notranslate"><span class="pre">&quot;use_language_model&quot;:</span> <span class="pre">True</span></code> line in <code class="docutils literal notranslate"><span class="pre">&quot;decoder_params&quot;</span></code> section of the config file.</p>
+</li>
+<li><p class="first">Baidu decoder (as a separate Python script). It is parallelized across batch on multiple CPU cores, so it is significantly faster. It doesn’t require a separate trie file as an input. It is the recommended decoder for ASR models. In order to use it, please:</p>
+<ul>
+<li><p class="first">make sure that <code class="docutils literal notranslate"><span class="pre">&quot;decoder_params&quot;</span></code> section has <code class="docutils literal notranslate"><span class="pre">'infer_logits_to_pickle':</span> <span class="pre">True</span></code> line and that <code class="docutils literal notranslate"><span class="pre">&quot;dataset_files&quot;</span></code> field of <code class="docutils literal notranslate"><span class="pre">&quot;infer_params&quot;</span></code> section contains a target CSV file</p>
+</li>
+<li><p class="first">run inference (to dump logits to a pickle file):</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="n">run</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">mode</span><span class="o">=</span><span class="n">infer</span> <span class="o">--</span><span class="n">config</span><span class="o">=</span><span class="s2">&quot;MODEL_CONFIG&quot;</span> <span class="o">--</span><span class="n">logdir</span><span class="o">=</span><span class="s2">&quot;MODEL_CHECKPOINT_DIR&quot;</span> <span class="o">--</span><span class="n">num_gpus</span><span class="o">=</span><span class="mi">1</span> <span class="o">--</span><span class="n">use_Horovod</span><span class="o">=</span><span class="kc">False</span> <span class="o">--</span><span class="n">decoder_params</span><span class="o">/</span><span class="n">use_language_model</span><span class="o">=</span><span class="kc">False</span> <span class="o">--</span><span class="n">infer_output_file</span><span class="o">=</span><span class="n">model_output</span><span class="o">.</span><span class="n">pickle</span>
+</pre></div>
+</div>
+</li>
+<li><p class="first">run beam search decoder (with specific ALPHA, BETA and BEAM_WIDTH hyperparameters):</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="n">scripts</span><span class="o">/</span><span class="n">decode</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">logits</span><span class="o">=</span><span class="n">model_output</span><span class="o">.</span><span class="n">pickle</span> <span class="o">--</span><span class="n">labels</span><span class="o">=</span><span class="s2">&quot;CSV_FILE&quot;</span> <span class="o">--</span><span class="n">lm</span><span class="o">=</span><span class="s2">&quot;LM_BINARY&quot;</span>  <span class="o">--</span><span class="n">vocab</span><span class="o">=</span><span class="s2">&quot;ALPHABET_FILE&quot;</span> <span class="o">--</span><span class="n">alpha</span><span class="o">=</span><span class="n">ALPHA</span> <span class="o">--</span><span class="n">beta</span><span class="o">=</span><span class="n">BETA</span> <span class="o">--</span><span class="n">beam_width</span><span class="o">=</span><span class="n">BEAM_WIDTH</span>
+</pre></div>
+</div>
+</li>
+</ul>
+</li>
+</ol>
+<p>It is possible to apply a neural language model (like Transformer-XL) to select the best trascription among all candidates after the beam search. For more details, please see <a class="reference external" href="https://github.com/NVIDIA/OpenSeq2Seq/tree/master/external_lm_rescore">https://github.com/NVIDIA/OpenSeq2Seq/tree/master/external_lm_rescore</a></p>
+</div>
+</div>
 <div class="section" id="getting-started">
 <h2>Getting started<a class="headerlink" href="#getting-started" title="Permalink to this headline">¶</a></h2>
 <p>You can start with <a class="reference internal" href="speech-recognition/get_started_toy_model.html"><span class="doc">these instructions</span></a>
 to play with a very small model on a toy dataset.</p>
 <p>Now let’s consider a relatively lightweight version of DeepSpeech2 based model for
 English speech recognition on LibriSpeech dataset.</p>
-<div class="section" id="get-data">
-<h3>Get data<a class="headerlink" href="#get-data" title="Permalink to this headline">¶</a></h3>
 <p>Download and preprocess LibriSpeech dataset:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="n">scripts</span><span class="o">/</span><span class="n">import_librivox</span><span class="o">.</span><span class="n">py</span> <span class="n">data</span><span class="o">/</span><span class="n">librispeech</span>
 </pre></div>
@@ -248,9 +304,6 @@ English speech recognition on LibriSpeech dataset.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">scripts</span><span class="o">/</span><span class="n">download_lm</span><span class="o">.</span><span class="n">sh</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="training">
-<h3>Training<a class="headerlink" href="#training" title="Permalink to this headline">¶</a></h3>
 <p>Let’s train a small DS2 model.</p>
 <p>This model can be trained on 12 GB GPU within a day.</p>
 <p>Start training:</p>
@@ -259,24 +312,15 @@ English speech recognition on LibriSpeech dataset.</p>
 </div>
 <p>If your GPU does not have enough memory, reduce the <code class="docutils literal notranslate"><span class="pre">batch_size_per_gpu</span></code>.
 Also, you might want to disable evaluation during training by using <code class="docutils literal notranslate"><span class="pre">--mode=train</span></code>.</p>
-</div>
-<div class="section" id="evaluation">
-<h3>Evaluation<a class="headerlink" href="#evaluation" title="Permalink to this headline">¶</a></h3>
-<p>In order to get greedy Word Error Rate (WER) metric on validation dataset, please run the following command:</p>
+<p>In order to get greedy WER metric on validation dataset, please run the following command:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="n">run</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">config_file</span><span class="o">=</span><span class="n">example_configs</span><span class="o">/</span><span class="n">speech2text</span><span class="o">/</span><span class="n">ds2_small_1gpu</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">mode</span><span class="o">=</span><span class="nb">eval</span>
 </pre></div>
 </div>
 <p>If you would like to use beam search decoder with language model re-scoring, please see <a class="reference external" href="https://github.com/NVIDIA/OpenSeq2Seq/tree/master/external_lm_rescore">link</a></p>
-</div>
-<div class="section" id="inference">
-<h3>Inference<a class="headerlink" href="#inference" title="Permalink to this headline">¶</a></h3>
 <p>Once training is done (this can take a while on a single GPU), you can run inference:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="n">run</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">config_file</span><span class="o">=</span><span class="n">example_configs</span><span class="o">/</span><span class="n">speech2text</span><span class="o">/</span><span class="n">ds2_small_1gpu</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">mode</span><span class="o">=</span><span class="n">infer</span> <span class="o">--</span><span class="n">infer_output_file</span><span class="o">=</span><span class="n">ds2_out</span><span class="o">.</span><span class="n">txt</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="multi-gpu-training">
-<h3>Multi-GPU training<a class="headerlink" href="#multi-gpu-training" title="Permalink to this headline">¶</a></h3>
 <p>To train on &lt;N&gt; GPUs without Horovod:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="n">run</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">config_file</span><span class="o">=...</span> <span class="o">--</span><span class="n">mode</span><span class="o">=</span><span class="n">train_eval</span> <span class="o">--</span><span class="n">use_horovod</span><span class="o">=</span><span class="kc">False</span> <span class="o">--</span><span class="n">num_gpus</span><span class="o">=&lt;</span><span class="n">N</span><span class="o">&gt;</span>
 </pre></div>
@@ -284,7 +328,6 @@ Also, you might want to disable evaluation during training by using <code class=
 <p>To train with Horovod on &lt;N&gt; GPUs, use the following command:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">mpiexec</span> <span class="o">--</span><span class="n">allow</span><span class="o">-</span><span class="n">run</span><span class="o">-</span><span class="k">as</span><span class="o">-</span><span class="n">root</span> <span class="o">-</span><span class="n">np</span> <span class="o">&lt;</span><span class="n">N</span><span class="o">&gt;</span> <span class="n">python</span> <span class="n">run</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">config_file</span><span class="o">=...</span> <span class="o">--</span><span class="n">mode</span><span class="o">=</span><span class="n">train_eval</span> <span class="o">--</span><span class="n">use_horovod</span><span class="o">=</span><span class="kc">True</span>
 </pre></div>
-</div>
 </div>
 </div>
 <div class="section" id="synthetic-data">
@@ -296,7 +339,9 @@ The creation of the synthetic data and training process is described <a class="r
 </div>
 <div class="section" id="tools">
 <h2>Tools<a class="headerlink" href="#tools" title="Permalink to this headline">¶</a></h2>
-<p>Word alignments : <a class="reference internal" href="speech-recognition/speech-to-text-align.html"><span class="doc">Align words</span></a></p>
+<ul class="simple">
+<li><a class="reference internal" href="speech-recognition/speech-to-text-align.html"><span class="doc">A tool for generating time stamps per each word</span></a></li>
+</ul>
 </div>
 </div>
 
