@@ -4,10 +4,10 @@ resampy
 pandas==0.23.0
 six
 mpi4py
-librosa
+joblib==0.13.2
+librosa==0.6.3
 python_speech_features
 matplotlib
-joblib==0.11
 sentencepiece
 sacrebleu
 h5py
