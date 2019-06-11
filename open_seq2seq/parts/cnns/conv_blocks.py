@@ -112,7 +112,7 @@ def conv_bn_res_bn_actv(layer_type, name, inputs, res_inputs, filters,
         padding=padding,
         dilation_rate=dilation,
         depthwise_regularizer=regularizer,
-        pointwise_regilarizer=regularizer,
+        pointwise_regularizer=regularizer,
         use_bias=False,
         data_format=data_format,
     )
