@@ -147,7 +147,7 @@ def conv_bn_actv(layer_type, name, inputs, filters, kernel_size, activation_fn,
   """
   layer = layers_dict[layer_type]
 
-  if layer == 'sep_conv1d':
+  if layer_type == 'sep_conv1d':
     conv = layer(
         name="{}".format(name),
         inputs=inputs,
