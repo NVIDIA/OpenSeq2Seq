@@ -133,7 +133,7 @@ def conv_bn_res_bn_actv(layer_type, name, inputs, res_inputs, filters,
   # trick to make batchnorm work for mixed precision training.
   # To-Do check if batchnorm works smoothly for >4 dimensional tensors
   squeeze = False
-  if layer_type == "conv1d":
+  if "conv1d" in layer_type:
     axis = 1 if data_format == 'channels_last' else 2
     conv = tf.expand_dims(conv, axis=axis)  # NWC --> NHWC
     squeeze = True
