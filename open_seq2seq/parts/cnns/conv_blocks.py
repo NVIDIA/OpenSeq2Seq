@@ -25,18 +25,33 @@ def conv_actv(layer_type, name, inputs, filters, kernel_size, activation_fn,
   """
   layer = layers_dict[layer_type]
 
-  conv = layer(
-      name="{}".format(name),
-      inputs=inputs,
-      filters=filters,
-      kernel_size=kernel_size,
-      strides=strides,
-      padding=padding,
-      dilation_rate=dilation,
-      kernel_regularizer=regularizer,
-      use_bias=False,
-      data_format=data_format,
-  )
+  if layer_type == 'sep_conv1d':
+    conv = layer(
+        name="{}".format(name),
+        inputs=inputs,
+        filters=filters,
+        kernel_size=kernel_size,
+        strides=strides,
+        padding=padding,
+        dilation_rate=dilation,
+        depthwise_regularizer=regularizer,
+        pointwise_regularizer=regularizer,
+        use_bias=False,
+        data_format=data_format,
+    )
+  else:
+    conv = layer(
+        name="{}".format(name),
+        inputs=inputs,
+        filters=filters,
+        kernel_size=kernel_size,
+        strides=strides,
+        padding=padding,
+        dilation_rate=dilation,
+        kernel_regularizer=regularizer,
+        use_bias=False,
+        data_format=data_format,
+    )
 
   output = conv
   if activation_fn is not None:
@@ -69,7 +84,7 @@ def conv_bn_res_bn_actv(layer_type, name, inputs, res_inputs, filters,
         use_bias=False,
     )
     squeeze = False
-    if layer_type == "conv1d":
+    if "conv1d" in layer_type:
       axis = 1 if data_format == 'channels_last' else 2
       res = tf.expand_dims(res, axis=axis)  # NWC --> NHWC
       squeeze = True
@@ -87,18 +102,33 @@ def conv_bn_res_bn_actv(layer_type, name, inputs, res_inputs, filters,
 
     res_aggregation += res
 
-  conv = layer(
-      name="{}".format(name),
-      inputs=inputs,
-      filters=filters,
-      kernel_size=kernel_size,
-      strides=strides,
-      padding=padding,
-      dilation_rate=dilation,
-      kernel_regularizer=regularizer,
-      use_bias=False,
-      data_format=data_format,
-  )
+  if layer_type == "sep_conv1d":
+    conv = layer(
+        name="{}".format(name),
+        inputs=inputs,
+        filters=filters,
+        kernel_size=kernel_size,
+        strides=strides,
+        padding=padding,
+        dilation_rate=dilation,
+        depthwise_regularizer=regularizer,
+        pointwise_regilarizer=regularizer,
+        use_bias=False,
+        data_format=data_format,
+    )
+  else:
+    conv = layer(
+        name="{}".format(name),
+        inputs=inputs,
+        filters=filters,
+        kernel_size=kernel_size,
+        strides=strides,
+        padding=padding,
+        dilation_rate=dilation,
+        kernel_regularizer=regularizer,
+        use_bias=False,
+        data_format=data_format,
+    )
 
   # trick to make batchnorm work for mixed precision training.
   # To-Do check if batchnorm works smoothly for >4 dimensional tensors
