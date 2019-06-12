@@ -16,7 +16,7 @@ from six.moves import range
 from open_seq2seq.data.data_layer import DataLayer
 from open_seq2seq.data.utils import load_pre_existing_vocabulary
 from .speech_utils import get_speech_features_from_file, get_speech_features
-import sentencepiece as spm
+#import sentencepiece as spm
 
 # numpy.fft MKL bug: https://github.com/IntelPython/mkl_fft/issues/11
 if hasattr(np.fft, 'restore_all'):
@@ -109,9 +109,10 @@ class Speech2TextDataLayer(DataLayer):
     self.autoregressive = self.params['autoregressive']
     self.params['bpe'] = self.params.get('bpe', False)
     if self.params['bpe']:
-      self.sp = spm.SentencePieceProcessor()
-      self.sp.Load(self.params['vocab_file'])
-      self.params['tgt_vocab_size'] = len(self.sp) + 1
+       print("BPE not supported")
+#      self.sp = spm.SentencePieceProcessor()
+#      self.sp.Load(self.params['vocab_file'])
+#      self.params['tgt_vocab_size'] = len(self.sp) + 1
     else:
       self.params['char2idx'] = load_pre_existing_vocabulary(
           self.params['vocab_file'], read_chars=True,
@@ -218,7 +219,7 @@ class Speech2TextDataLayer(DataLayer):
         if self.params['shuffle']:
           self._dataset = self._dataset.shuffle(self._size)
         self._dataset = self._dataset.repeat()
-        self._dataset = self._dataset.prefetch(tf.contrib.data.AUTOTUNE)
+        self._dataset = self._dataset.prefetch(1)
         self._dataset = self._dataset.map(
             lambda line: tf.py_func(
                 self._parse_audio_transcript_element,
@@ -226,7 +227,7 @@ class Speech2TextDataLayer(DataLayer):
                 [self.params['dtype'], tf.int32, tf.int32, tf.int32, tf.float32],
                 stateful=False,
             ),
-            num_parallel_calls=8,
+            num_parallel_calls=1,
         )
         if self.params['max_duration'] > 0:
           self._dataset = self._dataset.filter(
@@ -241,7 +242,7 @@ class Speech2TextDataLayer(DataLayer):
         self._dataset = self._dataset.map(
             lambda x, x_len, y, y_len, duration:
             [x, x_len, y, y_len],
-            num_parallel_calls=8,
+            num_parallel_calls=1,
         )
         self._dataset = self._dataset.padded_batch(
             self.params['batch_size'],
@@ -258,7 +259,7 @@ class Speech2TextDataLayer(DataLayer):
             np.hstack((indices[:, np.newaxis], self._files[:, np.newaxis]))
         )
         self._dataset = self._dataset.repeat()
-        self._dataset = self._dataset.prefetch(tf.contrib.data.AUTOTUNE)
+        self._dataset = self._dataset.prefetch(1)
         self._dataset = self._dataset.map(
             lambda line: tf.py_func(
                 self._parse_audio_element,
@@ -266,7 +267,7 @@ class Speech2TextDataLayer(DataLayer):
                 [self.params['dtype'], tf.int32, tf.int32, tf.float32],
                 stateful=False,
             ),
-            num_parallel_calls=8,
+            num_parallel_calls=1,
         )
         if self.params['max_duration'] > 0:
           self._dataset = self._dataset.filter(
@@ -281,14 +282,14 @@ class Speech2TextDataLayer(DataLayer):
         self._dataset = self._dataset.map(
             lambda x, x_len, idx, duration:
             [x, x_len, idx],
-            num_parallel_calls=16,
+            num_parallel_calls=1,
         )
         self._dataset = self._dataset.padded_batch(
             self.params['batch_size'],
             padded_shapes=([None, self.params['num_audio_features']], 1, 1)
         )
 
-      self._iterator = self._dataset.prefetch(tf.contrib.data.AUTOTUNE)\
+      self._iterator = self._dataset.prefetch(1)\
                            .make_initializable_iterator()
 
       if self.params['mode'] != 'infer':

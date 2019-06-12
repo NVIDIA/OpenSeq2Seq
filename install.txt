@@ -1,0 +1,30 @@
+1. fix LD_LIBRARY_PATH in .bashrc
+export PATH=/usr/local/cuda/bin${PATH:+:${PATH}}
+export LD_LIBRARY_PATH=/usr/local/cuda/lib64:/usr/lib/aarch64-linux-gnu:/usr/lib/aarch64-linux-gnu/tegra${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}
+
+2. sudo apt-get install open-jdk-8 (8...11)
+
+3. download https://devtalk.nvidia.com/default/topic/1048776/official-tensorflow-for-jetson-nano-/
+https://docs.nvidia.com/deeplearning/frameworks/install-tf-xavier/index.html
+
+4. OpenSeq2Seq
+
+sudo apt-get install liblapack-dev
+sudo apt-get install gfortran
+wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key|sudo apt-key add -
+sudo apt-get install libllvm7 llvm-7 llvm-7-dev llvm-7-runtime
+LLVM_CONFIG=/usr/lib/llvm-7/bin/llvm-config pip3 install llvmlite
+
+For translation:
+1. build bazel:
+https://www.96boards.org/documentation/consumer/guides/tensorflow-installation.md.html 
+https://collaborate.linaro.org/display/BDTS/Building+and+Installing+Tensorflow+on+AArch64
+
+2. sentencepiece
+
+https://github.com/google/sentencepiece
+git clone https://github.com/google/sentencepiece
+comment out py_proto in src/BUILD
+
+3 sacrebleu
+ git clone https://github.com/mjpost/sacreBLEU

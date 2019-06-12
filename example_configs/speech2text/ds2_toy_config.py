@@ -14,17 +14,17 @@ base_params = {
   "random_seed": 0,
   "use_horovod": False,
   #"num_epochs":  200,
-  "max_steps": 1000,
+  "max_steps": 100,
 
-  "num_gpus": 2,
-  "batch_size_per_gpu": 8,
+  "num_gpus": 1,
+  "batch_size_per_gpu": 2,
 
-  "save_summaries_steps": 100,
-  "print_loss_steps": 100,
-  "print_samples_steps": 100,
+  "save_summaries_steps": 1000,
+  "print_loss_steps": 1,
+  "print_samples_steps": 1000,
   "eval_steps": 500,
-  "save_checkpoint_steps": 500,
-  "logdir": "ds2_log/toy",
+  "save_checkpoint_steps": 5000,
+  "logdir": "logs/ds2_toy",
 
   "optimizer": "Momentum",
   "optimizer_params": {
@@ -35,9 +35,9 @@ base_params = {
     "learning_rate": 0.001,
     "power": 2,
   },
-  "larc_params": {
-    "larc_eta": 0.001,
-  },
+#  "larc_params": {
+#    "larc_eta": 0.001,
+#  },
   "dtype": tf.float32,
 
   "summaries": ['learning_rate', 'variables', 'gradients', 'larc_summaries',
@@ -60,9 +60,9 @@ base_params = {
       },
     ],
     "data_format": "BFTC",  #"channels_last", "channels_first",'BCTF', 'BTFC', 'BCFT', 'BFTC'
-    "n_hidden": 256,
+    "n_hidden": 64,
 
-    "rnn_cell_dim": 256,
+    "rnn_cell_dim": 64,
     "rnn_type": "gru",
     "num_rnn_layers": 1,
     "rnn_unidirectional": False,
@@ -86,14 +86,14 @@ base_params = {
     "use_language_model": False,
 
     # params for decoding the sequence with language model
-    "beam_width": 64,
-    "alpha": 1.0,
-    "beta": 1.5,
+    # "beam_width": 4,
+    # "alpha": 1.0,
+    # "beta": 1.5,
 
-    "decoder_library_path": "ctc_decoder_with_lm/libctc_decoder_with_kenlm.so",
-    "lm_path": "language_model/4-gram.binary",
-    "trie_path": "language_model/trie.binary",
-    "alphabet_config_path": "open_seq2seq/test_utils/toy_speech_data/vocab.txt",
+    # "decoder_library_path": "ctc_decoder_with_lm/libctc_decoder_with_kenlm.so",
+    # "lm_path": "language_model/4-gram.binary",
+    # "trie_path": "language_model/trie.binary",
+    # "alphabet_config_path": "open_seq2seq/test_utils/toy_speech_data/vocab.txt",
   },
   "loss": CTCLoss,
   "loss_params": {},
