@@ -142,6 +142,10 @@ Download and preprocess LibriSpeech dataset::
 
  python scripts/import_librivox.py data/librispeech
 
+Install KenLM::
+
+ scripts/install_kenlm.sh
+
 Download and preprocess OpenSLR language model::
 
  scripts/download_lm.sh
