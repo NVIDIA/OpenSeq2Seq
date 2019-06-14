@@ -10,7 +10,7 @@ import numpy as np
 # 	1) v1-12: V1 dataset with 12 classes, including unknown and silence
 # 	2) v1-30: V1 dataset with 30 classes, without unknown and silence
 # 	3) v2: V2 dataset with 35 classes
-DATASET = "v1-12"
+DATASET = "v1-30"
 
 if DATASET == "v1-12":
 	classes = ["yes", "no", "up", "down", "left", "right", "on", "off", "stop", "go", "unknown", "silence"]
@@ -22,7 +22,7 @@ else:
 	print("Dataset not supported")
 	exit()
 
-root_dir = "../../../data"
+root_dir = "/home/lab/data/"
 if "v1" in DATASET:
 	root_dir = os.path.join(root_dir, "speech_commands_v0.01")
 else:

@@ -9,14 +9,15 @@ from open_seq2seq.optimizers.lr_policies import poly_decay
 from open_seq2seq.optimizers.novograd import NovoGrad
 
 residual_dense = False # Enable or disable Dense Residual
-layer_per_block =  4
+layer_per_block = 5
+
+data_dir = "/home/lab/"
 
 base_model = Speech2Text
-
 base_params = {
     "random_seed": 0,
     "use_horovod": False,
-    "max_steps": 10,
+    "max_steps": 100,
 #    "num_epochs": 1,
 
     "num_gpus": 1,
@@ -28,8 +29,8 @@ base_params = {
     "print_samples_steps": 2200,
     "eval_steps": 2200,
     "save_checkpoint_steps": 1100,
-    "logdir": "logs/jasper_small",
-    "num_checkpoints": 2,
+    "logdir": "logs/jasper_small2",
+    "num_checkpoints": 1,
 
     "optimizer": NovoGrad,
     "optimizer_params": {
@@ -57,47 +58,47 @@ base_params = {
             {
                 "type": "conv1d", "repeat": 1,
                 "kernel_size": [11], "stride": [2],
-                "num_channels": 96, "padding": "SAME",
+                "num_channels": 32, "padding": "SAME",
                 "dilation":[1], "dropout_keep_prob": 1.0, # 0.8,
             },
             {
                 "type": "conv1d", "repeat": layer_per_block,
                 "kernel_size": [13], "stride": [1],
-                "num_channels": 128, "padding": "SAME",
+                "num_channels": 64, "padding": "SAME",
                 "dilation":[1], "dropout_keep_prob": 1.0, # 0.8,
                 "residual": True, "residual_dense": residual_dense
             },
             {
                 "type": "conv1d", "repeat": layer_per_block,
                 "kernel_size": [17], "stride": [1],
-                "num_channels": 160, "padding": "SAME",
+                "num_channels": 96, "padding": "SAME",
                 "dilation":[1], "dropout_keep_prob": 1.0, # 0.8,
                 "residual": True, "residual_dense": residual_dense
             },
             {
                 "type": "conv1d", "repeat": layer_per_block,
                 "kernel_size": [21], "stride": [1],
-                "num_channels": 192, "padding": "SAME",
+                "num_channels": 128, "padding": "SAME",
                 "dilation":[1], "dropout_keep_prob": 1.0, # 0.7,
                 "residual": True, "residual_dense": residual_dense
             },
             {
                 "type": "conv1d", "repeat": layer_per_block,
                 "kernel_size": [25], "stride": [1],
-                "num_channels": 256, "padding": "SAME",
+                "num_channels": 160, "padding": "SAME",
                 "dilation":[1], "dropout_keep_prob": 1.0, # 0.7,
                 "residual": True, "residual_dense": residual_dense
             },
             {
                 "type": "conv1d", "repeat": 1,
                 "kernel_size": [29], "stride": [1],
-                "num_channels": 320, "padding": "SAME",
+                "num_channels": 256, "padding": "SAME",
                 "dilation":[2], "dropout_keep_prob": 1.0, # 0.6,
             },
             {
                 "type": "conv1d", "repeat": 1,
                 "kernel_size": [1], "stride": [1],
-                "num_channels": 320, "padding": "SAME",
+                "num_channels": 256, "padding": "SAME",
                 "dilation":[1], "dropout_keep_prob": 1.0, # 0.6,
             }
         ],
@@ -152,23 +153,13 @@ train_params = {
     "data_layer": Speech2TextDataLayer,
     "data_layer_params": {
         "dataset_files": [
-            "data/librispeech/librivox-dev-clean.csv",
-        ],
-        "max_duration": 6.0,
-        "shuffle": False,
-    },
-}
-
-train_params = {
-    "data_layer": Speech2TextDataLayer,
-    "data_layer_params": {
-        "dataset_files": [
-            "data/librispeech/librivox-train-clean-100.csv" #,
+          data_dir + "data/librispeech/librivox-dev-clean.csv"
+#            data_dir + "data/librispeech/librivox-train-clean-100.csv" #,
 #            "data/librispeech/librivox-train-clean-360.csv",
 #            "data/librispeech/librivox-train-other-500.csv"
         ],
-        "max_duration": 6.0,
-        "shuffle": True,
+        "max_duration": 4.0,
+        "shuffle": False,
     },
 }
 
@@ -176,7 +167,7 @@ eval_params = {
     "data_layer": Speech2TextDataLayer,
     "data_layer_params": {
         "dataset_files": [
-            "data/librispeech/librivox-dev-clean.csv",
+            data_dir + "data/librispeech/librivox-dev-clean.csv",
         ],
         "shuffle": False,
     },
@@ -186,7 +177,7 @@ infer_params = {
     "data_layer": Speech2TextDataLayer,
     "data_layer_params": {
         "dataset_files": [
-            "data/librispeech/librivox-test-clean.csv",
+            data_dir + "data/librispeech/librivox-test-clean.csv",
         ],
         "shuffle": False,
     },
