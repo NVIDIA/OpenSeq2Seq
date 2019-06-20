@@ -199,18 +199,20 @@ def get_speech_features_from_file(filename, params):
   return features, duration
 
 
-def normalize_signal(signal):
+def normalize_signal(signal, gain=None):
   """
   Normalize float32 signal to [-1, 1] range
   """
-  return signal / (np.max(np.abs(signal)) + 1e-5)
+  if gain is None:
+    gain = 1.0 / (np.max(np.abs(signal)) + 1e-5)
+  return signal * gain
 
 
-def augment_audio_signal(signal, sample_freq, augmentation):
+def augment_audio_signal(signal_float, sample_freq, augmentation):
   """Function that performs audio signal augmentation.
 
   Args:
-    signal (np.array): np.array containing raw audio signal.
+    signal_float (np.array): np.array containing raw audio signal.
     sample_freq (float): frames per second.
     augmentation (dict, optional): None or dictionary of augmentation parameters.
         If not None, has to have 'speed_perturbation_ratio',
@@ -226,8 +228,6 @@ def augment_audio_signal(signal, sample_freq, augmentation):
   Returns:
     np.array: np.array with augmented audio signal.
   """
-  signal_float = normalize_signal(signal.astype(np.float32))
-
   if 'speed_perturbation_ratio' in augmentation:
     stretch_amount = -1
     if isinstance(augmentation['speed_perturbation_ratio'], list):
@@ -251,7 +251,7 @@ def augment_audio_signal(signal, sample_freq, augmentation):
     signal_float += np.random.randn(signal_float.shape[0]) * \
                     10.0 ** (noise_level_db / 20.0)
 
-  return normalize_signal(signal_float)
+  return signal_float
 
 
 def preemphasis(signal, coeff=0.97):
@@ -286,6 +286,9 @@ def get_speech_features(signal, sample_freq, params):
     num_fft = params.get('num_fft', None)
     norm_per_feature = params.get('norm_per_feature', False)
     mel_basis = params.get('mel_basis', None)
+    gain = params.get('gain')
+    mean = params.get('features_mean')
+    std_dev = params.get('features_std_dev')
     if mel_basis is not None and sample_freq != params["sample_freq"]:
       raise ValueError(
           ("The sampling frequency set in params {} does not match the "
@@ -296,7 +299,7 @@ def get_speech_features(signal, sample_freq, params):
         signal, sample_freq, num_features, features_type,
         window_size, window_stride, augmentation, window_fn=window_fn,
         dither=dither, norm_per_feature=norm_per_feature, num_fft=num_fft,
-        mel_basis=mel_basis
+        mel_basis=mel_basis, gain=gain, mean=mean, std_dev=std_dev
     )
   else:
     pad_to = params.get('pad_to', 8)
@@ -317,7 +320,10 @@ def get_speech_features_librosa(signal, sample_freq, num_features,
                                 num_fft=None,
                                 dither=0.0,
                                 norm_per_feature=False,
-                                mel_basis=None):
+                                mel_basis=None,
+                                gain=None,
+                                mean=None,
+                                std_dev=None):
   """Function to convert raw audio signal to numpy array of features.
   Backend: librosa
   Args:
@@ -337,10 +343,9 @@ def get_speech_features_librosa(signal, sample_freq, num_features,
     num_features].
     audio_duration (float): duration of the signal in seconds
   """
+  signal = normalize_signal(signal.astype(np.float32), gain)
   if augmentation:
-    signal = augment_audio_signal(signal.astype(np.float32), sample_freq, augmentation)
-  else:
-    signal = normalize_signal(signal.astype(np.float32))
+    signal = augment_audio_signal(signal, sample_freq, augmentation)
 
   audio_duration = len(signal) * 1.0 / sample_freq
 
@@ -396,8 +401,11 @@ def get_speech_features_librosa(signal, sample_freq, num_features,
     raise ValueError('Unknown features type: {}'.format(features_type))
 
   norm_axis = 0 if norm_per_feature else None
-  mean = np.mean(features, axis=norm_axis)
-  std_dev = np.std(features, axis=norm_axis)
+  if mean is None:
+    mean = np.mean(features, axis=norm_axis)
+  if std_dev is None:
+    std_dev = np.std(features, axis=norm_axis)
+
   features = (features - mean) / std_dev
 
   if augmentation:
