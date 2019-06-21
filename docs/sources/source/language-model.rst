@@ -66,7 +66,7 @@ Next let's create a simple LSTM language model by defining a config file for it 
 * update other hyper parameters such as number of layers, number of hidden units, cell type, loss function, learning rate, optimizer, etc. to meet your needs. 
 * choose ``dtype`` to be ``"mixed"`` if you want to use mixed-precision training, or ``tf.float32`` to train only in FP32.
 
-For example, your config file is ``lstm-wkt103-mixed.py``. To train without Horovod, update ``use_Horovod`` to False in the config file and run::
+For example, your config file is ``lstm-wkt103-mixed.py``. To train without Horovod, update ``use_horovod`` to False in the config file and run::
 
     python run.py --config_file=example_configs/lstmlm/lstm-wkt103-mixed.py --mode=train_eval --enable_logs
 
