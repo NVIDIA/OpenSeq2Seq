@@ -115,7 +115,7 @@ There are two implementations of beam search decoder in OpenSeq2Seq:
 
    - run inference (to dump logits to a pickle file)::
 
-      python run.py --mode=infer --config="MODEL_CONFIG" --logdir="MODEL_CHECKPOINT_DIR" --num_gpus=1 --use_Horovod=False --decoder_params/use_language_model=False --infer_output_file=model_output.pickle
+      python run.py --mode=infer --config="MODEL_CONFIG" --logdir="MODEL_CHECKPOINT_DIR" --num_gpus=1 --use_horovod=False --decoder_params/use_language_model=False --infer_output_file=model_output.pickle
 
    - run beam search decoder (with specific ALPHA, BETA and BEAM_WIDTH hyperparameters)::
 
@@ -141,6 +141,10 @@ Get data
 Download and preprocess LibriSpeech dataset::
 
  python scripts/import_librivox.py data/librispeech
+
+Install KenLM::
+
+ scripts/install_kenlm.sh
 
 Download and preprocess OpenSLR language model::
 

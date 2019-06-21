@@ -275,7 +275,7 @@ To enable <cite>librosa</cite>, please make sure that there is a line <code clas
 <li><p class="first">make sure that <code class="docutils literal notranslate"><span class="pre">&quot;decoder_params&quot;</span></code> section has <code class="docutils literal notranslate"><span class="pre">'infer_logits_to_pickle':</span> <span class="pre">True</span></code> line and that <code class="docutils literal notranslate"><span class="pre">&quot;dataset_files&quot;</span></code> field of <code class="docutils literal notranslate"><span class="pre">&quot;infer_params&quot;</span></code> section contains a target CSV file</p>
 </li>
 <li><p class="first">run inference (to dump logits to a pickle file):</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="n">run</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">mode</span><span class="o">=</span><span class="n">infer</span> <span class="o">--</span><span class="n">config</span><span class="o">=</span><span class="s2">&quot;MODEL_CONFIG&quot;</span> <span class="o">--</span><span class="n">logdir</span><span class="o">=</span><span class="s2">&quot;MODEL_CHECKPOINT_DIR&quot;</span> <span class="o">--</span><span class="n">num_gpus</span><span class="o">=</span><span class="mi">1</span> <span class="o">--</span><span class="n">use_Horovod</span><span class="o">=</span><span class="kc">False</span> <span class="o">--</span><span class="n">decoder_params</span><span class="o">/</span><span class="n">use_language_model</span><span class="o">=</span><span class="kc">False</span> <span class="o">--</span><span class="n">infer_output_file</span><span class="o">=</span><span class="n">model_output</span><span class="o">.</span><span class="n">pickle</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="n">run</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">mode</span><span class="o">=</span><span class="n">infer</span> <span class="o">--</span><span class="n">config</span><span class="o">=</span><span class="s2">&quot;MODEL_CONFIG&quot;</span> <span class="o">--</span><span class="n">logdir</span><span class="o">=</span><span class="s2">&quot;MODEL_CHECKPOINT_DIR&quot;</span> <span class="o">--</span><span class="n">num_gpus</span><span class="o">=</span><span class="mi">1</span> <span class="o">--</span><span class="n">use_horovod</span><span class="o">=</span><span class="kc">False</span> <span class="o">--</span><span class="n">decoder_params</span><span class="o">/</span><span class="n">use_language_model</span><span class="o">=</span><span class="kc">False</span> <span class="o">--</span><span class="n">infer_output_file</span><span class="o">=</span><span class="n">model_output</span><span class="o">.</span><span class="n">pickle</span>
 </pre></div>
 </div>
 </li>
@@ -298,6 +298,10 @@ to play with a very small model on a toy dataset.</p>
 English speech recognition on LibriSpeech dataset.</p>
 <p>Download and preprocess LibriSpeech dataset:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="n">scripts</span><span class="o">/</span><span class="n">import_librivox</span><span class="o">.</span><span class="n">py</span> <span class="n">data</span><span class="o">/</span><span class="n">librispeech</span>
+</pre></div>
+</div>
+<p>Install KenLM:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">scripts</span><span class="o">/</span><span class="n">install_kenlm</span><span class="o">.</span><span class="n">sh</span>
 </pre></div>
 </div>
 <p>Download and preprocess OpenSLR language model:</p>
