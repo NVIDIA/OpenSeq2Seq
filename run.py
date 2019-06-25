@@ -32,7 +32,8 @@ def main():
 
   load_model = base_config.get('load_model', None)
   restore_best_checkpoint = base_config.get('restore_best_checkpoint', False)
-  base_ckpt_dir = check_base_model_logdir(load_model, args, restore_best_checkpoint)
+  base_ckpt_dir = check_base_model_logdir(load_model, args,
+                                          restore_best_checkpoint)
   base_config['load_model'] = base_ckpt_dir
 
   # Check logdir and create it if necessary

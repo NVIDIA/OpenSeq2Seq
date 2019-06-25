@@ -2,14 +2,14 @@
 This file modifies standard TensorFlow modules necessary for transfer learning,
 such as MonitoredTrainingSession, ChiefSessionCreator, Scaffold, SessionManager
 '''
-
+import re
 import time
 
 import tensorflow as tf
-from tensorflow.python.tools import inspect_checkpoint as chkp
-from tensorflow.python import pywrap_tensorflow
 from tensorflow.python.ops import resources
 from tensorflow.python.training import saver as training_saver
+
+FP32_TEST = re.compile(r'Loss_Optimization\/FP32-master-copy\/')
 
 # Value that indicates no value was provided.
 USE_DEFAULT = object()
@@ -79,6 +79,8 @@ def TransferMonitoredTrainingSession(master='',  # pylint: disable=invalid-name
       `save_checkpoint_secs` is used. Default not enabled.
     summary_dir: A string.  Optional path to a directory where to
       save summaries. If None, checkpoint_dir is used instead.
+    load_model_dir (str): The location of the checkpoint file used to load the
+      model weights.
   Returns:
     A `MonitoredSession` object.
   """
@@ -105,15 +107,29 @@ def TransferMonitoredTrainingSession(master='',  # pylint: disable=invalid-name
         master=master,
         config=config,
         max_wait_secs=max_wait_secs)
-    return tf.train.MonitoredSession(session_creator=session_creator, hooks=hooks or [],
-                            stop_grace_period_secs=stop_grace_period_secs)
+    return tf.train.MonitoredSession(
+        session_creator=session_creator, hooks=hooks or [],
+        stop_grace_period_secs=stop_grace_period_secs)
 
   all_hooks = []
   if chief_only_hooks:
     all_hooks.extend(chief_only_hooks)
 
-  if not load_model_dir or tf.train.latest_checkpoint(checkpoint_dir):
-  # if no base checkpoint or if checkpoint for the current model already exists
+  restore_all = False
+  if not load_model_dir:
+    load_model_dir = checkpoint_dir
+    restore_all = True
+
+  assign_ops, restore_dict = get_assign_ops_and_restore_dict(
+      tf.train.latest_checkpoint(load_model_dir), restore_all)
+
+  if ((restore_all or tf.train.latest_checkpoint(checkpoint_dir))
+      and len(assign_ops) == 0):
+  # Checking to see if we can use the default TensorFlow Session Creator
+  # We need two conditions to be true:
+  # 1a) We are not loading partial vars through load_model_dir OR
+  # 1b) There is a saved checkpoint file from which we can load
+  # 2) if there is no dtype mismatch between checkpoint vars and vars in graph
     session_creator = tf.train.ChiefSessionCreator(
         scaffold=scaffold,
         checkpoint_dir=checkpoint_dir,
@@ -122,13 +138,15 @@ def TransferMonitoredTrainingSession(master='',  # pylint: disable=invalid-name
 
   else: # load variables from the base model's checkpoint
     if load_model_dir:
-        print("Loading the base model from {}.".format(load_model_dir))
+      print("Loading the base model from {}.".format(load_model_dir))
     session_creator = TransferChiefSessionCreator(
         scaffold=scaffold,
         checkpoint_dir=load_model_dir,
         master=master,
         config=config,
-        load_fc=load_fc)
+        load_fc=load_fc,
+        assign_ops=assign_ops,
+        restore_dict=restore_dict)
 
   summary_dir = summary_dir or checkpoint_dir
   if summary_dir:
@@ -156,8 +174,9 @@ def TransferMonitoredTrainingSession(master='',  # pylint: disable=invalid-name
 
   if hooks:
     all_hooks.extend(hooks)
-  return tf.train.MonitoredSession(session_creator=session_creator, hooks=all_hooks,
-                          stop_grace_period_secs=stop_grace_period_secs)
+  return tf.train.MonitoredSession(
+      session_creator=session_creator, hooks=all_hooks,
+      stop_grace_period_secs=stop_grace_period_secs)
 
 class TransferChiefSessionCreator(tf.train.SessionCreator):
   def __init__(self,
@@ -166,7 +185,9 @@ class TransferChiefSessionCreator(tf.train.SessionCreator):
                config=None,
                checkpoint_dir=None,
                checkpoint_filename_with_path=None,
-               load_fc=False):
+               load_fc=False,
+               assign_ops=None,
+               restore_dict=None):
     """Initializes a chief session creator.
     Args:
       scaffold: A `Scaffold` used for gathering or building supportive ops. If
@@ -184,6 +205,8 @@ class TransferChiefSessionCreator(tf.train.SessionCreator):
     self._master = master
     self._config = config
     self._load_fc = load_fc
+    self._assign_ops = assign_ops
+    self._restore_dict = restore_dict
 
   def _get_session_manager(self):
     if self._session_manager:
@@ -210,7 +233,9 @@ class TransferChiefSessionCreator(tf.train.SessionCreator):
         init_op=self._scaffold.init_op,
         init_feed_dict=self._scaffold.init_feed_dict,
         init_fn=self._scaffold.init_fn,
-        load_fc=self._load_fc)
+        load_fc=self._load_fc,
+        assign_ops=self._assign_ops,
+        restore_dict=self._restore_dict)
 
 class TransferScaffold(tf.train.Scaffold):
   def finalize(self):
@@ -245,9 +270,8 @@ class TransferScaffold(tf.train.Scaffold):
           'local_init_op', tf.GraphKeys.LOCAL_INIT_OP,
           TransferScaffold.default_local_init_op)
     if self._summary_op is None:
-      self._summary_op = TransferScaffold.get_or_default('summary_op',
-                                                 tf.GraphKeys.SUMMARY_OP,
-                                                 tf.summary.merge_all)
+      self._summary_op = TransferScaffold.get_or_default(
+          'summary_op', tf.GraphKeys.SUMMARY_OP, tf.summary.merge_all)
     # pylint: disable=g-long-lambda
     if self._saver is None:
       self._saver = training_saver._get_saver_or_default()  # pylint: disable=protected-access
@@ -268,7 +292,9 @@ class TransferSessionManager(tf.train.SessionManager):
                           wait_for_checkpoint=False,
                           max_wait_secs=7200,
                           config=None,
-                          load_fc=False):
+                          load_fc=False,
+                          assign_ops=None,
+                          restore_dict=None):
     """Creates a `Session`, and tries to restore a checkpoint.
     Args:
       master: `String` representation of the TensorFlow master to use.
@@ -301,7 +327,9 @@ class TransferSessionManager(tf.train.SessionManager):
 
     if checkpoint_filename_with_path:
       # saver.restore(sess, checkpoint_filename_with_path)
-      restore_certain_variables(sess, checkpoint_filename_with_path)
+      # restore_certain_variables(sess, checkpoint_filename_with_path)
+      run_assign_and_saver(
+          sess, checkpoint_filename_with_path, assign_ops, restore_dict)
       return sess, True
 
     # Waits up until max_wait_secs for checkpoint to become available.
@@ -318,7 +346,8 @@ class TransferSessionManager(tf.train.SessionManager):
 
     # Loads the checkpoint.
     ckpt_file = ckpt.model_checkpoint_path
-    restore_certain_variables(sess, ckpt_file)
+    # restore_certain_variables(sess, ckpt_file)
+    run_assign_and_saver(sess, ckpt_file, assign_ops, restore_dict)
     saver.recover_last_checkpoints(ckpt.all_model_checkpoint_paths)
     return sess, True
 
@@ -333,7 +362,9 @@ class TransferSessionManager(tf.train.SessionManager):
                       config=None,
                       init_feed_dict=None,
                       init_fn=None,
-                      load_fc=False):
+                      load_fc=False,
+                      assign_ops=None,
+                      restore_dict=None):
     """Creates a `Session`. Makes sure the model is ready to be used.
       Creates a `Session` on 'master'. If a `saver` object is passed in, and
       `checkpoint_dir` points to a directory containing valid checkpoint
@@ -355,18 +386,19 @@ class TransferSessionManager(tf.train.SessionManager):
         master: `String` representation of the TensorFlow master to use.
         init_op: Optional `Operation` used to initialize the model.
         saver: A `Saver` object used to restore a model.
-        checkpoint_dir: Path to the checkpoint files. The latest checkpoint in the
-          dir will be used to restore.
-        checkpoint_filename_with_path: Full file name path to the checkpoint file.
+        checkpoint_dir: Path to the checkpoint files. The latest checkpoint in
+          the dir will be used to restore.
+        checkpoint_filename_with_path: Full file name path to the checkpoint
+          file.
         wait_for_checkpoint: Whether to wait for checkpoint to become available.
         max_wait_secs: Maximum time to wait for checkpoints to become available.
         config: Optional `ConfigProto` proto used to configure the session.
         init_feed_dict: Optional dictionary that maps `Tensor` objects to feed
-          values.  This feed dictionary is passed to the session `run()` call when
-          running the init op.
-        init_fn: Optional callable used to initialize the model. Called after the
-          optional `init_op` is called.  The callable must accept one argument,
-          the session being initialized.
+          values.  This feed dictionary is passed to the session `run()` call
+          when running the init op.
+        init_fn: Optional callable used to initialize the model. Called after
+          the optional `init_op` is called.  The callable must accept one
+          argument, the session being initialized.
       Returns:
         A `Session` object that can be used to drive the model.
       Raises:
@@ -385,15 +417,17 @@ class TransferSessionManager(tf.train.SessionManager):
     sess.run(tf.local_variables_initializer()) # why do i have to add this?
     print("LOCAL INIT OP", self._local_init_op)
     sess, is_loaded_from_checkpoint = self._restore_checkpoint(
-                          master,
-                          sess,
-                          saver,
-                          checkpoint_dir=checkpoint_dir,
-                          checkpoint_filename_with_path=checkpoint_filename_with_path,
-                          wait_for_checkpoint=wait_for_checkpoint,
-                          max_wait_secs=max_wait_secs,
-                          config=config,
-                          load_fc=load_fc)
+        master,
+        sess,
+        saver,
+        checkpoint_dir=checkpoint_dir,
+        checkpoint_filename_with_path=checkpoint_filename_with_path,
+        wait_for_checkpoint=wait_for_checkpoint,
+        max_wait_secs=max_wait_secs,
+        config=config,
+        load_fc=load_fc,
+        assign_ops=assign_ops,
+        restore_dict=restore_dict)
 
 
     local_init_success, msg = self._try_run_local_init_op(sess)
@@ -413,57 +447,110 @@ class TransferSessionManager(tf.train.SessionManager):
     return sess
 
 def _restore_embed(embed_var, var_to_shape_map, reader):
-  has_embed = len([var for var in var_to_shape_map if 'EmbeddingMatrix' in var]) > 0
-  if has_embed:
-    return None, False # assume same name
+  if len([var for var in var_to_shape_map if 'EmbeddingMatrix' in var]) > 0:
+    return None, None # assume same name
   for var in var_to_shape_map:
-    if var.endswith('dense/kernel') and var_to_shape_map[var] == tf.transpose(embed_var).shape:
+    if (var.endswith('dense/kernel')
+        and var_to_shape_map[var] == tf.transpose(embed_var).shape):
       print('Assigning', var, 'to', embed_var.name)
-      return embed_var.assign(reader.get_tensor(var).T), True
-  return None, False
+      tensor = reader.get_tensor(var).T
+      if tensor.dtype != var.dtype.as_numpy_dtype():
+        return embed_var.assign(tf.cast(tensor, embed_var.dtype)), True
+      return embed_var, False
+  return None, None
 
-def restore_certain_variables(sess, filename):
-  print('Restoring only the variables found in the checkpoint')
-  trainables = {v.name: v for v in tf.trainable_variables()}
+def get_assign_ops_and_restore_dict(filename, restore_all=False):
+  """Helper function to read variable checkpoints from filename.
+  Iterates through all vars in restore_all=False else all trainable vars. It
+  attempts to match variables by name and variable shape. Returns a possibly
+  empty list of assign_ops, and a possibly empty dictionary for tf.train.Saver()
+  """
+  def check_name_and_shape(name, var, shape_map):
+    if name in shape_map:
+      # Cannot check variables with unknown sizes such as cudnn rnns
+      if str(var.shape) == "<unknown>":
+        # Just return True and hope the shapes match
+        return True
+      if var.shape == shape_map[name]:
+        return True
+    return False
+
   assign_ops = []
-  vars_to_initialize = []
+  restore_dict = {}
 
   try:
     reader = tf.train.NewCheckpointReader(filename)
     var_to_shape_map = reader.get_variable_to_shape_map()
-    non_loss_var = {var: var_to_shape_map[var] for var in var_to_shape_map if 'Loss_Optimization' not in var}
-    for var in var_to_shape_map:
-      if 'global_step' in var:
-        print('Restoring from the step', reader.get_tensor(var))
-    for name in trainables:
-      idx = name.find(":")
-      if idx != -1:
-        true_name = name[:idx]
-      # if name.endswith(':0'):
-      #   true_name = name[:-2]
-      if true_name in var_to_shape_map and trainables[name].shape == var_to_shape_map[true_name]:
-        print('Restoring value to', true_name)
-        assign_ops.append(trainables[name].assign(reader.get_tensor(true_name)))
-      if 'EmbeddingMatrix' in true_name:
-        embed_op, has_embed_op = _restore_embed(trainables[name], var_to_shape_map, reader)
-        if has_embed_op:
-          assign_ops.append(embed_op)
 
-    print('assign_ops', assign_ops)
+    variables = tf.trainable_variables()
+    if restore_all:
+      variables = tf.get_collection(tf.GraphKeys.VARIABLES)
+    for var in variables:
+      idx = var.name.find(":")
+      if idx != -1:
+        true_name = var.name[:idx]
+      loss_idx = re.search("Loss_Optimization", true_name)
+      if 'EmbeddingMatrix' in true_name:
+        embed_restore, assign = _restore_embed(var, var_to_shape_map, reader)
+        if assign:
+          assign_ops.append(embed_restore)
+        else:
+          restore_dict[true_name] = embed_restore
+      if check_name_and_shape(true_name, var, var_to_shape_map):
+        tensor = reader.get_tensor(true_name)
+        if tensor.dtype != var.dtype.as_numpy_dtype():
+          assign_ops.append(var.assign(tf.cast(tensor, var.dtype)))
+        else:
+          restore_dict[true_name] = var
+      elif loss_idx:
+        loss_idx = loss_idx.end()
+        if FP32_TEST.search(true_name):
+          true_name = FP32_TEST.sub("", true_name)
+        else:
+          true_name = (true_name[:loss_idx]
+                       + "/Loss_Optimization/FP32-master-copy"
+                       + true_name[loss_idx:])
+        if check_name_and_shape(true_name, var, var_to_shape_map):
+          tensor = reader.get_tensor(true_name)
+          if tensor.dtype != var.dtype.as_numpy_dtype():
+            assign_ops.append(var.assign(tf.cast(tensor, var.dtype)))
+          else:
+            restore_dict[true_name] = var
+      else:
+        print("Not restoring {}".format(var.name))
+        if true_name not in var_to_shape_map:
+          print("true name [{}] was not in shape map".format(true_name))
+        else:
+          if var.shape != var_to_shape_map[true_name]:
+            print(("var.shape [{}] does not match var_to_shape_map[true_name]"
+                   "[{}]").format(var.shape, var_to_shape_map[true_name]))
+        print("WARNING: Run will mostly error out due to this")
   except Exception as e:  # pylint: disable=broad-except
     print(str(e))
     if "corrupted compressed block contents" in str(e):
       print("It's likely that your checkpoint file has been compressed "
             "with SNAPPY.")
     if ("Data loss" in str(e) and
-        (any([e in file_name for e in [".index", ".meta", ".data"]]))):
-      proposed_file = ".".join(file_name.split(".")[0:-1])
+        (any([e in filename for e in [".index", ".meta", ".data"]]))):
+      proposed_file = ".".join(filename.split(".")[0:-1])
       v2_file_error_template = """
-      It's likely that this is a V2 checkpoint and you need to provide the filename
-      *prefix*.  Try removing the '.' and extension.  Try:
+      It's likely that this is a V2 checkpoint and you need to provide the
+      filename *prefix*.  Try removing the '.' and extension.  Try:
       inspect checkpoint --file_name = {}"""
       print(v2_file_error_template.format(proposed_file))
-  sess.run(assign_ops)
+    raise ValueError("Error in loading checkpoint")
+  return assign_ops, restore_dict
+
+def run_assign_and_saver(sess, filename, assign_ops, restore_dict):
+  """Helper function to restore variables. All variables with the same dtype
+  can be restored using tf.train.Saver(). All variables with different dtype
+  are restored using assign_ops
+  """
+  if restore_dict:
+    restorer = tf.train.Saver(restore_dict)
+    restorer.restore(sess, filename)
+  if assign_ops:
+    sess.run(assign_ops)
 
 def _maybe_name(obj):
   """Returns object name if it has one, or a message otherwise.
