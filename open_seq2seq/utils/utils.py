@@ -168,7 +168,7 @@ def iterate_data(model, sess, compute_loss, mode, verbose, num_steps=None):
       else:
         inputs, outputs = fetches_val[:2]
 
-      if total_objects is not None:
+      if total_objects is not None and step >= bench_start:
         total_objects += np.sum(fetches_val[-1])
 
       # assuming any element of inputs["source_tensors"] .shape[0] is batch size
