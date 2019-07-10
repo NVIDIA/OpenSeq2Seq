@@ -113,10 +113,8 @@ def train(train_model, eval_model=None, debug_port=None, custom_hooks=None):
   # We restore only if the user provides load_model_dir. load_model_dir is the
   # directory containing the checkpoint we want to load partial or all weights
   # from.. Useful for transer learning or if we do not want to overwrite our
-  # checkpoint. OR
-  # there exists a checkpoint inside our log directory. For example, if we are
-  # using --continue_learning and want to overwrite the saved checkpoint
-  restoring = load_model_dir or tf.train.latest_checkpoint(checkpoint_dir)
+  # checkpoint. 
+  restoring = load_model_dir and not tf.train.latest_checkpoint(checkpoint_dir)
   if restoring:
     scaffold = TransferScaffold(
         local_init_op=tf.group(tf.local_variables_initializer(), init_data_layer)
