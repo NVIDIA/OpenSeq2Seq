@@ -84,20 +84,21 @@ Installation of OpenSeq2Seq for speech recognition
 CTC-based speech recognition models can use the following decoders to get a transcription out of a model's state:
 
  * greedy decoder, the fastest, but might yield spelling errors (can be enabled with ``"use_language_model": False``)
- * beam search decoder with language model rescoring, the most accurate, but the slowest (can be enabled with ``"use_language_model": True``)
+ * beam search decoder with language model (LM) rescoring, the most accurate, but the slowest
 
-You can find more information about these decoders at :doc:`DeepSpeech 2 page </speech-recognition/deepspeech2>`.
+You can find more information about these decoders at :ref:`decoders-ref` section.
 
 CTC beam search decoder with language model rescoring is an optional component and might be used for speech recognition inference only.
 
-Since TensorFlow does not support it by default, you will need to build TensorFlow
-from sources with a custom CTC decoder operation. In order to do that, follow
-the steps below. Alternatively, you can disable language model by setting
-"use_language_model" parameter of decoder to False, but that will lead to a
-worse model accuracy.
+There are two implementations of CTC beam search decoder with LM rescoring in OpenSeq2Seq:
 
-How to install a CTC decoder with language model to TensorFlow (optional)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ * Baidu CTC decoder (the recommended). It can be installed with ``scripts/install_decoders.sh`` command. 
+   To test the installation please run ``python scripts/ctc_decoders_test.py``.
+
+ * Custom native TF op (rather deprecated). See installation instructions below.
+
+How to build a custom native TF op for CTC decoder with language model (optional)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 First of all, make sure that you installed CUDA >= 10.0, cuDNN >= 7.4, NCCL >= 2.3.
 

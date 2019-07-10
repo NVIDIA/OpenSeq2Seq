@@ -96,6 +96,8 @@ The recommended pipeline is the following (in order to get the best accuracy, th
    To enable `librosa`, please make sure that there is a line ``"backend": "librosa"`` in ``"data_layer_params"``.
 
 
+.. _decoders-ref:
+
 Decoders
 ~~~~~~~~
 
