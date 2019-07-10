@@ -89,7 +89,7 @@
 <li class="toctree-l2"><a class="reference internal" href="#pre-built-docker-container">Pre-built docker container</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#general-installation">General installation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#installation-of-openseq2seq-for-speech-recognition">Installation of OpenSeq2Seq for speech recognition</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#how-to-install-a-ctc-decoder-with-language-model-to-tensorflow-optional">How to install a CTC decoder with language model to TensorFlow (optional)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#how-to-build-a-custom-native-tf-op-for-ctc-decoder-with-language-model-optional">How to build a custom native TF op for CTC decoder with language model (optional)</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#how-to-download-a-language-model-for-a-ctc-decoder-optional">How to download a language model for a CTC decoder (optional)</a></li>
 </ul>
 </li>
@@ -260,18 +260,21 @@ Otherwise you can just install TensorFlow using pip:</p>
 <blockquote>
 <div><ul class="simple">
 <li>greedy decoder, the fastest, but might yield spelling errors (can be enabled with <code class="docutils literal notranslate"><span class="pre">&quot;use_language_model&quot;:</span> <span class="pre">False</span></code>)</li>
-<li>beam search decoder with language model rescoring, the most accurate, but the slowest (can be enabled with <code class="docutils literal notranslate"><span class="pre">&quot;use_language_model&quot;:</span> <span class="pre">True</span></code>)</li>
+<li>beam search decoder with language model (LM) rescoring, the most accurate, but the slowest</li>
 </ul>
 </div></blockquote>
-<p>You can find more information about these decoders at <a class="reference internal" href="speech-recognition/deepspeech2.html"><span class="doc">DeepSpeech 2 page</span></a>.</p>
+<p>You can find more information about these decoders at <a class="reference internal" href="speech-recognition.html#decoders-ref"><span class="std std-ref">Decoders</span></a> section.</p>
 <p>CTC beam search decoder with language model rescoring is an optional component and might be used for speech recognition inference only.</p>
-<p>Since TensorFlow does not support it by default, you will need to build TensorFlow
-from sources with a custom CTC decoder operation. In order to do that, follow
-the steps below. Alternatively, you can disable language model by setting
-“use_language_model” parameter of decoder to False, but that will lead to a
-worse model accuracy.</p>
-<div class="section" id="how-to-install-a-ctc-decoder-with-language-model-to-tensorflow-optional">
-<h3>How to install a CTC decoder with language model to TensorFlow (optional)<a class="headerlink" href="#how-to-install-a-ctc-decoder-with-language-model-to-tensorflow-optional" title="Permalink to this headline">¶</a></h3>
+<p>There are two implementations of CTC beam search decoder with LM rescoring in OpenSeq2Seq:</p>
+<blockquote>
+<div><ul class="simple">
+<li>Baidu CTC decoder (the recommended). It can be installed with <code class="docutils literal notranslate"><span class="pre">scripts/install_decoders.sh</span></code> command.
+To test the installation please run <code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">scripts/ctc_decoders_test.py</span></code>.</li>
+<li>Custom native TF op (rather deprecated). See installation instructions below.</li>
+</ul>
+</div></blockquote>
+<div class="section" id="how-to-build-a-custom-native-tf-op-for-ctc-decoder-with-language-model-optional">
+<h3>How to build a custom native TF op for CTC decoder with language model (optional)<a class="headerlink" href="#how-to-build-a-custom-native-tf-op-for-ctc-decoder-with-language-model-optional" title="Permalink to this headline">¶</a></h3>
 <p>First of all, make sure that you installed CUDA &gt;= 10.0, cuDNN &gt;= 7.4, NCCL &gt;= 2.3.</p>
 <ol class="arabic">
 <li><p class="first">Install <a class="reference external" href="http://www.boost.org">boost</a>:</p>

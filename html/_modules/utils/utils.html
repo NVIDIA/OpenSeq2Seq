@@ -331,7 +331,7 @@
       <span class="k">else</span><span class="p">:</span>
         <span class="n">inputs</span><span class="p">,</span> <span class="n">outputs</span> <span class="o">=</span> <span class="n">fetches_val</span><span class="p">[:</span><span class="mi">2</span><span class="p">]</span>
 
-      <span class="k">if</span> <span class="n">total_objects</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+      <span class="k">if</span> <span class="n">total_objects</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">step</span> <span class="o">&gt;=</span> <span class="n">bench_start</span><span class="p">:</span>
         <span class="n">total_objects</span> <span class="o">+=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">fetches_val</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
 
       <span class="c1"># assuming any element of inputs[&quot;source_tensors&quot;] .shape[0] is batch size</span>

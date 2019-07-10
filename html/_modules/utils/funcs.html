@@ -177,7 +177,8 @@
                                      <span class="n">collect_if_horovod</span>
 <span class="kn">from</span> <span class="nn">.hooks</span> <span class="k">import</span> <span class="n">PrintSamplesHook</span><span class="p">,</span> <span class="n">RunEvaluationHook</span><span class="p">,</span> <span class="n">PrintLossAndTimeHook</span><span class="p">,</span> \
                    <span class="n">BroadcastGlobalVariablesHook</span>
-<span class="kn">from</span> <span class="nn">.helpers</span> <span class="k">import</span> <span class="n">TransferMonitoredTrainingSession</span><span class="p">,</span> <span class="n">TransferScaffold</span>
+<span class="kn">from</span> <span class="nn">.helpers</span> <span class="k">import</span> <span class="n">TransferMonitoredTrainingSession</span><span class="p">,</span> <span class="n">TransferScaffold</span><span class="p">,</span> \
+                     <span class="n">get_assign_ops_and_restore_dict</span><span class="p">,</span> <span class="n">run_assign_and_saver</span>
 <span class="kn">from</span> <span class="nn">open_seq2seq.data</span> <span class="k">import</span> <span class="n">WKTDataLayer</span>
 
 
@@ -272,12 +273,17 @@
          <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">train_model</span><span class="o">.</span><span class="n">num_gpus</span><span class="p">)]</span>
     <span class="p">)</span>
 
-  <span class="k">if</span> <span class="p">(</span><span class="ow">not</span> <span class="n">load_model_dir</span><span class="p">)</span> <span class="ow">or</span> <span class="n">tf</span><span class="o">.</span><span class="n">train</span><span class="o">.</span><span class="n">latest_checkpoint</span><span class="p">(</span><span class="n">checkpoint_dir</span><span class="p">):</span>
-    <span class="n">scaffold</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">train</span><span class="o">.</span><span class="n">Scaffold</span><span class="p">(</span>
+  <span class="c1"># We restore only if the user provides load_model_dir. load_model_dir is the</span>
+  <span class="c1"># directory containing the checkpoint we want to load partial or all weights</span>
+  <span class="c1"># from.. Useful for transer learning or if we do not want to overwrite our</span>
+  <span class="c1"># checkpoint. </span>
+  <span class="n">restoring</span> <span class="o">=</span> <span class="n">load_model_dir</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">tf</span><span class="o">.</span><span class="n">train</span><span class="o">.</span><span class="n">latest_checkpoint</span><span class="p">(</span><span class="n">checkpoint_dir</span><span class="p">)</span>
+  <span class="k">if</span> <span class="n">restoring</span><span class="p">:</span>
+    <span class="n">scaffold</span> <span class="o">=</span> <span class="n">TransferScaffold</span><span class="p">(</span>
         <span class="n">local_init_op</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">local_variables_initializer</span><span class="p">(),</span> <span class="n">init_data_layer</span><span class="p">)</span>
     <span class="p">)</span>
   <span class="k">else</span><span class="p">:</span>
-    <span class="n">scaffold</span> <span class="o">=</span> <span class="n">TransferScaffold</span><span class="p">(</span>
+    <span class="n">scaffold</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">train</span><span class="o">.</span><span class="n">Scaffold</span><span class="p">(</span>
         <span class="n">local_init_op</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">local_variables_initializer</span><span class="p">(),</span> <span class="n">init_data_layer</span><span class="p">)</span>
     <span class="p">)</span>
   <span class="n">fetches</span> <span class="o">=</span> <span class="p">[</span><span class="n">train_model</span><span class="o">.</span><span class="n">train_op</span><span class="p">]</span>
@@ -291,28 +297,28 @@
                <span class="s2">&quot;train model does not define get_num_objects_per_step method.&quot;</span><span class="p">)</span>
 
   <span class="c1"># starting training</span>
-  <span class="k">if</span> <span class="n">load_model_dir</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">tf</span><span class="o">.</span><span class="n">train</span><span class="o">.</span><span class="n">latest_checkpoint</span><span class="p">(</span><span class="n">checkpoint_dir</span><span class="p">):</span>
+  <span class="k">if</span> <span class="n">restoring</span><span class="p">:</span>
     <span class="n">sess</span> <span class="o">=</span> <span class="n">TransferMonitoredTrainingSession</span><span class="p">(</span>
-      <span class="n">scaffold</span><span class="o">=</span><span class="n">scaffold</span><span class="p">,</span>
-      <span class="n">checkpoint_dir</span><span class="o">=</span><span class="n">checkpoint_dir</span><span class="p">,</span>
-      <span class="n">save_summaries_steps</span><span class="o">=</span><span class="n">train_model</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;save_summaries_steps&#39;</span><span class="p">],</span>
-      <span class="n">config</span><span class="o">=</span><span class="n">sess_config</span><span class="p">,</span>
-      <span class="n">save_checkpoint_secs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-      <span class="n">log_step_count_steps</span><span class="o">=</span><span class="n">train_model</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;save_summaries_steps&#39;</span><span class="p">],</span>
-      <span class="n">stop_grace_period_secs</span><span class="o">=</span><span class="mi">300</span><span class="p">,</span>
-      <span class="n">hooks</span><span class="o">=</span><span class="n">hooks</span><span class="p">,</span>
-      <span class="n">load_model_dir</span><span class="o">=</span><span class="n">load_model_dir</span><span class="p">,</span>
-      <span class="n">load_fc</span><span class="o">=</span><span class="n">train_model</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;load_fc&#39;</span><span class="p">])</span>
+        <span class="n">scaffold</span><span class="o">=</span><span class="n">scaffold</span><span class="p">,</span>
+        <span class="n">checkpoint_dir</span><span class="o">=</span><span class="n">checkpoint_dir</span><span class="p">,</span>
+        <span class="n">save_summaries_steps</span><span class="o">=</span><span class="n">train_model</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;save_summaries_steps&#39;</span><span class="p">],</span>
+        <span class="n">config</span><span class="o">=</span><span class="n">sess_config</span><span class="p">,</span>
+        <span class="n">save_checkpoint_secs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">log_step_count_steps</span><span class="o">=</span><span class="n">train_model</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;save_summaries_steps&#39;</span><span class="p">],</span>
+        <span class="n">stop_grace_period_secs</span><span class="o">=</span><span class="mi">300</span><span class="p">,</span>
+        <span class="n">hooks</span><span class="o">=</span><span class="n">hooks</span><span class="p">,</span>
+        <span class="n">load_model_dir</span><span class="o">=</span><span class="n">load_model_dir</span><span class="p">,</span>
+        <span class="n">load_fc</span><span class="o">=</span><span class="n">train_model</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;load_fc&#39;</span><span class="p">])</span>
   <span class="k">else</span><span class="p">:</span>
     <span class="n">sess</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">train</span><span class="o">.</span><span class="n">MonitoredTrainingSession</span><span class="p">(</span>
-      <span class="n">scaffold</span><span class="o">=</span><span class="n">scaffold</span><span class="p">,</span>
-      <span class="n">checkpoint_dir</span><span class="o">=</span><span class="n">checkpoint_dir</span><span class="p">,</span>
-      <span class="n">save_summaries_steps</span><span class="o">=</span><span class="n">train_model</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;save_summaries_steps&#39;</span><span class="p">],</span>
-      <span class="n">config</span><span class="o">=</span><span class="n">sess_config</span><span class="p">,</span>
-      <span class="n">save_checkpoint_secs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-      <span class="n">log_step_count_steps</span><span class="o">=</span><span class="n">train_model</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;save_summaries_steps&#39;</span><span class="p">],</span>
-      <span class="n">stop_grace_period_secs</span><span class="o">=</span><span class="mi">300</span><span class="p">,</span>
-      <span class="n">hooks</span><span class="o">=</span><span class="n">hooks</span><span class="p">)</span>
+        <span class="n">scaffold</span><span class="o">=</span><span class="n">scaffold</span><span class="p">,</span>
+        <span class="n">checkpoint_dir</span><span class="o">=</span><span class="n">checkpoint_dir</span><span class="p">,</span>
+        <span class="n">save_summaries_steps</span><span class="o">=</span><span class="n">train_model</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;save_summaries_steps&#39;</span><span class="p">],</span>
+        <span class="n">config</span><span class="o">=</span><span class="n">sess_config</span><span class="p">,</span>
+        <span class="n">save_checkpoint_secs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">log_step_count_steps</span><span class="o">=</span><span class="n">train_model</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;save_summaries_steps&#39;</span><span class="p">],</span>
+        <span class="n">stop_grace_period_secs</span><span class="o">=</span><span class="mi">300</span><span class="p">,</span>
+        <span class="n">hooks</span><span class="o">=</span><span class="n">hooks</span><span class="p">)</span>
   <span class="n">step</span> <span class="o">=</span> <span class="mi">0</span>
   <span class="n">num_bench_updates</span> <span class="o">=</span> <span class="mi">0</span>
   <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
@@ -378,7 +384,13 @@
     <span class="n">sess_config</span><span class="o">.</span><span class="n">gpu_options</span><span class="o">.</span><span class="n">visible_device_list</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">hvd</span><span class="o">.</span><span class="n">local_rank</span><span class="p">())</span>
   <span class="k">with</span> <span class="n">tf</span><span class="o">.</span><span class="n">Session</span><span class="p">(</span><span class="n">config</span><span class="o">=</span><span class="n">sess_config</span><span class="p">)</span> <span class="k">as</span> <span class="n">sess</span><span class="p">:</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">model</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;use_trt&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>
-      <span class="n">saver</span><span class="o">.</span><span class="n">restore</span><span class="p">(</span><span class="n">sess</span><span class="p">,</span> <span class="n">checkpoint</span><span class="p">)</span>
+      <span class="n">assign_ops</span><span class="p">,</span> <span class="n">restore_dict</span> <span class="o">=</span> <span class="n">get_assign_ops_and_restore_dict</span><span class="p">(</span>
+          <span class="n">checkpoint</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+      <span class="k">if</span> <span class="n">assign_ops</span><span class="p">:</span>
+        <span class="n">run_assign_and_saver</span><span class="p">(</span><span class="n">sess</span><span class="p">,</span> <span class="n">checkpoint</span><span class="p">,</span> <span class="n">assign_ops</span><span class="p">,</span> <span class="n">restore_dict</span><span class="p">)</span>
+      <span class="k">else</span><span class="p">:</span>
+        <span class="n">saver</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">train</span><span class="o">.</span><span class="n">Saver</span><span class="p">()</span>
+        <span class="n">saver</span><span class="o">.</span><span class="n">restore</span><span class="p">(</span><span class="n">sess</span><span class="p">,</span> <span class="n">checkpoint</span><span class="p">)</span>
     <span class="n">results_per_batch</span> <span class="o">=</span> <span class="n">get_results_for_epoch</span><span class="p">(</span>
         <span class="n">model</span><span class="p">,</span> <span class="n">sess</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="n">mode</span><span class="p">,</span> <span class="n">compute_loss</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
     <span class="p">)</span>

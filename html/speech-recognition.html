@@ -262,7 +262,7 @@ The recommended pipeline is the following (in order to get the best accuracy, th
 To enable <cite>librosa</cite>, please make sure that there is a line <code class="docutils literal notranslate"><span class="pre">&quot;backend&quot;:</span> <span class="pre">&quot;librosa&quot;</span></code> in <code class="docutils literal notranslate"><span class="pre">&quot;data_layer_params&quot;</span></code>.</p>
 </div>
 <div class="section" id="decoders">
-<h3>Decoders<a class="headerlink" href="#decoders" title="Permalink to this headline">¶</a></h3>
+<span id="decoders-ref"></span><h3>Decoders<a class="headerlink" href="#decoders" title="Permalink to this headline">¶</a></h3>
 <p>In order to get words out of a trained model one needs to use a decoder. Decoder converts a probability distribution over characters into text. There are two types of decoders that are usually employed with CTC-based models: greedy decoder and beam search decoder with language model re-scoring.</p>
 <p>A greedy decoder outputs the most probable character at each time step. It is very fast and it can produce transcripts that are very close to the original pronunciation. But it may introduce many small misspelling errors. Due to the nature of WER metric, even one character error makes a whole word incorrect.</p>
 <p>A beam search decoder with language model re-scoring allows checking many possible decodings (beams) at once with assigning a higher score for more probable N-grams according to a given language model. The language model helps to correct misspelling errors. The downside is that it is significantly slower than a greedy decoder.</p>
