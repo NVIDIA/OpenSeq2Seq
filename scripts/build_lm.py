@@ -27,7 +27,6 @@ if __name__ == '__main__':
   corpus_name = path_prefix + '.txt'
   arpa_name = path_prefix + '.arpa'
   lm_name = path_prefix + '-lm.binary'
-  trie_name = path_prefix + '-lm.trie'
   with open(corpus_name, 'w') as f:
     f.write(corpus)
 
@@ -41,9 +40,15 @@ if __name__ == '__main__':
   print(command)
   os.system(command)
 
-  command = 'ctc_decoder_with_lm/generate_trie \
-    open_seq2seq/test_utils/toy_speech_data/vocab.txt {} {} {}'.format(
-      lm_name, corpus_name, trie_name)
-  print(command)
-  os.system(command)
+  command = 'ctc_decoder_with_lm/generate_trie'
+  if os.path.isfile(command) and os.access(command, os.X_OK):
+    trie_name = path_prefix + '-lm.trie'
+    command += ' open_seq2seq/test_utils/toy_speech_data/vocab.txt {} {} {}'.format(
+        lm_name, corpus_name, trie_name)
+    print('INFO: Generating a trie for custom TF op based CTC decoder.')
+    print(command)
+    os.system(command)
+  else:
+    print('INFO: Skipping trie generation, since no custom TF op based CTC decoder found.')
+    print('INFO: Please use Baidu CTC decoder with this language model.')
 
