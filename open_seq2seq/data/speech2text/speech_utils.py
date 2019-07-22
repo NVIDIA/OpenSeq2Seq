@@ -460,10 +460,10 @@ def get_speech_features_psf(signal, sample_freq, num_features,
     audio_duration (float): duration of the signal in seconds
   """
   if augmentation is not None:
-    signal = augment_audio_signal(signal, sample_freq, augmentation)
-  else:
-    signal = (normalize_signal(signal.astype(np.float32)) * 32767.0).astype(
-        np.int16)
+    signal = augment_audio_signal(signal.astype(np.float32), 
+        sample_freq, augmentation)
+  signal = (normalize_signal(signal.astype(np.float32)) * 32767.0).astype(
+      np.int16)
 
   audio_duration = len(signal) * 1.0 / sample_freq
 

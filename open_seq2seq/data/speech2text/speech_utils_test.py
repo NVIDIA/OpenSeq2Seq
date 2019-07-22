@@ -20,6 +20,7 @@ class SpeechUtilsTests(tf.test.TestCase):
   def test_augment_audio_signal(self):
     filename = 'open_seq2seq/test_utils/toy_speech_data/wav_files/46gc040q.wav'
     freq_s, signal = wave.read(filename)
+    signal = signal.astype(np.float32)
     augmentation = {
         'speed_perturbation_ratio': 0.2,
         'noise_level_min': -90,
