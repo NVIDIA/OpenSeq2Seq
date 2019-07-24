@@ -488,7 +488,7 @@ class Model:
                   lr_params.get('begin_decay_at', 0),
                   lr_params.get('warmup_steps', 0)
               )
-            lr_params['decay_steps'] -= lr_params['begin_decay_at']
+            lr_params['decay_steps'] -= lr_params.get('begin_decay_at', 0)
           
         if 'steps_per_epoch' in func_params and \
            'steps_per_epoch' not in lr_params and 'num_epochs' in self.params:
