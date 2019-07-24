@@ -83,7 +83,7 @@ def exp_decay(global_step, learning_rate, decay_steps, decay_rate,
       lambda: tf.train.exponential_decay(
           learning_rate=learning_rate,
           global_step=global_step-begin_decay_at,
-          decay_steps=decay_steps-begin_decay_at,
+          decay_steps=decay_steps,
           decay_rate=decay_rate,
           staircase=use_staircase_decay),
       name="learning_rate",
@@ -111,7 +111,6 @@ def poly_decay(global_step, learning_rate, decay_steps, power=1.0,
   Returns:
     learning rate at step ``global_step``.
   """
-  begin_decay_at = max(warmup_steps, begin_decay_at)
   if warmup_steps > 0:
     learning_rate = tf.cond(
       global_step < warmup_steps,
@@ -124,7 +123,7 @@ def poly_decay(global_step, learning_rate, decay_steps, power=1.0,
       lambda: tf.train.polynomial_decay(
           learning_rate=learning_rate,
           global_step=global_step-begin_decay_at,
-          decay_steps=decay_steps-begin_decay_at,
+          decay_steps=decay_steps,
           end_learning_rate=min_lr,
           power=power),
       name="learning_rate"
@@ -151,7 +150,6 @@ def cosine_decay(global_step, learning_rate, decay_steps, power=1.0,
   Returns:
     learning rate at step ``global_step``.
   """
-  begin_decay_at = max(warmup_steps, begin_decay_at)
   if warmup_steps > 0:
     learning_rate = tf.cond(
       global_step < warmup_steps,
@@ -164,7 +162,7 @@ def cosine_decay(global_step, learning_rate, decay_steps, power=1.0,
       lambda: tf.train.cosine_decay(
           learning_rate=learning_rate,
           global_step=global_step-begin_decay_at,
-          decay_steps=decay_steps-begin_decay_at,
+          decay_steps=decay_steps,
           alpha=min_lr
           ),
       name="learning_rate"
