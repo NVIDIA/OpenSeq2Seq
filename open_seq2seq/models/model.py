@@ -482,6 +482,14 @@ class Model:
         func_params = signature(self.params['lr_policy']).parameters
         if 'decay_steps' in func_params and 'decay_steps' not in lr_params:
           lr_params['decay_steps'] = self._last_step
+          if 'begin_decay_at' in func_params:
+            if 'warmup_steps' in func_params:
+              lr_params['begin_decay_at'] = max(
+                  lr_params.get('begin_decay_at', 0),
+                  lr_params.get('warmup_steps', 0)
+              )
+            lr_params['decay_steps'] -= lr_params.get('begin_decay_at', 0)
+          
         if 'steps_per_epoch' in func_params and \
            'steps_per_epoch' not in lr_params and 'num_epochs' in self.params:
           lr_params['steps_per_epoch'] = self.steps_in_epoch
