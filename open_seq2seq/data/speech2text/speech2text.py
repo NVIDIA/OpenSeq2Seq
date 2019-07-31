@@ -53,6 +53,9 @@ class Speech2TextDataLayer(DataLayer):
         'num_fft': int,
         'precompute_mel_basis': bool,
         'sample_freq': int,
+        'gain': float,
+        'features_mean': np.ndarray,
+        'features_std_dev': np.ndarray,
     })
 
   def __init__(self, params, model, num_workers, worker_id):
@@ -105,6 +108,7 @@ class Speech2TextDataLayer(DataLayer):
     """
     super(Speech2TextDataLayer, self).__init__(params, model,
                                                num_workers, worker_id)
+ 
     self.params['autoregressive'] = self.params.get('autoregressive', False)
     self.autoregressive = self.params['autoregressive']
     self.params['bpe'] = self.params.get('bpe', False)
@@ -370,7 +374,6 @@ class Speech2TextDataLayer(DataLayer):
     pad_to = self.params.get("pad_to", 8)
     if pad_to > 0 and self.params.get('backend') == 'librosa':
       max_len += (pad_to - max_len % pad_to) % pad_to
-
     for i, audio in enumerate(audio_arr):
       audio = np.pad(
           audio, ((0, max_len-len(audio)), (0, 0)),
@@ -439,6 +442,7 @@ class Speech2TextDataLayer(DataLayer):
     source, audio_duration = get_speech_features(
         wav, 16000., self.params
     )
+
     return source.astype(self.params['dtype'].as_numpy_dtype()), \
         np.int32([len(source)]), np.int32([0]), \
         np.float32([audio_duration])
