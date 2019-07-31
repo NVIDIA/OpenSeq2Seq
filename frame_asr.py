@@ -11,9 +11,9 @@ from open_seq2seq.utils.utils import get_base_config, check_logdir,\
                                      create_model, get_interactive_infer_results
 
 # Define the command line arguments that one would pass to run.py here
-MODEL_PARAMS = ["--config_file=data/jasper10x5-dr-librosa-novograd-speed/config_infer.py",
+MODEL_PARAMS = ["--config_file=models/Jasper-Mini-for-Jetson/config_infer_stream.py",
                 "--mode=interactive_infer",
-                "--logdir=data/jasper10x5-dr-librosa-novograd-speed/checkpoint/",
+                "--logdir=models/Jasper-Mini-for-Jetson/",
                 "--batch_size_per_gpu=1",
                 "--num_gpus=1",
                 "--use_horovod=False",
@@ -50,7 +50,7 @@ class FrameASR:
         saver_S2T.restore(self.sess, checkpoint_S2T)
         
         self.vocab = self._load_vocab(
-            self.model_S2T.params['decoder_params']['alphabet_config_path']
+            self.model_S2T.params['data_layer_params']['vocab_file']
         )
         self.sr = sr
         self.frame_len = frame_len
@@ -59,7 +59,8 @@ class FrameASR:
         self.n_frame_overlap = int(frame_overlap * sr)
         self.n_timesteps_overlap = int(frame_overlap / timestep_duration) - 2
         self.buffer = np.zeros(shape=2*self.n_frame_overlap + self.n_frame_len, dtype=np.float32)
-        self._calibrate_offset()
+        # self._calibrate_offset()
+        self.offser = 5
         self.reset()
         
         
@@ -86,11 +87,11 @@ class FrameASR:
         return self.greedy_merge(unmerged)
     
     
-    def _calibrate_offset(self, max_offset=10, n_calib_inter=10):
+    def _calibrate_offset(self, wav_file, max_offset=10, n_calib_inter=10):
         '''
         Calibrate offset for frame-by-frame decoding
         '''
-        sr, signal = wave.read('data/gtc2019_keynote_16kHz.wav')
+        sr, signal = wave.read(wav_file)
         
         # warmup
         n_warmup = 1 + int(np.ceil(2.0 * self.frame_overlap / self.frame_len))
@@ -117,7 +118,8 @@ class FrameASR:
         '''
         self.buffer=np.zeros(shape=self.buffer.shape, dtype=np.float32)
         self.prev_char = ''
-        
+
+
     @staticmethod
     def _get_model(args, scope):
         '''

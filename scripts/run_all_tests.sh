@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -e
 # This will take quite some time
-pip install -r requirements.txt
+# pip install -r requirements.txt
 echo '**********>>>> CREATE TOY DATA <<<< ************'
 scripts/create_toy_data.sh
 echo '**********>>>> RUNNING UNIT TESTS <<<< ************'
