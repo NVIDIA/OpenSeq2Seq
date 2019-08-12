@@ -42,7 +42,7 @@ Beam search decoder with language model re-scoring implementation (in `decoders`
 Text-to-text workflow uses some functions from [Tensor2Tensor](https://github.com/tensorflow/tensor2tensor) and [Neural Machine Translation (seq2seq) Tutorial](https://github.com/tensorflow/nmt).
 
 ## Disclaimer
-This is a research project, not an official NVIDIA product.
+This is a research project, not an official NVIDIA product
 
 ## Related resources
 * [Tensor2Tensor](https://github.com/tensorflow/tensor2tensor)
