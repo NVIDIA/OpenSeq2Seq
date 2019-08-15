@@ -186,11 +186,11 @@ def get_speech_features_from_file(filename, params):
 
   except PreprocessOnTheFlyException:
     sample_freq, signal = wave.read(filename)
-    features, duration = get_speech_features(signal, sample_freq, params)
+    features, duration = get_speech_features(filename, signal, sample_freq, params)
 
   except (OSError, FileNotFoundError, RegenerateCacheException):
     sample_freq, signal = wave.read(filename)
-    features, duration = get_speech_features(signal, sample_freq, params)
+    features, duration = get_speech_features(filename, signal, sample_freq, params)
 
     preprocessed_data_path = get_preprocessed_data_path(filename, params)
     save_features(features, duration, preprocessed_data_path,
@@ -258,11 +258,12 @@ def preemphasis(signal, coeff=0.97):
   return np.append(signal[0], signal[1:] - coeff * signal[:-1])
 
 
-def get_speech_features(signal, sample_freq, params):
+def get_speech_features(filename, signal, sample_freq, params):
   """
   Get speech features using either librosa (recommended) or
   python_speech_features
   Args:
+    filename (string): WAVE filename.
     signal (np.array): np.array containing raw audio signal
     sample_freq (float): sample rate of the signal
     params (dict): parameters of pre-processing
