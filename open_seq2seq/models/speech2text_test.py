@@ -102,6 +102,41 @@ class Speech2TextModelTests(tf.test.TestCase):
       self.assertLess(eval_loss, eval_loss_threshold)
       self.assertLess(eval_dict['Eval WER'], eval_wer_threshold)
 
+  def finetuning_test(self, train_loss_threshold,
+                      eval_loss_threshold, eval_wer_threshold):
+    for dtype in [tf.float32, "mixed"]:
+
+      # pre-training
+      train_config, eval_config = self.prepare_config()
+      train_config.update({
+          "dtype": dtype,
+      })
+      eval_config.update({
+          "dtype": dtype,
+      })
+      loss, eval_loss, eval_dict = self.run_model(train_config, eval_config)
+
+      self.assertLess(loss, train_loss_threshold)
+      self.assertLess(eval_loss, eval_loss_threshold)
+      self.assertLess(eval_dict['Eval WER'], eval_wer_threshold)
+
+      # finetuning
+      restore_dir = train_config['logdir']
+      train_config['logdir'] = tempfile.mktemp()
+      eval_config['logdir'] = train_config['logdir']
+      train_config.update({
+          "load_model": restore_dir,
+          "lr_policy_params": {
+               "learning_rate": 0.0001,
+               "power": 2,
+          }
+      })
+      loss_ft, eval_loss_ft, eval_dict_ft = self.run_model(train_config, eval_config)
+
+      self.assertLess(loss_ft, train_loss_threshold)
+      self.assertLess(eval_loss_ft, eval_loss_threshold)
+      self.assertLess(eval_dict_ft['Eval WER'], eval_wer_threshold)
+
   def convergence_with_iter_size_test(self):
     try:
       import horovod.tensorflow as hvd
