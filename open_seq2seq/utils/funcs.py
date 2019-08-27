@@ -116,9 +116,33 @@ def train(train_model, eval_model=None, debug_port=None, custom_hooks=None):
   # checkpoint. 
   restoring = load_model_dir and not tf.train.latest_checkpoint(checkpoint_dir)
   if restoring:
-    scaffold = TransferScaffold(
-        local_init_op=tf.group(tf.local_variables_initializer(), init_data_layer)
+    vars_in_checkpoint = {}
+    for var_name, var_shape in tf.train.list_variables(load_model_dir):
+        vars_in_checkpoint[var_name] = var_shape
+
+    print('VARS_IN_CHECKPOINT:')
+    print(vars_in_checkpoint)
+
+    vars_to_load = []
+    for var in tf.global_variables():
+      var_name = var.name.split(':')[0]
+      if var_name in vars_in_checkpoint:
+        if var.shape == vars_in_checkpoint[var_name] and \
+            'global_step' not in var_name:
+          vars_to_load.append(var)
+
+    print('VARS_TO_LOAD:')
+    for var in vars_to_load:
+        print(var)
+
+    load_model_fn = tf.contrib.framework.assign_from_checkpoint_fn(
+        tf.train.latest_checkpoint(load_model_dir), vars_to_load
     )
+    scaffold = tf.train.Scaffold(
+        local_init_op=tf.group(tf.local_variables_initializer(), init_data_layer),
+        init_fn = lambda scaffold_self, sess: load_model_fn(sess)
+    )
+
   else:
     scaffold = tf.train.Scaffold(
         local_init_op=tf.group(tf.local_variables_initializer(), init_data_layer)
@@ -134,28 +158,15 @@ def train(train_model, eval_model=None, debug_port=None, custom_hooks=None):
                "train model does not define get_num_objects_per_step method.")
 
   # starting training
-  if restoring:
-    sess = TransferMonitoredTrainingSession(
-        scaffold=scaffold,
-        checkpoint_dir=checkpoint_dir,
-        save_summaries_steps=train_model.params['save_summaries_steps'],
-        config=sess_config,
-        save_checkpoint_secs=None,
-        log_step_count_steps=train_model.params['save_summaries_steps'],
-        stop_grace_period_secs=300,
-        hooks=hooks,
-        load_model_dir=load_model_dir,
-        load_fc=train_model.params['load_fc'])
-  else:
-    sess = tf.train.MonitoredTrainingSession(
-        scaffold=scaffold,
-        checkpoint_dir=checkpoint_dir,
-        save_summaries_steps=train_model.params['save_summaries_steps'],
-        config=sess_config,
-        save_checkpoint_secs=None,
-        log_step_count_steps=train_model.params['save_summaries_steps'],
-        stop_grace_period_secs=300,
-        hooks=hooks)
+  sess = tf.train.MonitoredTrainingSession(
+      scaffold=scaffold,
+      checkpoint_dir=checkpoint_dir,
+      save_summaries_steps=train_model.params['save_summaries_steps'],
+      config=sess_config,
+      save_checkpoint_secs=None,
+      log_step_count_steps=train_model.params['save_summaries_steps'],
+      stop_grace_period_secs=300,
+      hooks=hooks)
   step = 0
   num_bench_updates = 0
   while True:
