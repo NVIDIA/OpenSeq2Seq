@@ -31,7 +31,7 @@ struct WordLMBeamState {
   bool new_word;
 };
 
-class WordLMBeamScorer : public tensorflow::ctc::BaseBeamScorer<WordLMBeamState> {
+class WordLMBeamScorer : public tensorflow::ctc::BaseBeamScorer<float, WordLMBeamState> {
   public:
     WordLMBeamScorer(const std::string &kenlm_path, const std::string &trie_path, 
                      const std::string &alphabet_path,

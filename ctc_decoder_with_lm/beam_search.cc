@@ -37,8 +37,8 @@ namespace ctc {
 
 template <typename CTCBeamState = ctc_beam_search::EmptyBeamState,
           typename CTCBeamComparer =
-              ctc_beam_search::BeamComparer<CTCBeamState>>
-class CTCBeamSearchNormLogDecoder : public CTCDecoder {
+              ctc_beam_search::BeamComparer<float, CTCBeamState>>
+class CTCBeamSearchNormLogDecoder : public CTCDecoder<float> {
   // Beam Search
   //
   // Example (GravesTh Fig. 7.5):
@@ -70,12 +70,12 @@ class CTCBeamSearchNormLogDecoder : public CTCDecoder {
   // starts at 0).  This special case can be calculated as:
   //   P(l=abc? @ t=3) = P(a @ 0)*P(b @ 1)*P(c @ 2)*P(? @ 3)
   // but we calculate it recursively for speed purposes.
-  typedef ctc_beam_search::BeamEntry<CTCBeamState> BeamEntry;
-  typedef ctc_beam_search::BeamRoot<CTCBeamState> BeamRoot;
-  typedef ctc_beam_search::BeamProbability BeamProbability;
+  typedef ctc_beam_search::BeamEntry<float, CTCBeamState> BeamEntry;
+  typedef ctc_beam_search::BeamRoot<float, CTCBeamState> BeamRoot;
+  typedef ctc_beam_search::BeamProbability<float> BeamProbability;
 
  public:
-  typedef BaseBeamScorer<CTCBeamState> DefaultBeamScorer;
+  typedef BaseBeamScorer<float, CTCBeamState> DefaultBeamScorer;
 
   // The beam search decoder is constructed specifying the beam_width (number of
   // candidates to keep at each decoding timestep) and a beam scorer (used for
@@ -84,9 +84,9 @@ class CTCBeamSearchNormLogDecoder : public CTCDecoder {
   // implementation, CTCBeamSearchDecoder<>::DefaultBeamScorer, generates the
   // standard beam search.
   CTCBeamSearchNormLogDecoder(int num_classes, int beam_width,
-                       BaseBeamScorer<CTCBeamState>* scorer, int batch_size = 1,
+                       BaseBeamScorer<float, CTCBeamState>* scorer, int batch_size = 1,
                        bool merge_repeated = false)
-      : CTCDecoder(num_classes, batch_size, merge_repeated),
+      : CTCDecoder<float>(num_classes, batch_size, merge_repeated),
         beam_width_(beam_width),
         leaves_(beam_width),
         beam_scorer_(CHECK_NOTNULL(scorer)) {
@@ -96,10 +96,10 @@ class CTCBeamSearchNormLogDecoder : public CTCDecoder {
   ~CTCBeamSearchNormLogDecoder() override {}
 
   // Run the hibernating beam search algorithm on the given input.
-  Status Decode(const CTCDecoder::SequenceLength& seq_len,
-                const std::vector<CTCDecoder::Input>& input,
-                std::vector<CTCDecoder::Output>* output,
-                CTCDecoder::ScoreOutput* scores) override;
+  Status Decode(const CTCDecoder<float>::SequenceLength& seq_len,
+                const std::vector<CTCDecoder<float>::Input>& input,
+                std::vector<CTCDecoder<float>::Output>* output,
+                CTCDecoder<float>::ScoreOutput* scores) override;
 
   // Calculate the next step of the beam search and update the internal state.
   template <typename Vector>
@@ -111,7 +111,7 @@ class CTCBeamSearchNormLogDecoder : public CTCDecoder {
                 std::vector<int>* top_k_indices);
 
   // Retrieve the beam scorer instance used during decoding.
-  BaseBeamScorer<CTCBeamState>* GetBeamScorer() const { return beam_scorer_; }
+  BaseBeamScorer<float, CTCBeamState>* GetBeamScorer() const { return beam_scorer_; }
 
   // Set label selection parameters for faster decoding.
   // See comments for label_selection_size_ and label_selection_margin_.
@@ -129,7 +129,7 @@ class CTCBeamSearchNormLogDecoder : public CTCDecoder {
                   std::vector<float>* log_probs, bool merge_repeated) const;
 
   gtl::TopN<BeamEntry*, CTCBeamComparer> leaves_;
-  BaseBeamScorer<CTCBeamState>* beam_scorer_;
+  BaseBeamScorer<float, CTCBeamState>* beam_scorer_;
 
  private:
   int beam_width_;
@@ -156,15 +156,15 @@ class CTCBeamSearchNormLogDecoder : public CTCDecoder {
 
 template <typename CTCBeamState, typename CTCBeamComparer>
 Status CTCBeamSearchNormLogDecoder<CTCBeamState, CTCBeamComparer>::Decode(
-    const CTCDecoder::SequenceLength& seq_len,
-    const std::vector<CTCDecoder::Input>& input,
-    std::vector<CTCDecoder::Output>* output, ScoreOutput* scores) {
+    const CTCDecoder<float>::SequenceLength& seq_len,
+    const std::vector<CTCDecoder<float>::Input>& input,
+    std::vector<CTCDecoder<float>::Output>* output, ScoreOutput* scores) {
   // Storage for top paths.
   std::vector<std::vector<int>> beams;
   std::vector<float> beam_log_probabilities;
   int top_n = output->size();
   if (std::any_of(output->begin(), output->end(),
-                  [this](const CTCDecoder::Output& output) -> bool {
+                  [this](const CTCDecoder<float>::Output& output) -> bool {
                     return output.size() < this->batch_size_;
                   })) {
     return errors::InvalidArgument(
@@ -325,7 +325,7 @@ void CTCBeamSearchNormLogDecoder<CTCBeamState, CTCBeamComparer>::Step(
     // isn't full, or the lowest probability entry in the beam has a
     // lower probability than the leaf.
     auto is_candidate = [this](const BeamProbability& prob) {
-      return (prob.total > kLogZero &&
+      return (prob.total > kLogZero<float>() &&
               (leaves_.size() < beam_width_ ||
                prob.total > leaves_.peek_bottom()->newp.total));
     };
@@ -345,7 +345,7 @@ void CTCBeamSearchNormLogDecoder<CTCBeamState, CTCBeamComparer>::Step(
       BeamEntry& c = b->GetChild(label);
       if (!c.Active()) {
         //   Pblank(l=abcd @ t=6) = 0
-        c.newp.blank = kLogZero;
+        c.newp.blank = kLogZero<float>();
         // If new child label is identical to beam label:
         //   Plabel(l=abcc @ t=6) = Pblank(l=abc @ t=5) * P(c @ 6)
         // Otherwise:
@@ -727,7 +727,7 @@ class CTCBeamSearchDecoderWithLMOp : public tf::OpKernel {
         beam_search.Step(input_bi);
       }
 
-      typedef tf::ctc::ctc_beam_search::BeamEntry<WordLMBeamState> BeamEntry;
+      typedef tf::ctc::ctc_beam_search::BeamEntry<float, WordLMBeamState> BeamEntry;
       std::unique_ptr<std::vector<BeamEntry*>> branches(beam_search.leaves_.Extract());
       beam_search.leaves_.Reset();
       for (int i = 0; i < branches->size(); ++i) {
