@@ -165,13 +165,12 @@ class FullyConnectedCTCDecoder(FullyConnectedTimeDecoder):
   """
   @staticmethod
   def get_required_params():
-    return dict(FullyConnectedTimeDecoder.get_required_params(), **{
-        'use_language_model': bool,
-    })
+    return FullyConnectedTimeDecoder.get_required_params()
 
   @staticmethod
   def get_optional_params():
     return dict(FullyConnectedTimeDecoder.get_optional_params(), **{
+        'use_language_model': bool,
         'decoder_library_path': str,
         'beam_width': int,
         'alpha': float,
@@ -207,6 +206,8 @@ class FullyConnectedCTCDecoder(FullyConnectedTimeDecoder):
     """
     super(FullyConnectedCTCDecoder, self).__init__(params, model, name, mode)
 
+    self.params['use_language_model'] = self.params.get('use_language_model', 
+                                                        False)
     if self.params['use_language_model']:
       # creating decode_with_lm function if it is compiled
       lib_path = self.params['decoder_library_path']
