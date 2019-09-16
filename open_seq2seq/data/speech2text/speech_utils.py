@@ -186,10 +186,24 @@ def get_speech_features_from_file(filename, params):
 
   except PreprocessOnTheFlyException:
     sample_freq, signal = wave.read(filename)
+    # check sample rate
+    if sample_freq != params['sample_freq']:
+      raise ValueError(
+          ("The sampling frequency set in params {} does not match the "
+           "frequency {} read from file {}").format(params['sample_freq'],
+                                                    sample_freq, filename)
+      )
     features, duration = get_speech_features(signal, sample_freq, params)
 
   except (OSError, FileNotFoundError, RegenerateCacheException):
     sample_freq, signal = wave.read(filename)
+    # check sample rate
+    if sample_freq != params['sample_freq']:
+      raise ValueError(
+          ("The sampling frequency set in params {} does not match the "
+           "frequency {} read from file {}").format(params['sample_freq'],
+                                                    sample_freq, filename)
+      )
     features, duration = get_speech_features(signal, sample_freq, params)
 
     preprocessed_data_path = get_preprocessed_data_path(filename, params)
@@ -289,12 +303,6 @@ def get_speech_features(signal, sample_freq, params):
     gain = params.get('gain')
     mean = params.get('features_mean')
     std_dev = params.get('features_std_dev')
-    if mel_basis is not None and sample_freq != params["sample_freq"]:
-      raise ValueError(
-          ("The sampling frequency set in params {} does not match the "
-           "frequency {} read from file {}").format(params["sample_freq"],
-                                                    sample_freq, filename)
-      )
     features, duration = get_speech_features_librosa(
         signal, sample_freq, num_features, features_type,
         window_size, window_stride, augmentation, window_fn=window_fn,

@@ -162,6 +162,7 @@ class Speech2TextDataLayer(DataLayer):
     self.params['max_duration'] = self.params.get('max_duration', -1.0)
     self.params['window_size'] = self.params.get('window_size', 20e-3)
     self.params['window_stride'] = self.params.get('window_stride', 10e-3)
+    self.params['sample_freq'] = self.params.get('sample_freq', 16000)
 
     mel_basis = None
     if (self.params.get("precompute_mel_basis", False) and
@@ -169,15 +170,15 @@ class Speech2TextDataLayer(DataLayer):
       num_fft = (
           self.params.get("num_fft", None) or
           2**math.ceil(math.log2(
-              self.params['window_size']*self.params["sample_freq"])
+              self.params['window_size']*self.params['sample_freq'])
           )
       )
       mel_basis = librosa.filters.mel(
-          self.params["sample_freq"],
+          self.params['sample_freq'],
           num_fft,
-          n_mels=self.params["num_audio_features"],
+          n_mels=self.params['num_audio_features'],
           fmin=0,
-          fmax=int(self.params["sample_freq"]/2)
+          fmax=int(self.params['sample_freq']/2)
       )
     self.params['mel_basis'] = mel_basis
 
