@@ -23,6 +23,7 @@ std::vector<std::pair<double, std::string>> ctc_beam_search_decoder(
     size_t cutoff_top_n,
     Scorer *ext_scorer) {
   // dimension check
+  std::vector<std::tuple<std::string, uint32_t, uint32_t>> wordlist;
   size_t num_time_steps = probs_seq.size();
   for (size_t i = 0; i < num_time_steps; ++i) {
     VALID_CHECK_EQ(probs_seq[i].size(),
@@ -182,7 +183,7 @@ std::vector<std::pair<double, std::string>> ctc_beam_search_decoder(
     prefixes[i]->approx_ctc = approx_ctc;
   }
 
-  return get_beam_search_result(prefixes, vocabulary, beam_size);
+  return get_beam_search_result(prefixes, vocabulary, beam_size, wordlist);
 }
 
 
@@ -258,7 +259,7 @@ BeamDecoder::~BeamDecoder()
 }
 
 
-void BeamDecoder::reset()
+void BeamDecoder::reset(bool partial /* default = false */)
 {
   // init prefixes' root
   if (root != nullptr) {
@@ -278,12 +279,23 @@ void BeamDecoder::reset()
     root->set_matcher(matcher);
   }
 
+  if (partial) {
+    prev_wordlist.insert(
+        std::end(prev_wordlist), std::begin(wordlist),
+        std::end(wordlist));
+    prev_time_offset += last_decoded_timestep + time_offset;
+  } else {
+    prev_wordlist.clear();
+    prev_time_offset = 0;
+  }
+  wordlist.clear();
+  time_offset = 0;
+  last_decoded_timestep = 0;
 }
 
 
 std::vector<std::pair<double, std::string>> BeamDecoder::decode(const std::vector<std::vector<double>> &probs_seq)
 {
-  
   // dimension check
   size_t num_time_steps = probs_seq.size();
   for (size_t i = 0; i < num_time_steps; ++i) {
@@ -338,6 +350,7 @@ std::vector<std::pair<double, std::string>> BeamDecoder::decode(const std::vecto
 
         if (prefix_new != nullptr) {
           float log_p = -NUM_FLT_INF;
+          prefix_new->offset = prev_time_offset + time_offset + time_step;
 
           if (c == prefix->character &&
               prefix->log_prob_b_prev > -NUM_FLT_INF) {
@@ -389,10 +402,20 @@ std::vector<std::pair<double, std::string>> BeamDecoder::decode(const std::vecto
   // TODO: remove sorting here
   size_t num_prefixes = std::min(prefixes.size(), beam_size);
   std::sort(prefixes.begin(), prefixes.begin() + num_prefixes, prefix_compare);
+  last_decoded_timestep = num_time_steps;
 
-  return get_beam_search_result(prefixes, vocabulary, beam_size);
+  return get_beam_search_result(prefixes, vocabulary, beam_size, wordlist);
 }
 
+void BeamDecoder::get_word_timestamps(
+    std::vector<std::tuple<std::string, uint32_t, uint32_t>>& words)
+{
+  words.clear();
+  words.insert(std::end(words), std::begin(prev_wordlist),
+      std::end(prev_wordlist));
+  words.insert(
+      std::end(words), std::begin(wordlist), std::end(wordlist));
+}
 
 
 std::vector<std::vector<std::pair<double, std::string>>>

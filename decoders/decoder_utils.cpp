@@ -41,7 +41,8 @@ std::vector<std::pair<size_t, float>> get_pruned_log_probs(
 std::vector<std::pair<double, std::string>> get_beam_search_result(
     const std::vector<PathTrie *> &prefixes,
     const std::vector<std::string> &vocabulary,
-    size_t beam_size) {
+    size_t beam_size,
+    std::vector<std::tuple<std::string, uint32_t, uint32_t>>& wordlist) {
   // allow for the post processing
   std::vector<PathTrie *> space_prefixes;
   if (space_prefixes.empty()) {
@@ -52,9 +53,11 @@ std::vector<std::pair<double, std::string>> get_beam_search_result(
 
   std::sort(space_prefixes.begin(), space_prefixes.end(), prefix_compare);
   std::vector<std::pair<double, std::string>> output_vecs;
+  std::vector<uint32_t> timestamps;
   for (size_t i = 0; i < beam_size && i < space_prefixes.size(); ++i) {
     std::vector<int> output;
-    space_prefixes[i]->get_path_vec(output);
+    // request timestamp only for best result
+    space_prefixes[i]->get_path_vec(output, i == 0 ? &timestamps : nullptr);
     // convert index to string
     std::string output_str;
     for (size_t j = 0; j < output.size(); j++) {
@@ -63,6 +66,22 @@ std::vector<std::pair<double, std::string>> get_beam_search_result(
     std::pair<double, std::string> output_pair(space_prefixes[i]->score,
                                                output_str);
     output_vecs.emplace_back(output_pair);
+  }
+
+  // update word list with word and corresponding start & end times
+  wordlist.clear();
+  if (output_vecs[0].second.size() > 0) {
+    int ts_idx = 0;
+    char* saveptr;
+    char transcript[output_vecs[0].second.size() + 1];
+    strcpy(transcript, output_vecs[0].second.c_str());
+    char* token = strtok_r(transcript, " ", &saveptr);
+    while (token != NULL) {
+      std::tuple<std::string, uint32_t, uint32_t> word(std::string(token), timestamps[ts_idx], timestamps[ts_idx + 1]);
+      wordlist.emplace_back(word);
+      token = strtok_r(NULL, " ", &saveptr);
+      ts_idx += 2;
+    }
   }
 
   return output_vecs;
