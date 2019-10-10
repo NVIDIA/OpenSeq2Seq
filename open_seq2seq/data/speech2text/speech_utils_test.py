@@ -62,6 +62,7 @@ class SpeechUtilsTests(tf.test.TestCase):
               params['input_type'] = features_type
               params['window_size'] = window_size
               params['window_stride'] = window_stride
+              params['sample_freq'] = 16000
               input_features, _ = get_speech_features_from_file(
                   filename,
                   params
@@ -77,6 +78,7 @@ class SpeechUtilsTests(tf.test.TestCase):
               params['input_type'] = 'spectrogram'
               params['window_size'] = window_size
               params['window_stride'] = window_stride
+              params['sample_freq'] = 16000
               get_speech_features_from_file(
                   filename,
                   params
@@ -91,6 +93,7 @@ class SpeechUtilsTests(tf.test.TestCase):
     filename = 'open_seq2seq/test_utils/toy_speech_data/wav_files/46gc040q.wav'
     num_features = 161
     params = {}
+    params['sample_freq'] = 16000
     params['num_audio_features'] = num_features
     input_features_clean, _ = get_speech_features_from_file(
         filename, params
