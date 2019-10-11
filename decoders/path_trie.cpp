@@ -102,7 +102,7 @@ PathTrie* PathTrie::get_path_vec(std::vector<int>& output,
     output.push_back(character);
     if (timestamps) {
       if (timestamps->size() == 0 || output[output.size()-1] == 0 || parent->character == ROOT_ || parent->character == 0) {
-        timestamps->push_back(offset * 20);
+        timestamps->push_back(offset);
       }
     }
     return parent->get_path_vec(output, stop, max_steps, timestamps);
