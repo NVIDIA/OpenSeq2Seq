@@ -58,7 +58,8 @@ std::vector<std::pair<size_t, float>> get_pruned_log_probs(
 std::vector<std::pair<double, std::string>> get_beam_search_result(
     const std::vector<PathTrie *> &prefixes,
     const std::vector<std::string> &vocabulary,
-    size_t beam_size);
+    size_t beam_size,
+    std::vector<std::tuple<std::string, uint32_t, uint32_t>>& wordlist);
 
 // Functor for prefix comparsion
 bool prefix_compare(const PathTrie *x, const PathTrie *y);

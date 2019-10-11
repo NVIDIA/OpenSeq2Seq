@@ -23,6 +23,7 @@ PathTrie::PathTrie() {
   dictionary_ = nullptr;
   dictionary_state_ = 0;
   has_dictionary_ = false;
+  offset = 0;
 
   matcher_ = nullptr;
 }
@@ -83,19 +84,28 @@ PathTrie* PathTrie::get_path_trie(int new_char, bool reset) {
   }
 }
 
-PathTrie* PathTrie::get_path_vec(std::vector<int>& output) {
-  return get_path_vec(output, ROOT_);
+PathTrie* PathTrie::get_path_vec(std::vector<int>& output, std::vector<uint32_t>* timestamps) {
+  return get_path_vec(output, ROOT_, std::numeric_limits<size_t>::max(), timestamps);
 }
 
 PathTrie* PathTrie::get_path_vec(std::vector<int>& output,
                                  int stop,
-                                 size_t max_steps) {
+                                 size_t max_steps,
+                                 std::vector<uint32_t>* timestamps) {
   if (character == stop || character == ROOT_ || output.size() == max_steps) {
     std::reverse(output.begin(), output.end());
+    if (timestamps) {
+      std::reverse(timestamps->begin(), timestamps->end());
+    }
     return this;
   } else {
     output.push_back(character);
-    return parent->get_path_vec(output, stop, max_steps);
+    if (timestamps) {
+      if (timestamps->size() == 0 || output[output.size()-1] == 0 || parent->character == ROOT_ || parent->character == 0) {
+        timestamps->push_back(offset);
+      }
+    }
+    return parent->get_path_vec(output, stop, max_steps, timestamps);
   }
 }
 
