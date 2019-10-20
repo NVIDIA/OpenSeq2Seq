@@ -26,6 +26,7 @@ dataset size will be around 224GB (including archives and original compressed au
 Now, everything should be setup to train the model::
 
     python run.py --config_file=example_configs/speech2text/ds2_librispeech_larc_config.py --mode=train_eval
+    python run.py --config_file=example_configs/speech2text/ds2_librispeech_larc_config.py --mode=train_eval --infer_dataset=example_configs/datasets/infer.csv
 
 If you want to run evaluation/inference with the trained model, replace
 ``--mode=train_eval`` with ``--mode=eval`` or ``--mode=infer``.
