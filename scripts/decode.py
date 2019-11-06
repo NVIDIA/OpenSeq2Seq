@@ -4,7 +4,7 @@ from https://github.com/PaddlePaddle/DeepSpeech/decoders/swig
 '''
 
 import argparse
-
+import time
 import pickle
 import numpy as np
 
@@ -89,7 +89,6 @@ args.beta_max += args.beta_step/10.0
 
 num_cpus = multiprocessing.cpu_count()
 
-
 def levenshtein(a, b):
   """Calculates the Levenshtein distance between a and b.
   The code was taken from: http://hetland.org/coding/python/levenshtein.py
@@ -170,6 +169,8 @@ def softmax(x):
 
 
 def evaluate_wer(logits, labels, vocab, decoder):
+  eval_start=time.time()
+  print("evaluation started at   ",eval_start)
   total_dist = 0.0
   total_count = 0.0
   wer_per_sample = np.empty(shape=len(labels))
@@ -187,31 +188,57 @@ def evaluate_wer(logits, labels, vocab, decoder):
     wer_per_sample[idx] = dist / len(label.split())
   print('# empty preds: {}'.format(empty_preds))
   wer = total_dist / total_count
+  eval_end=time.time()
+  print("evaluation took %s time"%(eval_end-eval_start))
   return wer, wer_per_sample
 
+def divide_chunks(l, n): 
+    # looping till length l 
+    for i in range(0, len(l), n):  
+        yield l[i:i + n] 
 
+data_load_start=time.time()
 data = load_dump(args.logits)
 labels = load_labels(args.labels)
 logits = get_logits(data, labels)
 vocab = load_vocab(args.vocab)
 vocab[-1] = '_'
-
+data_load_end=time.time()
+print("Data loading took %s seconds" %(data_load_end-data_load_start) )
 probs_batch = []
 for line in labels:
   audio_filename = line[0]
   probs_batch.append(softmax(logits[audio_filename]))
+batch_prob_end=time.time()
+print("Batch logit loading took %s seconds" %(batch_prob_end-data_load_end) )
 
 if args.mode == 'eval':
+  eval_start=time.time()
   wer, _ = evaluate_wer(logits, labels, vocab, greedy_decoder)
   print('Greedy WER = {:.4f}'.format(wer))
   best_result = {'wer': 1e6, 'alpha': 0.0, 'beta': 0.0, 'beams': None} 
   for alpha in np.arange(args.alpha, args.alpha_max, args.alpha_step):
     for beta in np.arange(args.beta, args.beta_max, args.beta_step):
       scorer = Scorer(alpha, beta, model_path=args.lm, vocabulary=vocab[:-1])
-      res = ctc_beam_search_decoder_batch(probs_batch, vocab[:-1], 
-                                          beam_size=args.beam_width, 
-                                          num_processes=num_cpus,
-                                          ext_scoring_func=scorer)
+      print("scorer complete")
+      probs_batch_list = list(divide_chunks(probs_batch, 500))
+      res=[]
+      for  probs_batch in probs_batch_list:
+        f=time.time()
+        result = ctc_beam_search_decoder_batch(probs_batch, vocab[:-1], 
+                                            beam_size=args.beam_width, 
+                                            num_processes=num_cpus,
+                                            ext_scoring_func=scorer)
+        e=time.time()
+        for j in result:
+          res.append(j)
+        print("500 files batched took %s time"%(e-f))
+
+
+      # res = ctc_beam_search_decoder_batch(probs_batch, vocab[:-1], 
+      #                                     beam_size=args.beam_width, 
+      #                                     num_processes=num_cpus,
+      #                                     ext_scoring_func=scorer)
       total_dist = 0.0
       total_count = 0.0
       for idx, line in enumerate(labels):
@@ -230,7 +257,8 @@ if args.mode == 'eval':
       print('alpha={:.2f}, beta={:.2f}: WER={:.4f}'.format(alpha, beta, wer))
   print('BEST: alpha={:.2f}, beta={:.2f}, WER={:.4f}'.format(
         best_result['alpha'], best_result['beta'], best_result['wer']))
-    
+  eval_end=time.time()
+  print("evaluation took %s seconds",eval_end-eval_start)  
   if args.dump_all_beams_to:
    with open(args.dump_all_beams_to, 'w') as f:
      for beam in best_result['beams']:
@@ -240,18 +268,34 @@ if args.mode == 'eval':
        f.write('E=>>>>>>>>\n')
 
 elif args.mode == 'infer':
+  print("Inference Mode")
+  infer_start=time.time()
   scorer = Scorer(args.alpha, args.beta, model_path=args.lm, vocabulary=vocab[:-1])
-  res = ctc_beam_search_decoder_batch(probs_batch, vocab[:-1], 
-                                      beam_size=args.beam_width, 
-                                      num_processes=num_cpus,
-                                      ext_scoring_func=scorer)
+
+  probs_batch_list = list(divide_chunks(probs_batch, 500))
+  res=[]
+  for  probs_batch in probs_batch_list:
+    f=time.time()
+    result = ctc_beam_search_decoder_batch(probs_batch, vocab[:-1], 
+                                        beam_size=args.beam_width, 
+                                        num_processes=num_cpus,
+                                        ext_scoring_func=scorer)
+    e=time.time()
+
+    for j in result:
+      res.append(j)
+
+    print("500 files batched took %s time"%(e-f))
+
   infer_preds = np.empty(shape=(len(labels), 2), dtype=object)
   for idx, line in enumerate(labels):
     filename = line[0]
     score, text = [v for v in zip(*res[idx])]
     infer_preds[idx, 0] = filename
     infer_preds[idx, 1] = text[0]
-    
+  
+  infer_end=time.time()
+  print("Inference took %s seconds",infer_end-infer_start)  
   np.savetxt(args.infer_output_file, infer_preds, fmt='%s', delimiter=',',
              header='wav_filename,transcript')
 
