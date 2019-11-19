@@ -51,7 +51,7 @@ public:
   void set_start_offset(int offset) { time_offset = offset; }
 
   // reset state
-  void reset(bool partial = false);
+  void reset(bool keep_offset = false, bool keep_words = false);
 
 private:
   Scorer *ext_scorer;
