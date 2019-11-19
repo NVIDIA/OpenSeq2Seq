@@ -44,8 +44,14 @@ public:
   // decode a frame
   std::vector<std::pair<double, std::string>> decode(const std::vector<std::vector<double>> &probs_seq);
 
+  void get_word_timestamps(
+      std::vector<std::tuple<std::string, uint32_t, uint32_t>>& words);
+
+  void add_start_offset(int offset) { time_offset += offset; }
+  void set_start_offset(int offset) { time_offset = offset; }
+
   // reset state
-  void reset();
+  void reset(bool partial = false);
 
 private:
   Scorer *ext_scorer;
@@ -57,6 +63,13 @@ private:
   std::vector<std::string> vocabulary;
   size_t blank_id;
   int space_id;
+  // for word timestamps
+  int time_offset; // time offset to be added to all prefixes
+  int prev_time_offset; // time offset of previous decode. Needed when decoding
+                        // multiple sentences with VAD.
+  int last_decoded_timestep; // timestep of the last parsed prefix
+  std::vector<std::tuple<std::string, uint32_t, uint32_t>> prev_wordlist;
+  std::vector<std::tuple<std::string, uint32_t, uint32_t>> wordlist;
 
   PathTrie *root;
   std::vector<PathTrie *> prefixes;

@@ -21,12 +21,13 @@ public:
   PathTrie* get_path_trie(int new_char, bool reset = true);
 
   // get the prefix in index from root to current node
-  PathTrie* get_path_vec(std::vector<int>& output);
+  PathTrie* get_path_vec(std::vector<int>& output, std::vector<uint32_t>* timestamps = nullptr);
 
   // get the prefix in index from some stop node to current nodel
   PathTrie* get_path_vec(std::vector<int>& output,
                          int stop,
-                         size_t max_steps = std::numeric_limits<size_t>::max());
+                         size_t max_steps = std::numeric_limits<size_t>::max(),
+                         std::vector<uint32_t>* timestamps = nullptr);
 
   // update log probs
   void iterate_to_vec(std::vector<PathTrie*>& output);
@@ -48,6 +49,7 @@ public:
   float score;
   float approx_ctc;
   int character;
+  int offset;
   PathTrie* parent;
 
 private:
