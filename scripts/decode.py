@@ -233,12 +233,7 @@ if args.mode == 'eval':
         for j in result:
           res.append(j)
         print("500 files batched took %s time"%(e-f))
-
-
-      # res = ctc_beam_search_decoder_batch(probs_batch, vocab[:-1], 
-      #                                     beam_size=args.beam_width, 
-      #                                     num_processes=num_cpus,
-      #                                     ext_scoring_func=scorer)
+        
       total_dist = 0.0
       total_count = 0.0
       for idx, line in enumerate(labels):
@@ -267,35 +262,48 @@ if args.mode == 'eval':
          f.write('{} 0.0 0.0 {}\n'.format(pred[0], pred[1]))
        f.write('E=>>>>>>>>\n')
 
+elif args.mode == 'greedy':
+    print("Greedy Mode")
+    greedy_preds = np.empty(shape=(len(labels), 2), dtype=object)
+    for idx, line in enumerate(labels):
+        filename = line[0]
+        greedy_preds[idx, 0] = filename
+        greedy_preds[idx, 1] = greedy_decoder(logits[filename], vocab)
+
+    np.savetxt(args.infer_output_file, greedy_preds, fmt='%s', delimiter=',',
+              header='wav_filename,greedy')
+    
+
 elif args.mode == 'infer':
-  print("Inference Mode")
-  infer_start=time.time()
-  scorer = Scorer(args.alpha, args.beta, model_path=args.lm, vocabulary=vocab[:-1])
+    print("Inference Mode")
+    infer_start=time.time()
+    scorer = Scorer(args.alpha, args.beta, model_path=args.lm, vocabulary=vocab[:-1])
 
-  probs_batch_list = list(divide_chunks(probs_batch, 500))
-  res=[]
-  for  probs_batch in probs_batch_list:
-    f=time.time()
-    result = ctc_beam_search_decoder_batch(probs_batch, vocab[:-1], 
-                                        beam_size=args.beam_width, 
-                                        num_processes=num_cpus,
-                                        ext_scoring_func=scorer)
-    e=time.time()
+    probs_batch_list = list(divide_chunks(probs_batch, 500))
+    res=[]
+    for  probs_batch in probs_batch_list:
+      f=time.time()
+      result = ctc_beam_search_decoder_batch(probs_batch, vocab[:-1], 
+                                          beam_size=args.beam_width, 
+                                          num_processes=num_cpus,
+                                          ext_scoring_func=scorer)
+      e=time.time()
 
-    for j in result:
-      res.append(j)
+      for j in result:
+        res.append(j)
 
-    print("500 files batched took %s time"%(e-f))
+      print("500 files batched took %s time"%(e-f))
 
-  infer_preds = np.empty(shape=(len(labels), 2), dtype=object)
-  for idx, line in enumerate(labels):
-    filename = line[0]
-    score, text = [v for v in zip(*res[idx])]
-    infer_preds[idx, 0] = filename
-    infer_preds[idx, 1] = text[0]
-  
-  infer_end=time.time()
-  print("Inference took %s seconds",infer_end-infer_start)  
-  np.savetxt(args.infer_output_file, infer_preds, fmt='%s', delimiter=',',
-             header='wav_filename,transcript')
+    infer_preds = np.empty(shape=(len(labels), 3), dtype=object)
+    for idx, line in enumerate(labels):
+      filename = line[0]
+      score, text = [v for v in zip(*res[idx])]
+      infer_preds[idx, 0] = filename
+      infer_preds[idx, 1] = text[0]
+      #Greedy
+      infer_preds[idx, 2] = greedy_decoder(logits[filename], vocab)
+    
+    infer_end=time.time()
+    print("Inference took %s seconds",infer_end-infer_start)  
+    np.savetxt(args.infer_output_file, infer_preds, fmt='%s', delimiter=',',header='wav_filename,lm,greedy')
 
