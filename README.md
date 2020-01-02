@@ -65,3 +65,71 @@ If you use OpenSeq2Seq, please cite [this paper](https://arxiv.org/abs/1805.1038
     primaryClass={cs.CL}
 }
 ```
+
+## Install Decoders
+
+### Install boost/automake and bison
+```
+sudo apt-get install libboost-all-dev -y
+sudo apt-get install automake -y
+sudo apt-get install bison -y
+```
+
+### Install SWIG
+ ```
+ git clone https://github.com/swig/swig.git
+cd swig
+./autogen.sh
+./configure
+make
+sudo make install
+ ```
+ #### Test once
+ ```
+ $ swig
+ ```
+ if you encounter 
+```
+$ swig: error while loading shared libraries: libpcre.so.1: cannot open shared object file: No such file or directory
+```
+## Install PCRE
+```
+cd /usr/local/src
+sudo curl --remote-name ftp://ftp.csx.cam.ac.uk/pub/software/programming/pcre/pcre-8.42.tar.gz
+
+tar -xzvf pcre-8.42.tar.gz
+cd pcre-8.42
+sudo ./configure --prefix=/usr/local/mac-dev-env/pcre-8.42
+sudo make
+sudo make install 
+sudo ln -s mac-dev-env/pcre-8.42 /usr/local/pcre
+echo 'export PATH=/usr/local/pcre/bin:$PATH' >> ~/.bash_profile
+source ~/.bash_profile
+cd .libs
+sudo mv -v libpcre.so.* /usr/lib/
+```
+If the above doesnt works then please use the latest version as follows:
+
+```
+sudo curl --remote-name https://ftp.pcre.org/pub/pcre/pcre-8.43.tar.bz2
+tar xjf  pcre-8.43.tar.bz2 
+cd pcre-8.43/
+sudo ./configure --prefix=/usr/local/mac-dev-env/pcre-8.43
+sudo make
+sudo make install 
+sudo ln -s mac-dev-env/pcre-8.43 /usr/local/pcre
+echo 'export PATH=/usr/local/pcre/bin:$PATH' >> ~/.bash_profile
+source ~/.bash_profile
+cd .libs
+sudo mv -v libpcre.so.* /usr/lib/
+```
+
+If the symlink is already used..either delete or use another symlink
+## Final Output
+
+```
+$ swig
+Must specify an input file. Use -help for available options.
+```
+
+### ThankYou
