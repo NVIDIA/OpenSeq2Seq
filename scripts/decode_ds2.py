@@ -14,7 +14,6 @@ from ctc_decoders import ctc_beam_search_decoder_batch, ctc_beam_search_decoder
 from collections import defaultdict
 import multiprocessing
 
-import trie_utils as td
 
 parser = argparse.ArgumentParser(
     description='CTC decoding and tuning with LM rescoring'
@@ -76,10 +75,6 @@ parser.add_argument('--beam_width', type=int,
 parser.add_argument('--dump_all_beams_to', 
     help='filename to dump all beams in eval mode for debug purposes',
     required=False, default='')
-parser.add_argument('--custom_map',
-    help='pickle file of mappings that have to applied to LM output',
-    required=False,default='/home/vz/users/ak47/projects/titans/resources/edel_domain_map_dict.pkl')
-parser.add_argument('--req_custom_map',required=False,default=False)
 args = parser.parse_args()
 
 if args.alpha_max is None:
@@ -117,7 +112,7 @@ def levenshtein(a, b):
 
 def load_dump(pickle_file):
   with open(pickle_file, 'rb') as f:
-    data = pickle.load(f, encoding='bytes')
+    data = pickle.load(f, encoding='latin1')
   return data
 
 
@@ -213,7 +208,7 @@ print("Data loading took %s seconds" %(data_load_end-data_load_start) )
 probs_batch = []
 for line in labels:
   audio_filename = line[0]
-  probs_batch.append(softmax(logits[audio_filename]))
+  probs_batch.append(logits[audio_filename])
 batch_prob_end=time.time()
 print("Batch logit loading took %s seconds" %(batch_prob_end-data_load_end) )
 
@@ -300,38 +295,15 @@ elif args.mode == 'infer':
       print("500 files batched took %s time"%(e-f))
 
     infer_preds = np.empty(shape=(len(labels), 3), dtype=object)
-    if(args.req_custom_map):
-        dictionary = td.Trie()
-        custom_map=pickle.load(open(args.custom_map,'rb'))
-        for source, target in custom_map.items():
-            source=source.lower()
-            target=target.lower()
-
-            if((source.isalpha() or (x.isspace() for x in source)) and (target.isalpha() or (x.isspace() for x in target))):
-                dictionary.insert(source, target)
-        for idx, line in enumerate(labels):
-          filename = line[0]
-          score, text = [v for v in zip(*res[idx])]
-          infer_preds[idx, 0] = filename
-          infer_preds[idx, 1] = dictionary.replace_sentence(text[0])
-          #Greedy
-          infer_preds[idx, 2] = greedy_decoder(logits[filename], vocab)
-
-        infer_end=time.time()
-        print("Inference took %s seconds",infer_end-infer_start)  
-        np.savetxt(args.infer_output_file, infer_preds, fmt='%s', delimiter=',',header='wav_filename,lm,greedy')
-    else:
-        for idx, line in enumerate(labels):
-          filename = line[0]
-          score, text = [v for v in zip(*res[idx])]
-          infer_preds[idx, 0] = filename
-          infer_preds[idx, 1] = text[0]
-          #Greedy
-          infer_preds[idx, 2] = greedy_decoder(logits[filename], vocab)
+    for idx, line in enumerate(labels):
+      filename = line[0]
+      score, text = [v for v in zip(*res[idx])]
+      infer_preds[idx, 0] = filename
+      infer_preds[idx, 1] = text[0]
+      #Greedy
+      infer_preds[idx, 2] = greedy_decoder(logits[filename], vocab)
     
-        infer_end=time.time()
-        print("Inference took %s seconds",infer_end-infer_start)  
-        np.savetxt(args.infer_output_file, infer_preds, fmt='%s', delimiter=',',header='wav_filename,lm,greedy')
-
-        
+    infer_end=time.time()
+    print("Inference took %s seconds",infer_end-infer_start)  
+    np.savetxt(args.infer_output_file, infer_preds, fmt='%s', delimiter=',',header='wav_filename,lm,greedy')
 
