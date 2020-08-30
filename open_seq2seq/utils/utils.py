@@ -508,14 +508,12 @@ def get_base_config(args):
                       help='whether to use XLA_JIT to compile and run the model.')
   parser.add_argument('--infer_dataset', dest='infer_dataset',
                       help='infer_dataset csv file.')
-  parser.add_argument('--train_dataset', dest='train_dataset',
-                      help='train_dataset csv file.')  
   parser.add_argument('--gpu_ids', dest='gpu_ids',
-                      help='ID to use for inference.')
+                      help='ids of GPU to pin should be comma seperated eg: 0,1.')
   args, unknown = parser.parse_known_args(args)
-  gpus = args.gpu_ids
+
   infer_params = args.infer_dataset
-  train_params = args.train_dataset
+  gpus = args.gpu_ids
 
   if args.mode not in [
       'train',
@@ -528,15 +526,11 @@ def get_base_config(args):
                      "['train', 'eval', 'train_eval', 'infer', "
                      "'interactive_infer']")
   config_module = runpy.run_path(args.config_file, init_globals={'tf': tf})
-  
-  if args.infer_dataset:
-    config_module['infer_params']['data_layer_params']['dataset_files'] = args.infer_dataset.split(',')
 
-  if args.train_dataset:
-    config_module['train_params']['data_layer_params']['dataset_files'] = args.train_dataset.split(',')
-
-  if args.gpu_ids:
-    config_module['base_params']['gpu_ids'] = [eval(i) for i in args.gpu_ids.split(',')]
+  if infer_params:
+      config_module['infer_params']['data_layer_params']['dataset_files'] = infer_params.split(',')
+  if gpus:
+      config_module['base_params']['gpu_ids'] = [eval(i) for i in gpus.split(',')]
 
   base_config = config_module.get('base_params', None)
   if base_config is None:
@@ -559,6 +553,7 @@ def get_base_config(args):
       parser_unk.add_argument('--' + pm, default=value, type=ast.literal_eval)
   config_update = parser_unk.parse_args(unknown)
   nested_update(base_config, nest_dict(vars(config_update)))
+
   return args, base_config, base_model, config_module
 
 def get_calibration_config(arguments):
