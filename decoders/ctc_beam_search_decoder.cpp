@@ -259,7 +259,7 @@ BeamDecoder::~BeamDecoder()
 }
 
 
-void BeamDecoder::reset(bool partial /* default = false */)
+void BeamDecoder::reset(bool keep_offset /*default = false*/, bool keep_words /*default = false*/)
 {
   // init prefixes' root
   if (root != nullptr) {
@@ -279,15 +279,20 @@ void BeamDecoder::reset(bool partial /* default = false */)
     root->set_matcher(matcher);
   }
 
-  if (partial) {
+  if (keep_offset) {
+    prev_time_offset += last_decoded_timestep + time_offset;
+  } else {
+    prev_time_offset = 0;
+  }
+
+  if (keep_words) {
     prev_wordlist.insert(
         std::end(prev_wordlist), std::begin(wordlist),
         std::end(wordlist));
-    prev_time_offset += last_decoded_timestep + time_offset;
   } else {
     prev_wordlist.clear();
-    prev_time_offset = 0;
   }
+
   wordlist.clear();
   time_offset = 0;
   last_decoded_timestep = 0;
