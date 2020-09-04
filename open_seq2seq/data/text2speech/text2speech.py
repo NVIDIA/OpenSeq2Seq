@@ -320,7 +320,7 @@ class Text2SpeechDataLayer(DataLayer):
             num_parallel_calls=8,
         )
         if (self.params.get("duration_max", None) or
-            self.params.get("duration_max", None)):
+            self.params.get("duration_min", None)):
           self._dataset = self._dataset.filter(
               lambda txt, txt_len, spec, stop, spec_len:
                   tf.logical_and(
