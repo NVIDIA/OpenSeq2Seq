@@ -30,9 +30,7 @@ The recommended way to install OpenSeq2Seq is to use NVIDIA TensorFlow Docker co
     sudo apt-get install nvidia-docker2
     sudo pkill -SIGHUP dockerd
 
-6. Pull latest NVIDIA TensorFlow container from NVIDIA GPU Cloud
-
-    see https://docs.nvidia.com/deeplearning/dgx/tensorflow-user-guide/index.html::
+6. Pull latest NVIDIA TensorFlow container from NVIDIA GPU Cloud ( see `documentation <https://docs.nvidia.com/deeplearning/dgx/tensorflow-user-guide/index.html>`_ )::
 
     docker pull nvcr.io/nvidia/tensorflow:19.05-py3
 
