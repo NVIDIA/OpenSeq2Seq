@@ -6,7 +6,7 @@ from __future__ import print_function
 from setuptools import setup, Extension, distutils
 import glob
 import platform
-import os, sys
+import os, sys, shutil
 import multiprocessing.pool
 import argparse
 
@@ -21,6 +21,9 @@ args = parser.parse_known_args()
 # reconstruct sys.argv to pass to setup below
 sys.argv = [sys.argv[0]] + args[1]
 
+if shutil.which('swig') is None:
+    raise Exception('SWIG is required. ' +
+        'Please install with `sudo apt-get install swig` on Ubuntu.')
 
 # monkey-patch for parallel compilation
 # See: https://stackoverflow.com/a/13176803
