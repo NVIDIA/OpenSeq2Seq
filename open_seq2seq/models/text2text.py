@@ -50,7 +50,7 @@ def calculate_bleu(preds, targets):
     float32: BLEU score
   """
   bleu_score = nltk.translate.bleu_score.corpus_bleu(
-      targets, preds, emulate_multibleu=True,
+      targets, preds,
   )
   return bleu_score
 
