@@ -220,6 +220,8 @@ class Speech2Text(EncoderDecoderModel):
       )[0])
     sample_wer = levenshtein(true_text.split(), pred_text.split()) / \
         len(true_text.split())
+    sample_cer=levenshtein(true_text, pred_text) / \
+        len(true_text)
 
     self.autoregressive = self.get_data_layer().params.get('autoregressive', False)
     self.plot_attention = False  # (output_values[1] != None).all()
@@ -228,6 +230,7 @@ class Speech2Text(EncoderDecoderModel):
           output_values[1][0], pred_text, output_values[2][0], training_step)
 
     deco_print("Sample WER: {:.4f}".format(sample_wer), offset=4)
+    deco_print("Sample CER: {:.4f}".format(sample_cer), offset=4)
     deco_print("Sample target:     " + true_text, offset=4)
     deco_print("Sample prediction: " + pred_text, offset=4)
 
@@ -244,11 +247,17 @@ class Speech2Text(EncoderDecoderModel):
   def finalize_evaluation(self, results_per_batch, training_step=None):
     total_word_lev = 0.0
     total_word_count = 0.0
-    for word_lev, word_count in results_per_batch:
+    total_char_lev =0.0 
+    total_char_count=0.0
+    for word_lev, word_count,char_lev,char_count in results_per_batch:
       total_word_lev += word_lev
       total_word_count += word_count
+      total_char_lev+=char_lev
+      total_char_count+=char_count
 
     total_wer = 1.0 * total_word_lev / total_word_count
+    total_cer= 1.0 * total_char_lev / total_char_count
+    deco_print("Validation CER:  {:.4f}".format(total_cer), offset=4)
     deco_print("Validation WER:  {:.4f}".format(total_wer), offset=4)
     return {
         "Eval WER": total_wer,
@@ -257,6 +266,8 @@ class Speech2Text(EncoderDecoderModel):
   def evaluate(self, input_values, output_values):
     total_word_lev = 0.0
     total_word_count = 0.0
+    total_char_lev=0.0
+    total_char_count=0.0
 
     decoded_sequence = output_values[0]
 
@@ -290,8 +301,10 @@ class Speech2Text(EncoderDecoderModel):
 
       total_word_lev += levenshtein(true_text.split(), pred_text.split())
       total_word_count += len(true_text.split())
+      total_char_lev+=levenshtein(true_text,pred_text)
+      total_char_count+=len(true_text)
 
-    return total_word_lev, total_word_count
+    return total_word_lev, total_word_count,total_char_lev,total_char_count
 
   def infer(self, input_values, output_values):
     preds = []
