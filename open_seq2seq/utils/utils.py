@@ -506,7 +506,13 @@ def get_base_config(args):
                       help='whether to log output, git info, cmd args, etc.')
   parser.add_argument('--use_xla_jit', dest='use_xla_jit', action='store_true',
                       help='whether to use XLA_JIT to compile and run the model.')
+  parser.add_argument('--infer_dataset', dest='infer_dataset',
+                      help='infer_dataset csv file.')
+  parser.add_argument('--train_dataset', dest='train_dataset',
+                      help='train_dataset csv file.')
   args, unknown = parser.parse_known_args(args)
+  infer_params = args.infer_dataset
+  train_params = args.train_dataset
 
   if args.mode not in [
       'train',
@@ -519,7 +525,10 @@ def get_base_config(args):
                      "['train', 'eval', 'train_eval', 'infer', "
                      "'interactive_infer']")
   config_module = runpy.run_path(args.config_file, init_globals={'tf': tf})
-
+  if infer_params:
+    config_module['infer_params']['data_layer_params']['dataset_files'] = infer_params.split(',')
+  if train_params:
+    config_module['train_params']['data_layer_params']['dataset_files'] = train_params.split(',')
   base_config = config_module.get('base_params', None)
   if base_config is None:
     raise ValueError('base_config dictionary has to be '
@@ -541,7 +550,6 @@ def get_base_config(args):
       parser_unk.add_argument('--' + pm, default=value, type=ast.literal_eval)
   config_update = parser_unk.parse_args(unknown)
   nested_update(base_config, nest_dict(vars(config_update)))
-
   return args, base_config, base_model, config_module
 
 def get_calibration_config(arguments):
