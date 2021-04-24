@@ -5,6 +5,15 @@ if [ ! -d kenlm ]; then
     echo -e "\n"
 fi
 
+if [ ! -d kenlm/build ]; then
+    mkdir kenlm/build
+    cd kenlm/build
+    cmake ..
+    make
+    cd ../..
+    echo -e "\n"
+fi
+
 if [ ! -d openfst-1.6.3 ]; then
     echo "Download and extract openfst ..."
     wget http://www.openfst.org/twiki/pub/FST/FstDownload/openfst-1.6.3.tar.gz
