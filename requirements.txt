@@ -1,5 +1,5 @@
 numpy
-nltk==3.2.5
+nltk==3.4.5
 resampy
 pandas==0.23.0
 six
